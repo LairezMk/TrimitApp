@@ -1,0 +1,377 @@
+import { Sparkles, Dumbbell, Music, Briefcase, BookOpen, Newspaper, PlusCircle, Edit2, Trash2, X, Tag } from "lucide-react";
+import { useState } from "react";
+
+const initialCategories = [
+  {
+    name: "Entretenimiento",
+    icon: Sparkles,
+    color: "bg-red-500",
+    subscriptions: 4,
+    monthlySpend: 66.55,
+    budget: 80,
+  },
+  {
+    name: "Productividad",
+    icon: Briefcase,
+    color: "bg-blue-500",
+    subscriptions: 2,
+    monthlySpend: 64.99,
+    budget: 70,
+  },
+  {
+    name: "Salud",
+    icon: Dumbbell,
+    color: "bg-orange-500",
+    subscriptions: 1,
+    monthlySpend: 10.4,
+    budget: 30,
+  },
+  {
+    name: "Música",
+    icon: Music,
+    color: "bg-green-500",
+    subscriptions: 1,
+    monthlySpend: 9.99,
+    budget: 15,
+  },
+  {
+    name: "Educación",
+    icon: BookOpen,
+    color: "bg-purple-500",
+    subscriptions: 0,
+    monthlySpend: 0,
+    budget: 50,
+  },
+  {
+    name: "Noticias",
+    icon: Newspaper,
+    color: "bg-gray-700",
+    subscriptions: 0,
+    monthlySpend: 0,
+    budget: 20,
+  },
+];
+
+const availableIcons = [
+  { name: "Sparkles", component: Sparkles },
+  { name: "Briefcase", component: Briefcase },
+  { name: "Dumbbell", component: Dumbbell },
+  { name: "Music", component: Music },
+  { name: "BookOpen", component: BookOpen },
+  { name: "Newspaper", component: Newspaper },
+  { name: "Tag", component: Tag },
+];
+
+const availableColors = [
+  { name: "Rojo", value: "bg-red-500" },
+  { name: "Azul", value: "bg-blue-500" },
+  { name: "Verde", value: "bg-green-500" },
+  { name: "Naranja", value: "bg-orange-500" },
+  { name: "Púrpura", value: "bg-purple-500" },
+  { name: "Rosa", value: "bg-pink-500" },
+  { name: "Amarillo", value: "bg-yellow-500" },
+  { name: "Índigo", value: "bg-indigo-500" },
+  { name: "Gris", value: "bg-gray-700" },
+];
+
+export default function Categories() {
+  const [categories, setCategories] = useState(initialCategories);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    name: "",
+    icon: Sparkles,
+    color: "bg-red-500",
+    budget: "",
+  });
+
+  const totalSpend = categories.reduce((sum, cat) => sum + cat.monthlySpend, 0);
+  const totalBudget = categories.reduce((sum, cat) => sum + cat.budget, 0);
+  const activeCategories = categories.filter((cat) => cat.subscriptions > 0).length;
+
+  const handleAddCategory = () => {
+    if (newCategory.name && newCategory.budget) {
+      setCategories([
+        ...categories,
+        {
+          name: newCategory.name,
+          icon: newCategory.icon,
+          color: newCategory.color,
+          subscriptions: 0,
+          monthlySpend: 0,
+          budget: parseFloat(newCategory.budget),
+        },
+      ]);
+      setIsModalOpen(false);
+      setNewCategory({
+        name: "",
+        icon: Sparkles,
+        color: "bg-red-500",
+        budget: "",
+      });
+    }
+  };
+
+  const handleDeleteCategory = (categoryName: string) => {
+    setCategories(categories.filter((cat) => cat.name !== categoryName));
+  };
+
+  return (
+    <div className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl mb-2">Categorías</h1>
+          <p className="text-gray-500">Organiza tus suscripciones por categorías</p>
+        </div>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors"
+        >
+          <PlusCircle className="w-5 h-5" />
+          Nueva Categoría
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <p className="text-gray-500 text-sm mb-1">Categorías Activas</p>
+          <p className="text-3xl font-bold text-gray-900">{activeCategories}</p>
+          <p className="text-gray-400 text-xs mt-1">de {categories.length} totales</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <p className="text-gray-500 text-sm mb-1">Gasto Total</p>
+          <p className="text-3xl font-bold text-emerald-600">${totalSpend.toFixed(2)}</p>
+          <p className="text-gray-400 text-xs mt-1">por mes</p>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+          <p className="text-gray-500 text-sm mb-1">Presupuesto Total</p>
+          <p className="text-3xl font-bold text-blue-600">${totalBudget.toFixed(2)}</p>
+          <p className="text-gray-400 text-xs mt-1">asignado</p>
+        </div>
+      </div>
+
+      {/* Categories Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {categories.map((category) => {
+          const IconComponent = category.icon;
+          const percentage = (category.monthlySpend / category.budget) * 100;
+          const isNearLimit = percentage >= 80;
+
+          return (
+            <div
+              key={category.name}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-shadow"
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-12 h-12 ${category.color} rounded-xl flex items-center justify-center text-white shadow-lg`}
+                    >
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{category.name}</h3>
+                      <p className="text-gray-500 text-sm">
+                        {category.subscriptions} suscripciones
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteCategory(category.name)}
+                      className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-gray-600">Gasto mensual</span>
+                      <span className="font-bold text-gray-900">
+                        ${category.monthlySpend.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          isNearLimit ? "bg-amber-500" : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-xs text-gray-500">
+                        {percentage.toFixed(0)}% del presupuesto
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        ${category.budget.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {category.subscriptions > 0 ? (
+                    <button className="w-full py-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors text-sm font-medium">
+                      Ver suscripciones →
+                    </button>
+                  ) : (
+                    <button className="w-full py-2 text-gray-400 bg-gray-50 rounded-lg text-sm cursor-default">
+                      Sin suscripciones
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Category Insights */}
+      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-6 border border-emerald-100">
+        <h3 className="font-semibold text-gray-900 mb-3">💡 Insights de Categorías</h3>
+        <div className="space-y-2">
+          <p className="text-sm text-gray-700">
+            • Tu categoría con mayor gasto es{" "}
+            <span className="font-semibold">Entretenimiento</span> con $66.55/mes
+          </p>
+          <p className="text-sm text-gray-700">
+            • Tienes presupuesto sin usar en{" "}
+            <span className="font-semibold">Educación</span> ($50.00)
+          </p>
+          <p className="text-sm text-gray-700">
+            • Considera reorganizar categorías para un mejor seguimiento
+          </p>
+        </div>
+      </div>
+
+      {/* Modal for Adding Category */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Nueva Categoría</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre de la categoría *
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Deportes, Gaming, etc."
+                  value={newCategory.name}
+                  onChange={(e) =>
+                    setNewCategory({ ...newCategory, name: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Icono
+                </label>
+                <div className="grid grid-cols-4 gap-2">
+                  {availableIcons.map((iconOption) => {
+                    const IconComp = iconOption.component;
+                    return (
+                      <button
+                        key={iconOption.name}
+                        type="button"
+                        onClick={() =>
+                          setNewCategory({ ...newCategory, icon: iconOption.component })
+                        }
+                        className={`p-3 border-2 rounded-lg transition-colors ${
+                          newCategory.icon === iconOption.component
+                            ? "border-emerald-500 bg-emerald-50"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <IconComp className="w-6 h-6 mx-auto text-gray-700" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Color
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {availableColors.map((colorOption) => (
+                    <button
+                      key={colorOption.value}
+                      type="button"
+                      onClick={() =>
+                        setNewCategory({ ...newCategory, color: colorOption.value })
+                      }
+                      className={`h-10 rounded-lg ${colorOption.value} transition-transform ${
+                        newCategory.color === colorOption.value
+                          ? "ring-4 ring-emerald-500 ring-offset-2 scale-110"
+                          : "hover:scale-105"
+                      }`}
+                      title={colorOption.name}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Presupuesto mensual *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={newCategory.budget}
+                    onChange={(e) =>
+                      setNewCategory({ ...newCategory, budget: e.target.value })
+                    }
+                    className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAddCategory}
+                disabled={!newCategory.name || !newCategory.budget}
+                className="flex-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Crear Categoría
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
