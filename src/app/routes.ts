@@ -1,6 +1,8 @@
 import { createBrowserRouter } from "react-router";
 import Landing from "./pages/Landing";
 import Layout from "./components/Layout";
+import AuthPage from "./pages/Auth";
+import AuthGuard from "./components/auth/AuthGuard";
 import Dashboard from "./pages/Dashboard";
 import Subscriptions from "./pages/Subscriptions";
 import AddSubscription from "./pages/AddSubscription";
@@ -29,91 +31,100 @@ export const router = createBrowserRouter([
     Component: Landing,
   },
   {
-    Component: Layout,
+    path: "/auth",
+    Component: AuthPage,
+  },
+  {
+    Component: AuthGuard,
     children: [
       {
-        path: "/dashboard",
-        Component: Dashboard,
-      },
-      {
-        path: "/subscriptions",
-        Component: Subscriptions,
-      },
-      {
-        path: "/subscriptions/add",
-        Component: AddSubscription,
-      },
-      {
-        path: "/subscriptions/:id",
-        Component: SubscriptionDetail,
-      },
-      {
-        path: "/calendar",
-        Component: Calendar,
-      },
-      {
-        path: "/analytics",
-        Component: Analytics,
-      },
-      {
-        path: "/budget",
-        Component: Budget,
-      },
-      {
-        path: "/categories",
-        Component: Categories,
-      },
-      {
-        path: "/payment-methods",
-        Component: PaymentMethods,
-      },
-      {
-        path: "/payments",
-        Component: Payments,
-      },
-      {
-        path: "/reports",
-        Component: Reports,
-      },
-      {
-        path: "/trends",
-        Component: Trends,
-      },
-      {
-        path: "/recommendations",
-        Component: Recommendations,
-      },
-      {
-        path: "/reminders",
-        Component: Reminders,
-      },
-      {
-        path: "/notifications",
-        Component: Notifications,
-      },
-      {
-        path: "/calculator",
-        Component: Calculator,
-      },
-      {
-        path: "/archived",
-        Component: Archived,
-      },
-      {
-        path: "/sharing",
-        Component: Sharing,
-      },
-      {
-        path: "/profile",
-        Component: Profile,
-      },
-      {
-        path: "/settings",
-        Component: Settings,
-      },
-      {
-        path: "/help",
-        Component: Help,
+        Component: Layout,
+        children: [
+          {
+            path: "/dashboard",
+            Component: Dashboard,
+          },
+          {
+            path: "/subscriptions",
+            Component: Subscriptions,
+          },
+          {
+            path: "/subscriptions/add",
+            Component: AddSubscription,
+          },
+          {
+            path: "/subscriptions/:id",
+            Component: SubscriptionDetail,
+          },
+          {
+            path: "/calendar",
+            Component: Calendar,
+          },
+          {
+            path: "/analytics",
+            Component: Analytics,
+          },
+          {
+            path: "/budget",
+            Component: Budget,
+          },
+          {
+            path: "/categories",
+            Component: Categories,
+          },
+          {
+            path: "/payment-methods",
+            Component: PaymentMethods,
+          },
+          {
+            path: "/payments",
+            Component: Payments,
+          },
+          {
+            path: "/reports",
+            Component: Reports,
+          },
+          {
+            path: "/trends",
+            Component: Trends,
+          },
+          {
+            path: "/recommendations",
+            Component: Recommendations,
+          },
+          {
+            path: "/reminders",
+            Component: Reminders,
+          },
+          {
+            path: "/notifications",
+            Component: Notifications,
+          },
+          {
+            path: "/calculator",
+            Component: Calculator,
+          },
+          {
+            path: "/archived",
+            Component: Archived,
+          },
+          {
+            path: "/sharing",
+            Component: Sharing,
+          },
+          {
+            path: "/profile",
+            Component: Profile,
+          },
+          {
+            path: "/settings",
+            Component: Settings,
+          },
+          {
+            path: "/help",
+            Component: Help,
+          },
+        ],
       },
     ],
   },

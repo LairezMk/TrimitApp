@@ -1,163 +1,46 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import logoImage from "../../assets/0d23369e4a896d703eefe2aaa97e96c4234407d6.png";
-import { useNavigate } from "react-router";
 import { useTheme } from "../contexts/ThemeContext";
+import { useScrollDirection } from "../hooks/useScrollDirection";
+import { DevMenu } from "../components/dev/DevMenu";
+import { pages, features, steps } from "../constants/landing-data";
+
 import { 
   CheckCircle2, 
   TrendingDown, 
-  Bell, 
-  Calendar, 
-  PieChart, 
+  Sparkles,
+  Moon,
+  Sun,
   Shield,
   Zap,
-  Target,
-  BarChart3,
-  Lightbulb,
-  ChevronRight,
-  Eye,
-  Clock,
   DollarSign,
-  Users,
-  Sparkles,
-  Menu,
-  Moon,
-  Sun
+  Users
 } from "lucide-react";
-import { useState } from "react";
 
 export default function Landing() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [showDevMenu, setShowDevMenu] = useState(false);
+  const isHeaderVisible = useScrollDirection();
   
   const handleCTA = () => {
     // Redirigir al formulario de registro
     window.open('https://docs.google.com/forms/d/e/1FAIpQLScn7fIHROr0874UGZrPLwhJbdRybQ_Q46eiyYZZxsq2s8QXIQ/viewform?usp=header', '_blank');
   };
 
-  const pages = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Suscripciones", path: "/subscriptions" },
-    { name: "Agregar Suscripción", path: "/subscriptions/add" },
-    { name: "Calendario", path: "/calendar" },
-    { name: "Analíticas", path: "/analytics" },
-    { name: "Presupuesto", path: "/budget" },
-    { name: "Categorías", path: "/categories" },
-    { name: "Métodos de Pago", path: "/payment-methods" },
-    { name: "Pagos", path: "/payments" },
-    { name: "Reportes", path: "/reports" },
-    { name: "Tendencias", path: "/trends" },
-    { name: "Recomendaciones", path: "/recommendations" },
-    { name: "Recordatorios", path: "/reminders" },
-    { name: "Notificaciones", path: "/notifications" },
-    { name: "Calculadora", path: "/calculator" },
-    { name: "Archivados", path: "/archived" },
-    { name: "Compartir", path: "/sharing" },
-    { name: "Perfil", path: "/profile" },
-    { name: "Configuración", path: "/settings" },
-    { name: "Ayuda", path: "/help" },
-  ];
-
-  const features = [
-    {
-      icon: Eye,
-      title: "Visibilidad Total",
-      description: "Ve todas tus suscripciones en un solo lugar. Netflix, Spotify, gimnasios... todo junto, sin sorpresas."
-    },
-    {
-      icon: Bell,
-      title: "Alertas Antes de Cada Cobro",
-      description: "Te avisamos 3 días antes de cada renovación. Así puedes cancelar a tiempo y no perder más dinero."
-    },
-    {
-      icon: BarChart3,
-      title: "Reportes Visuales",
-      description: "Gráficos simples que te muestran dónde se va tu plata cada mes y qué puedes recortar."
-    },
-    {
-      icon: Calendar,
-      title: "Calendario de Cobros",
-      description: "Mira en un calendario cuándo y cuánto te van a cobrar. Planea tu mes sin sustos."
-    },
-    {
-      icon: Target,
-      title: "Metas de Ahorro",
-      description: "Define cuánto quieres gastar al mes en suscripciones y recibe alertas si te pasas del límite."
-    },
-    {
-      icon: Lightbulb,
-      title: "Recomendaciones Inteligentes",
-      description: "Te sugerimos qué suscripciones cancelar según lo que realmente usas. Ahorro automático."
-    }
-  ];
-
-  const stats = [
-    { number: "$280.000", label: "Ahorro promedio anual" },
-    { number: "4-5", label: "Suscripciones promedio por persona" }
-  ];
-
-  const steps = [
-    {
-      number: "01",
-      title: "Agrega tus suscripciones",
-      description: "Manual o automático. Solo toma 2 minutos."
-    },
-    {
-      number: "02",
-      title: "Trimit las organiza",
-      description: "Detectamos cobros duplicados y servicios que no usas."
-    },
-    {
-      number: "03",
-      title: "Empieza a ahorrar",
-      description: "Cancela lo que no necesitas y recupera tu dinero."
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
-      {/* Floating Dev Menu Button */}
-      <button
-        onClick={() => setShowDevMenu(!showDevMenu)}
-        className="fixed bottom-6 right-6 z-50 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-2xl transition-all hover:scale-110"
-        title="Menú de Desarrollo"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+      <DevMenu showDevMenu={showDevMenu} setShowDevMenu={setShowDevMenu} pages={pages} />
 
-      {/* Dev Menu Overlay */}
-      {showDevMenu && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowDevMenu(false)}>
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-y-auto p-8" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold dark:text-white">🚀 Menú de Desarrollo - Todas las Páginas</h2>
-              <button
-                onClick={() => setShowDevMenu(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {pages.map((page) => (
-                <button
-                  key={page.path}
-                  onClick={() => {
-                    navigate(page.path);
-                    setShowDevMenu(false);
-                  }}
-                  className="bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white rounded-lg px-4 py-3 text-sm font-medium transition-all hover:scale-105 shadow-lg"
-                >
-                  {page.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Header */}
-      <header className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50 transition-colors">
+      <header 
+        className={`fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ease-in-out ${
+          isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center py-2 md:py-3">
             {/* Logo - versión clara */}
@@ -194,7 +77,7 @@ export default function Landing() {
               
               <button
                 className="hidden sm:block text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-3 md:px-6 py-1.5 md:py-2.5 text-sm md:text-lg"
-                onClick={() => navigate('/subscriptions')}
+                onClick={() => navigate('/auth')}
               >
                 Iniciar sesión
               </button>

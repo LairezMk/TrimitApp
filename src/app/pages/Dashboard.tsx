@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { 
   TrendingUp, 
   ArrowUpRight, 
@@ -10,42 +11,81 @@ import {
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { useNavigate } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
+import { subscribeToUserSubscriptions } from "../services/subscriptions";
+import type { Subscription } from "../types/subscription";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setSubscriptions([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubscribe = subscribeToUserSubscriptions(
+      user.uid,
+      (data) => {
+        setSubscriptions(data);
+        setLoading(false);
+      },
+      () => {
+        setLoading(false);
+      },
+    );
+
+    return unsubscribe;
+  }, [user]);
+
+  const totalMonthly = subscriptions
+    .filter((s) => s.status !== "suspended")
+    .reduce((acc, s) => acc + s.amount, 0);
+
+  const activeCount = subscriptions.filter((s) => s.status === "active").length;
+  const forgottenCount = subscriptions.filter((s) => s.status === "forgotten").length;
+
+  const recentSubscriptions = useMemo(
+    () =>
+      [...subscriptions]
+        .sort(
+          (a, b) =>
+            a.nextPaymentDate.getTime() - b.nextPaymentDate.getTime(),
+        )
+        .slice(0, 4),
+    [subscriptions],
+  );
 
   const stats = [
     {
       title: "Gasto mensual total",
-      value: "$143.94",
+      value: `$${totalMonthly.toFixed(2)}`,
       icon: DollarSign,
       color: "bg-emerald-500",
-      change: "-12% vs mes anterior",
+      change: loading ? "Cargando..." : `${subscriptions.length} suscripciones registradas`,
       changeType: "positive"
     },
     {
       title: "Suscripciones activas",
-      value: "8",
+      value: String(activeCount),
       icon: CreditCard,
       color: "bg-blue-500",
-      change: "+2 este mes",
+      change: "Estado activo",
       changeType: "neutral"
     },
     {
       title: "Suscripciones olvidadas",
-      value: "1",
+      value: String(forgottenCount),
       icon: Calendar,
       color: "bg-amber-500",
       change: "Requiere atención",
       changeType: "warning"
     },
-  ];
-
-  const recentSubscriptions = [
-    { name: "Netflix", category: "Entretenimiento", amount: 44.90, status: "Activa", color: "bg-red-500", icon: "N" },
-    { name: "Spotify", category: "Música", amount: 24.90, status: "Activa", color: "bg-green-500", icon: "S" },
-    { name: "Gym", category: "Salud", amount: 89.00, status: "Suspendida", color: "bg-orange-500", icon: "G" },
-    { name: "Adobe CC", category: "Productividad", amount: 95.00, status: "Activa", color: "bg-red-600", icon: "A" },
   ];
 
   return (
@@ -76,7 +116,7 @@ export default function Dashboard() {
           return (
             <Card 
               key={idx} 
-              className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer border-none"
+              className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-white/70"
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -107,8 +147,8 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Subscriptions */}
-      <Card className="border-none shadow-lg">
-        <CardHeader className="border-b dark:border-gray-700">
+      <Card className="shadow-lg bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-white/70">
+        <CardHeader className="border-b border-gray-100 dark:border-white/20">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl font-semibold dark:text-white">
               Suscripciones Recientes
@@ -127,7 +167,7 @@ export default function Dashboard() {
             {recentSubscriptions.map((sub, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
+                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-800/80 border border-gray-100 dark:border-white/15 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700/80 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer"
                 onClick={() => navigate("/subscriptions")}
               >
                 <div className="flex items-center gap-4">
@@ -148,13 +188,18 @@ export default function Dashboard() {
                     ${sub.amount.toFixed(2)}
                   </p>
                   <p className={`text-xs ${
-                    sub.status === 'Activa' ? 'text-emerald-600' : 'text-amber-600'
+                    sub.status === 'active' ? 'text-emerald-600' : 'text-amber-600'
                   }`}>
-                    {sub.status}
+                    {sub.status === "active" ? "Activa" : sub.status === "forgotten" ? "Olvidada" : "Suspendida"}
                   </p>
                 </div>
               </div>
             ))}
+            {!loading && recentSubscriptions.length === 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Aun no tienes suscripciones guardadas.
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -162,7 +207,7 @@ export default function Dashboard() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card 
-          className="border-none shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-emerald-50 to-cyan-50 dark:from-emerald-900/20 dark:to-cyan-900/20"
+          className="shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-emerald-50 to-cyan-50 dark:from-slate-900/70 dark:to-slate-800/70 border border-gray-100 dark:border-white/70"
           onClick={() => navigate("/calendar")}
         >
           <CardContent className="p-6">
@@ -183,7 +228,7 @@ export default function Dashboard() {
         </Card>
 
         <Card 
-          className="border-none shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20"
+          className="shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-900/70 dark:to-slate-800/70 border border-gray-100 dark:border-white/70"
           onClick={() => navigate("/analytics")}
         >
           <CardContent className="p-6">

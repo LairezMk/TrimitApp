@@ -179,3 +179,28 @@
     line-height: 1.5;
   }
 }
+
+@layer utilities {
+  .dark .app-content .bg-white {
+    background-color: rgb(17 24 39);
+  }
+
+  .dark .app-content .bg-gray-50 {
+    background-color: rgb(31 41 55);
+  }
+
+  .dark .app-content .text-gray-900 {
+    color: rgb(243 244 246);
+  }
+
+  .dark .app-content .text-gray-700,
+  .dark .app-content .text-gray-600,
+  .dark .app-content .text-gray-500 {
+    color: rgb(209 213 219);
+  }
+
+  .dark .app-content .border-gray-200,
+  .dark .app-content .border-gray-300 {
+    border-color: rgb(75 85 99);
+  }
+}

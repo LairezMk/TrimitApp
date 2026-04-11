@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Subscription, SubscriptionRule } from "../types/subscription";
 import {
   Sheet,
@@ -40,6 +40,10 @@ export function EditSubscriptionSheet({
   const [editedSubscription, setEditedSubscription] =
     useState<Subscription>(subscription);
   const [showAddRule, setShowAddRule] = useState(false);
+
+  useEffect(() => {
+    setEditedSubscription(subscription);
+  }, [subscription]);
 
   const handleSave = () => {
     onSave(editedSubscription);

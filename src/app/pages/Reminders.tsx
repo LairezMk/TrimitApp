@@ -81,7 +81,7 @@ export default function Reminders() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl mb-2">Recordatorios</h1>
+          <h1 className="text-3xl mb-2 dark:text-white">Recordatorios</h1>
           <p className="text-gray-500">Configura alertas para tus suscripciones</p>
         </div>
         <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors">
@@ -98,26 +98,26 @@ export default function Reminders() {
           <p className="text-3xl font-bold">{activeReminders}</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Próxima Semana</p>
-          <p className="text-3xl font-bold text-gray-900">{upcomingReminders}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{upcomingReminders}</p>
           <p className="text-gray-400 text-xs mt-1">alertas programadas</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Total Configurados</p>
-          <p className="text-3xl font-bold text-gray-900">{reminders.length}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{reminders.length}</p>
           <p className="text-gray-400 text-xs mt-1">recordatorios</p>
         </div>
       </div>
 
       {/* Reminders List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold">Todos los Recordatorios</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl font-semibold dark:text-white">Todos los Recordatorios</h2>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {reminders.map((reminder) => {
             const daysUntil = Math.ceil(
               (reminder.date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
@@ -127,7 +127,7 @@ export default function Reminders() {
             return (
               <div
                 key={reminder.id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
+                className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
                   !reminder.enabled ? "opacity-50" : ""
                 }`}
               >
@@ -141,7 +141,7 @@ export default function Reminders() {
 
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">{reminder.subscription}</h3>
+                        <h3 className="font-semibold text-lg dark:text-white">{reminder.subscription}</h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeBadgeColor(
                             reminder.type
@@ -156,7 +156,7 @@ export default function Reminders() {
                         )}
                       </div>
 
-                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {format(reminder.date, "d 'de' MMMM, yyyy", { locale: es })}
@@ -185,11 +185,11 @@ export default function Reminders() {
                       <span className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition peer-checked:translate-x-6"></span>
                     </label>
 
-                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                       <Edit2 className="w-5 h-5" />
                     </button>
 
-                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -202,17 +202,17 @@ export default function Reminders() {
 
       {/* Reminder Settings */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 dark:text-white">
             <Bell className="w-5 h-5 text-emerald-600" />
             Configuración de Notificaciones
           </h3>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
               <div>
-                <p className="font-medium">Notificaciones push</p>
-                <p className="text-sm text-gray-500">Recibe alertas en tu dispositivo</p>
+                <p className="font-medium dark:text-white">Notificaciones push</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Recibe alertas en tu dispositivo</p>
               </div>
               <label className="relative inline-block w-12 h-6">
                 <input type="checkbox" className="peer sr-only" defaultChecked />
@@ -221,10 +221,10 @@ export default function Reminders() {
               </label>
             </div>
 
-            <div className="flex items-center justify-between py-3 border-b border-gray-100">
+            <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
               <div>
-                <p className="font-medium">Email</p>
-                <p className="text-sm text-gray-500">Recibe recordatorios por correo</p>
+                <p className="font-medium dark:text-white">Email</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Recibe recordatorios por correo</p>
               </div>
               <label className="relative inline-block w-12 h-6">
                 <input type="checkbox" className="peer sr-only" defaultChecked />
@@ -235,8 +235,8 @@ export default function Reminders() {
 
             <div className="flex items-center justify-between py-3">
               <div>
-                <p className="font-medium">SMS</p>
-                <p className="text-sm text-gray-500">Recibe mensajes de texto</p>
+                <p className="font-medium dark:text-white">SMS</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Recibe mensajes de texto</p>
               </div>
               <label className="relative inline-block w-12 h-6">
                 <input type="checkbox" className="peer sr-only" />
@@ -247,14 +247,14 @@ export default function Reminders() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-6 border border-emerald-200">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-200 dark:border-slate-600">
           <div className="flex items-start gap-3 mb-4">
             <Check className="w-6 h-6 text-emerald-600 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-emerald-900 mb-2">
+              <h3 className="font-semibold text-emerald-900 dark:text-emerald-200 mb-2">
                 Tips para Recordatorios
               </h3>
-              <ul className="space-y-2 text-sm text-emerald-800">
+              <ul className="space-y-2 text-sm text-emerald-800 dark:text-emerald-100">
                 <li>• Configura recordatorios con al menos 3 días de anticipación</li>
                 <li>• Activa múltiples canales para no perderte ninguna alerta</li>
                 <li>• Revisa tus recordatorios semanalmente</li>

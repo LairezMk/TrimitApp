@@ -1,136 +1,84 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { SubscriptionCard } from "../components/SubscriptionCard";
 import { EditSubscriptionSheet } from "../components/EditSubscriptionSheet";
 import type { Subscription } from "../types/subscription";
-
-const MOCK_SUBSCRIPTIONS: Subscription[] = [
-  {
-    id: "1",
-    name: "Netflix",
-    category: "Entretenimiento",
-    amount: 19.61,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-28"),
-    icon: "N",
-    color: "bg-red-500",
-  },
-  {
-    id: "2",
-    name: "Gym Active",
-    category: "Salud",
-    amount: 10.4,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-05"),
-    icon: "G",
-    color: "bg-orange-500",
-  },
-  {
-    id: "3",
-    name: "Disney+",
-    category: "Entretenimiento",
-    amount: 21.96,
-    currency: "$",
-    status: "forgotten",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-25"),
-    icon: "D",
-    color: "bg-blue-600",
-  },
-  {
-    id: "4",
-    name: "Adobe Creative Cloud",
-    category: "Productividad",
-    amount: 54.99,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-01"),
-    icon: "A",
-    color: "bg-red-600",
-  },
-  {
-    id: "5",
-    name: "Spotify",
-    category: "Música",
-    amount: 9.99,
-    currency: "$",
-    status: "suspended",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-10"),
-    icon: "S",
-    color: "bg-green-500",
-  },
-  {
-    id: "6",
-    name: "Amazon Prime",
-    category: "Entretenimiento",
-    amount: 14.99,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-22"),
-    icon: "A",
-    color: "bg-sky-500",
-  },
-  {
-    id: "7",
-    name: "YouTube Premium",
-    category: "Entretenimiento",
-    amount: 11.99,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-15"),
-    icon: "Y",
-    color: "bg-red-500",
-  },
-  {
-    id: "8",
-    name: "Notion",
-    category: "Productividad",
-    amount: 10.0,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-27"),
-    icon: "N",
-    color: "bg-gray-800",
-  },
-];
+import { useAuth } from "../contexts/AuthContext";
+import {
+  deleteUserSubscription,
+  subscribeToUserSubscriptions,
+  updateUserSubscription,
+} from "../services/subscriptions";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
-  const [subscriptions, setSubscriptions] =
-    useState<Subscription[]>(MOCK_SUBSCRIPTIONS);
+  const { user } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [selectedSubscription, setSelectedSubscription] =
     useState<Subscription | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setSubscriptions([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubscribe = subscribeToUserSubscriptions(
+      user.uid,
+      (data) => {
+        setSubscriptions(data);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
+
+    return unsubscribe;
+  }, [user]);
 
   const handleEditSubscription = (subscription: Subscription) => {
     setSelectedSubscription(subscription);
     setIsEditSheetOpen(true);
   };
 
-  const handleSaveSubscription = (updatedSubscription: Subscription) => {
-    setSubscriptions(
-      subscriptions.map((sub) =>
-        sub.id === updatedSubscription.id ? updatedSubscription : sub
-      )
-    );
+  const handleSaveSubscription = async (updatedSubscription: Subscription) => {
+    if (!user) {
+      return;
+    }
+
+    await updateUserSubscription(user.uid, updatedSubscription.id, {
+      name: updatedSubscription.name,
+      category: updatedSubscription.category,
+      amount: updatedSubscription.amount,
+      currency: updatedSubscription.currency,
+      status: updatedSubscription.status,
+      isRecurring: updatedSubscription.isRecurring,
+      nextPaymentDate: updatedSubscription.nextPaymentDate,
+      icon: updatedSubscription.icon,
+      color: updatedSubscription.color,
+      notes: updatedSubscription.notes || "",
+    });
+
     setIsEditSheetOpen(false);
   };
 
-  const handleDeleteSubscription = (id: string) => {
-    setSubscriptions(subscriptions.filter((sub) => sub.id !== id));
+  const handleDeleteSubscription = async (id: string) => {
+    if (!user) {
+      return;
+    }
+
+    await deleteUserSubscription(user.uid, id);
     setIsEditSheetOpen(false);
   };
 
@@ -180,6 +128,12 @@ export default function Subscriptions() {
         </div>
       </div>
 
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          Error al cargar suscripciones: {error}
+        </div>
+      )}
+
       {/* Filters and Search */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -227,7 +181,7 @@ export default function Subscriptions() {
               </button>
             </div>
             <Button
-              onClick={() => navigate("/dashboard/add-subscription")}
+              onClick={() => navigate("/subscriptions/add")}
               className="bg-emerald-500 hover:bg-emerald-600 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -239,6 +193,9 @@ export default function Subscriptions() {
 
       {/* Subscriptions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading && (
+          <p className="text-gray-500">Cargando suscripciones...</p>
+        )}
         {filteredSubscriptions.map((subscription) => (
           <SubscriptionCard
             key={subscription.id}
@@ -246,6 +203,9 @@ export default function Subscriptions() {
             onClick={() => handleEditSubscription(subscription)}
           />
         ))}
+        {!loading && filteredSubscriptions.length === 0 && (
+          <p className="text-gray-500">No hay suscripciones registradas todavía.</p>
+        )}
       </div>
 
       {/* Edit Subscription Sheet */}

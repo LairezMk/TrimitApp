@@ -68,7 +68,7 @@ export default function Recommendations() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl mb-2">Recomendaciones</h1>
+        <h1 className="text-3xl mb-2 dark:text-white">Recomendaciones</h1>
         <p className="text-gray-500">Optimiza tus suscripciones con consejos personalizados</p>
       </div>
 
@@ -97,7 +97,7 @@ export default function Recommendations() {
 
       {/* Recommendations List */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-6">Recomendaciones Personalizadas</h2>
+        <h2 className="text-xl font-semibold mb-6 dark:text-white">Recomendaciones Personalizadas</h2>
 
         <div className="space-y-4">
           {recommendations.map((rec) => {
@@ -105,7 +105,7 @@ export default function Recommendations() {
             return (
               <div
                 key={rec.id}
-                className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-start gap-4">
                   <div
@@ -118,18 +118,18 @@ export default function Recommendations() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg">{rec.title}</h3>
+                          <h3 className="font-semibold text-lg dark:text-white">{rec.title}</h3>
                           <span
                             className={`px-2 py-1 bg-${rec.color}-100 text-${rec.color}-700 rounded-full text-xs font-medium`}
                           >
                             {rec.category}
                           </span>
                         </div>
-                        <p className="text-gray-600 text-sm mb-3">{rec.description}</p>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{rec.description}</p>
 
                         <div className="flex items-center gap-6 text-sm">
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-500">Esfuerzo:</span>
+                            <span className="text-gray-500 dark:text-gray-400">Esfuerzo:</span>
                             <span
                               className={`font-medium ${
                                 rec.effort === "Fácil"
@@ -144,7 +144,7 @@ export default function Recommendations() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-500">Impacto:</span>
+                            <span className="text-gray-500 dark:text-gray-400">Impacto:</span>
                             <div className="flex gap-1">
                               {[...Array(rec.impact === "Alto" ? 3 : 2)].map((_, i) => (
                                 <Star
@@ -158,22 +158,22 @@ export default function Recommendations() {
                       </div>
 
                       <div className="text-right ml-4">
-                        <p className="text-sm text-gray-500 mb-1">Ahorro anual</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Ahorro anual</p>
                         <p className={`text-3xl font-bold text-${rec.color}-600`}>
                           ${rec.savings.toFixed(2)}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                       <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
                         <Check className="w-4 h-4" />
                         Aplicar recomendación
                       </button>
-                      <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                      <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm">
                         Recordar después
                       </button>
-                      <button className="px-4 py-2 text-gray-500 hover:text-gray-700 text-sm">
+                      <button className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-sm">
                         Descartar
                       </button>
                     </div>
@@ -187,23 +187,23 @@ export default function Recommendations() {
 
       {/* Alternative Services */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-6">Servicios Alternativos</h2>
+        <h2 className="text-xl font-semibold mb-6 dark:text-white">Servicios Alternativos</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {alternativeServices.map((alt, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
             >
               <div className="mb-4">
-                <p className="text-sm text-gray-500 mb-2">Actualmente usas</p>
-                <p className="font-semibold text-lg text-gray-900">{alt.current}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Actualmente usas</p>
+                <p className="font-semibold text-lg text-gray-900 dark:text-white">{alt.current}</p>
               </div>
 
               <div className="flex items-center gap-3 my-4">
-                <div className="h-px bg-gray-300 flex-1"></div>
-                <span className="text-sm text-gray-500">Considera cambiar a</span>
-                <div className="h-px bg-gray-300 flex-1"></div>
+                <div className="h-px bg-gray-300 dark:bg-gray-600 flex-1"></div>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Considera cambiar a</span>
+                <div className="h-px bg-gray-300 dark:bg-gray-600 flex-1"></div>
               </div>
 
               <div className="mb-4">
@@ -216,7 +216,7 @@ export default function Recommendations() {
 
                 <ul className="space-y-2">
                   {alt.features.map((feature, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                    <li key={i} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                       <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                       {feature}
                     </li>
@@ -224,7 +224,7 @@ export default function Recommendations() {
                 </ul>
               </div>
 
-              <button className="w-full py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium">
+              <button className="w-full py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors text-sm font-medium">
                 Ver más detalles
               </button>
             </div>
@@ -233,12 +233,12 @@ export default function Recommendations() {
       </div>
 
       {/* Tips */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-        <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
+        <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-3 flex items-center gap-2">
           <Lightbulb className="w-5 h-5" />
           Consejos para Maximizar Ahorros
         </h3>
-        <ul className="space-y-2 text-sm text-blue-800">
+        <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-100">
           <li>• Revisa estas recomendaciones mensualmente para nuevas oportunidades</li>
           <li>• Aprovecha períodos de prueba antes de comprometerte a largo plazo</li>
           <li>• Configura recordatorios antes de que terminen tus pruebas gratuitas</li>

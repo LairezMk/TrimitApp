@@ -17,7 +17,7 @@ export default function Budget() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl mb-2">Presupuesto</h1>
+          <h1 className="text-3xl mb-2 dark:text-white">Presupuesto</h1>
           <p className="text-gray-500">Gestiona tus límites de gasto mensuales</p>
         </div>
         <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors">
@@ -56,9 +56,9 @@ export default function Budget() {
       </div>
 
       {/* Category Budgets */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Presupuesto por Categoría</h2>
+          <h2 className="text-xl font-semibold dark:text-white">Presupuesto por Categoría</h2>
           <button className="text-emerald-600 hover:text-emerald-700 flex items-center gap-2 text-sm font-medium">
             <PlusCircle className="w-4 h-4" />
             Agregar Categoría
@@ -75,7 +75,7 @@ export default function Budget() {
               <div key={category.name}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{category.name}</h3>
+                    <h3 className="font-medium dark:text-white">{category.name}</h3>
                     {isNearLimit && (
                       <AlertCircle
                         className={`w-4 h-4 ${
@@ -85,12 +85,12 @@ export default function Budget() {
                     )}
                   </div>
                   <div className="text-right">
-                    <span className="font-bold">${category.spent.toFixed(2)}</span>
-                    <span className="text-gray-500 text-sm"> / ${category.limit.toFixed(2)}</span>
+                    <span className="font-bold dark:text-white">${category.spent.toFixed(2)}</span>
+                    <span className="text-gray-500 dark:text-gray-400 text-sm"> / ${category.limit.toFixed(2)}</span>
                   </div>
                 </div>
 
-                <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
                       isOverLimit
@@ -110,12 +110,12 @@ export default function Budget() {
                         ? "text-red-600 font-medium"
                         : isNearLimit
                         ? "text-amber-600"
-                        : "text-gray-500"
+                        : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
                     {percentage.toFixed(0)}% utilizado
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     ${(category.limit - category.spent).toFixed(2)} restante
                   </span>
                 </div>
@@ -126,18 +126,18 @@ export default function Budget() {
       </div>
 
       {/* Recommendations */}
-      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
+      <div className="bg-blue-50 dark:bg-slate-800 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
         <div className="flex gap-4">
           <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
             <TrendingDown className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-blue-900 mb-2">Consejo de Ahorro</h3>
-            <p className="text-blue-800 text-sm mb-3">
+            <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">Consejo de Ahorro</h3>
+            <p className="text-blue-800 dark:text-blue-100 text-sm mb-3">
               Estás gastando bien dentro de tu presupuesto este mes. Considera reducir el límite
               de "Entretenimiento" si notas que nunca alcanzas el máximo.
             </p>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <button className="text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200 text-sm font-medium">
               Ver más consejos →
             </button>
           </div>

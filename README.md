@@ -38,6 +38,7 @@ npm run build
 1. Ejecuta `npm install` para instalar las dependencias
 2. Ejecuta `npm run dev` para iniciar el servidor de desarrollo
 3. Abre `http://localhost:5173` en tu navegador
+4. Configura Firebase siguiendo `guidelines/FirebaseSetup.md` y abre `/auth`
 
 ## 📝 Estructura del Proyecto
 

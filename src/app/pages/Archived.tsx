@@ -61,21 +61,21 @@ export default function Archived() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl mb-2">Suscripciones Archivadas</h1>
+        <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Archivadas</h1>
         <p className="text-gray-500">Revisa las suscripciones que has cancelado</p>
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8 flex items-center gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-8 flex items-center gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
             placeholder="Buscar suscripciones archivadas..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
-        <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
           <option>Todas las categorías</option>
           <option>Entretenimiento</option>
           <option>Productividad</option>
@@ -97,15 +97,15 @@ export default function Archived() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Total Archivadas</p>
-          <p className="text-3xl font-bold text-gray-900">{archivedSubscriptions.length}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{archivedSubscriptions.length}</p>
           <p className="text-gray-400 text-xs mt-2">suscripciones canceladas</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Última Cancelación</p>
-          <p className="text-3xl font-bold text-gray-900">
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
             {format(archivedSubscriptions[0].archivedDate, "d MMM", { locale: es })}
           </p>
           <p className="text-gray-400 text-xs mt-2">{archivedSubscriptions[0].name}</p>
@@ -113,16 +113,16 @@ export default function Archived() {
       </div>
 
       {/* Archived List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold">Lista de Archivadas</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl font-semibold dark:text-white">Lista de Archivadas</h2>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {archivedSubscriptions.map((subscription) => (
             <div
               key={subscription.id}
-              className="p-6 hover:bg-gray-50 transition-colors"
+              className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -133,11 +133,11 @@ export default function Archived() {
                   </div>
 
                   <div>
-                    <h3 className="font-semibold text-lg text-gray-900">
+                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
                       {subscription.name}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-1">{subscription.category}</p>
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{subscription.category}</p>
+                    <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         Archivada el{" "}
@@ -165,7 +165,7 @@ export default function Archived() {
                       <RotateCcw className="w-4 h-4" />
                       Restaurar
                     </button>
-                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                       <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -178,23 +178,23 @@ export default function Archived() {
 
       {/* Empty State */}
       {archivedSubscriptions.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
             <Archive className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             No hay suscripciones archivadas
           </h3>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             Las suscripciones que canceles aparecerán aquí
           </p>
         </div>
       )}
 
       {/* Insight */}
-      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-6 border border-emerald-100">
-        <h3 className="font-semibold text-gray-900 mb-2">💰 ¡Excelente trabajo!</h3>
-        <p className="text-gray-700 text-sm">
+      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">💰 ¡Excelente trabajo!</h3>
+        <p className="text-gray-700 dark:text-gray-200 text-sm">
           Al cancelar estas suscripciones, estás ahorrando <span className="font-bold">${totalSaved.toFixed(2)} por mes</span>, lo
           que equivale a <span className="font-bold">${(totalSaved * 12).toFixed(2)} al año</span>.
           Sigue optimizando tus gastos.

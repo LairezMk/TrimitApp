@@ -1,0 +1,29 @@
+{
+  "firestore": {
+    "database": "default",
+    "location": "southamerica-east1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "singleProjectMode": true
+  },
+  "auth": {
+    "providers": {}
+  },
+  "hosting": {
+    "site": "trimitapp",
+    "public": "dist",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

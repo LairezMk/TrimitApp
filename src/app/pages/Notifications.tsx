@@ -70,16 +70,16 @@ export default function Notifications() {
   };
 
   const getBgColor = (type: string, read: boolean) => {
-    if (read) return "bg-white";
+    if (read) return "bg-white dark:bg-gray-800";
     switch (type) {
       case "success":
-        return "bg-emerald-50";
+        return "bg-emerald-50 dark:bg-emerald-900/20";
       case "warning":
-        return "bg-amber-50";
+        return "bg-amber-50 dark:bg-amber-900/20";
       case "info":
-        return "bg-blue-50";
+        return "bg-blue-50 dark:bg-blue-900/20";
       default:
-        return "bg-gray-50";
+        return "bg-gray-50 dark:bg-gray-700";
     }
   };
 
@@ -87,13 +87,13 @@ export default function Notifications() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl mb-2">Notificaciones</h1>
+          <h1 className="text-3xl mb-2 dark:text-white">Notificaciones</h1>
           <p className="text-gray-500">
             {unreadCount > 0 ? `Tienes ${unreadCount} notificaciones sin leer` : "Estás al día"}
           </p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
+          <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Configurar
           </button>
@@ -105,48 +105,48 @@ export default function Notifications() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
               <Bell className="w-5 h-5 text-emerald-600" />
             </div>
             <p className="text-gray-500 text-sm">Total</p>
           </div>
-          <p className="text-3xl font-bold">{notifications.length}</p>
+          <p className="text-3xl font-bold dark:text-white">{notifications.length}</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
               <AlertCircle className="w-5 h-5 text-amber-600" />
             </div>
             <p className="text-gray-500 text-sm">Sin leer</p>
           </div>
-          <p className="text-3xl font-bold">{unreadCount}</p>
+          <p className="text-3xl font-bold dark:text-white">{unreadCount}</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-blue-600" />
             </div>
             <p className="text-gray-500 text-sm">Leídas</p>
           </div>
-          <p className="text-3xl font-bold">{notifications.length - unreadCount}</p>
+          <p className="text-3xl font-bold dark:text-white">{notifications.length - unreadCount}</p>
         </div>
       </div>
 
       {/* Notifications List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-semibold">Todas las notificaciones</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl font-semibold dark:text-white">Todas las notificaciones</h2>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {notifications.map((notification) => (
             <div
               key={notification.id}
-              className={`p-6 hover:bg-gray-50 transition-colors ${getBgColor(
+              className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${getBgColor(
                 notification.type,
                 notification.read
               )}`}
@@ -156,13 +156,13 @@ export default function Notifications() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-1">
-                    <h3 className="font-semibold text-gray-900">{notification.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">{notification.title}</h3>
                     {!notification.read && (
                       <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0 mt-2"></span>
                     )}
                   </div>
-                  <p className="text-gray-600 text-sm mb-2">{notification.message}</p>
-                  <p className="text-gray-400 text-xs">
+                  <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">{notification.message}</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs">
                     {format(notification.date, "d 'de' MMMM 'a las' HH:mm", { locale: es })}
                   </p>
                 </div>
@@ -178,14 +178,14 @@ export default function Notifications() {
 
       {/* Empty State (hidden when there are notifications) */}
       {notifications.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
+          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
             <Bell className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             No tienes notificaciones
           </h3>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             Cuando tengas nuevas notificaciones, aparecerán aquí
           </p>
         </div>

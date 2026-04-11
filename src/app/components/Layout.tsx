@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import logoImage from "../../assets/0d23369e4a896d703eefe2aaa97e96c4234407d6.png";
 import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/AuthContext";
 import {
   LayoutDashboard,
   Calendar,
@@ -27,6 +28,12 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/auth");
+  };
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + "/");
@@ -128,7 +135,7 @@ export default function Layout() {
         </div>
 
         {/* Bottom Actions */}
-        <div className="sticky bottom-0 bg-gradient-to-t from-slate-900 to-transparent border-t border-slate-700/50 p-6 space-y-2">
+        <div className="sticky bottom-0 bg-slate-800 dark:bg-black border-t border-slate-700/50 dark:border-slate-800 p-6 space-y-2">
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -149,7 +156,7 @@ export default function Layout() {
 
           {/* Logout */}
           <button
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
           >
             <LogOut className="w-4 h-4" />
@@ -159,7 +166,7 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 flex-1 min-h-screen">
+      <main className="app-content ml-64 flex-1 min-h-screen">
         <Outlet />
       </main>
     </div>

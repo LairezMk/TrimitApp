@@ -306,7 +306,7 @@ export default function Payments() {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl mb-2">Historial de Pagos</h1>
+        <h1 className="text-3xl mb-2 dark:text-white">Historial de Pagos</h1>
         <p className="text-gray-500">
           Revisa tus pagos realizados y los próximos programados
         </p>
@@ -314,7 +314,7 @@ export default function Payments() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">Total pagado</p>
             <TrendingDown className="w-5 h-5 text-red-500" />
@@ -325,7 +325,7 @@ export default function Payments() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">Próximos pagos</p>
             <TrendingUp className="w-5 h-5 text-emerald-500" />
@@ -352,17 +352,17 @@ export default function Payments() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-gray-400" />
-            <span className="text-sm text-gray-600">Filtrar por:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-300">Filtrar por:</span>
           </div>
-          <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
+          <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setFilter("all")}
               className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                filter === "all" ? "bg-white shadow-sm" : "text-gray-600"
+                filter === "all" ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white" : "text-gray-600 dark:text-gray-300"
               }`}
             >
               Todos
@@ -370,7 +370,7 @@ export default function Payments() {
             <button
               onClick={() => setFilter("paid")}
               className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                filter === "paid" ? "bg-white shadow-sm" : "text-gray-600"
+                filter === "paid" ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white" : "text-gray-600 dark:text-gray-300"
               }`}
             >
               Pagados
@@ -378,7 +378,7 @@ export default function Payments() {
             <button
               onClick={() => setFilter("upcoming")}
               className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                filter === "upcoming" ? "bg-white shadow-sm" : "text-gray-600"
+                filter === "upcoming" ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white" : "text-gray-600 dark:text-gray-300"
               }`}
             >
               Próximos
@@ -388,12 +388,12 @@ export default function Payments() {
       </div>
 
       {/* Payments Timeline */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl">Cronología de Pagos</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-xl dark:text-white">Cronología de Pagos</h2>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
           {filteredPayments.map((payment, index) => {
             const isUpcoming = payment.status === "upcoming";
             const daysUntil = isUpcoming
@@ -403,8 +403,8 @@ export default function Payments() {
             return (
               <div
                 key={payment.id}
-                className={`p-6 hover:bg-gray-50 transition-colors ${
-                  isUpcoming ? "bg-blue-50/30" : ""
+                className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                  isUpcoming ? "bg-blue-50/30 dark:bg-blue-900/10" : ""
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -414,7 +414,7 @@ export default function Payments() {
                       className={`w-10 h-10 rounded-full flex items-center justify-center ${
                         isUpcoming
                           ? "bg-emerald-100 text-emerald-600"
-                          : "bg-gray-100 text-gray-600"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200"
                       }`}
                     >
                       {isUpcoming ? (
@@ -437,10 +437,10 @@ export default function Payments() {
                         {payment.subscription.icon}
                       </div>
                       <div>
-                        <h3 className="font-medium">
+                        <h3 className="font-medium dark:text-white">
                           {payment.subscription.name}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {payment.subscription.category}
                         </p>
                       </div>
@@ -448,10 +448,10 @@ export default function Payments() {
 
                     {/* Date and amount */}
                     <div className="text-right">
-                      <p className="font-medium text-lg">
+                      <p className="font-medium text-lg dark:text-white">
                         ${payment.amount.toFixed(2)}
                       </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Calendar className="w-4 h-4" />
                         <span>
                           {format(payment.date, "d 'de' MMMM, yyyy", {
@@ -487,7 +487,7 @@ export default function Payments() {
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
                         isUpcoming
                           ? "bg-emerald-100 text-emerald-700"
-                          : "bg-gray-100 text-gray-700"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
                       }`}
                     >
                       {isUpcoming ? "Programado" : "Pagado"}
@@ -501,13 +501,13 @@ export default function Payments() {
       </div>
 
       {/* Summary footer */}
-      <div className="mt-6 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-6 border border-emerald-100">
+      <div className="mt-6 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600 mb-1">
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
               Total de pagos mostrados
             </p>
-            <p className="text-2xl">
+            <p className="text-2xl dark:text-white">
               $
               {filteredPayments
                 .reduce((sum, p) => sum + p.amount, 0)
@@ -515,8 +515,8 @@ export default function Payments() {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600 mb-1">Cantidad de pagos</p>
-            <p className="text-2xl">{filteredPayments.length}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Cantidad de pagos</p>
+            <p className="text-2xl dark:text-white">{filteredPayments.length}</p>
           </div>
         </div>
       </div>

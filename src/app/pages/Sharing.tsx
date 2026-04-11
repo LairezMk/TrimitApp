@@ -43,7 +43,7 @@ export default function Sharing() {
     <div className="p-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl mb-2">Suscripciones Compartidas</h1>
+          <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Compartidas</h1>
           <p className="text-gray-500">Gestiona tus suscripciones compartidas con otros</p>
         </div>
         <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors">
@@ -61,23 +61,23 @@ export default function Sharing() {
           <p className="text-emerald-100 text-xs mt-1">por mes</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Suscripciones</p>
-          <p className="text-3xl font-bold text-gray-900">{sharedSubscriptions.length}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{sharedSubscriptions.length}</p>
           <p className="text-gray-400 text-xs mt-1">compartidas</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Miembros</p>
-          <p className="text-3xl font-bold text-gray-900">
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
             {sharedSubscriptions.reduce((sum, sub) => sum + sub.sharedWith, 0)}
           </p>
           <p className="text-gray-400 text-xs mt-1">personas en total</p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Tu Parte</p>
-          <p className="text-3xl font-bold text-gray-900">
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
             ${sharedSubscriptions.reduce((sum, sub) => sum + sub.yourShare, 0).toFixed(2)}
           </p>
           <p className="text-gray-400 text-xs mt-1">pago mensual</p>
@@ -89,7 +89,7 @@ export default function Sharing() {
         {sharedSubscriptions.map((subscription) => (
           <div
             key={subscription.id}
-            className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
           >
             <div className="p-6">
               <div className="flex items-start justify-between mb-6">
@@ -100,28 +100,28 @@ export default function Sharing() {
                     {subscription.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-xl mb-1">{subscription.name}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="font-semibold text-xl mb-1 dark:text-white">{subscription.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Compartido con {subscription.sharedWith} personas
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <p className="text-sm text-gray-500 mb-1">Tu parte</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Tu parte</p>
                   <p className="text-3xl font-bold text-emerald-600">
                     ${subscription.yourShare.toFixed(2)}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     de ${subscription.totalCost} total
                   </p>
                 </div>
               </div>
 
               {/* Members */}
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                  <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
                     <Users className="w-4 h-4" />
                     Miembros ({subscription.members.length})
                   </h4>
@@ -135,20 +135,20 @@ export default function Sharing() {
                   {subscription.members.map((member, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between py-2 px-3 bg-white rounded-lg"
+                      className="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold text-sm">
                           {member.split(" ")[0][0]}
                           {member.split(" ")[1][0]}
                         </div>
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                           {member}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        <span className="text-xs text-gray-500">Pagado</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Pagado</span>
                       </div>
                     </div>
                   ))}
@@ -175,11 +175,11 @@ export default function Sharing() {
 
               {/* Actions */}
               <div className="flex gap-3 mt-4">
-                <button className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium flex items-center justify-center gap-2">
+                <button className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
                   <Mail className="w-4 h-4" />
                   Enviar recordatorio
                 </button>
-                <button className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium flex items-center justify-center gap-2">
+                <button className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
                   <Copy className="w-4 h-4" />
                   Compartir enlace
                 </button>
@@ -190,12 +190,12 @@ export default function Sharing() {
       </div>
 
       {/* Invite Card */}
-      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-8 border border-emerald-100 text-center">
+      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-8 border border-emerald-100 dark:border-slate-600 text-center">
         <Users className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
-        <h3 className="font-semibold text-gray-900 mb-2 text-xl">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-xl">
           Ahorra más compartiendo
         </h3>
-        <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+        <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
           Divide los costos de tus suscripciones con amigos y familia.
           ¡Actualmente estás ahorrando ${totalSavings.toFixed(2)} al mes!
         </p>
@@ -203,7 +203,7 @@ export default function Sharing() {
           <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors font-medium">
             Agregar nueva compartida
           </button>
-          <button className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+          <button className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium">
             Ver todas las invitaciones
           </button>
         </div>

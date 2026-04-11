@@ -43,7 +43,7 @@ export default function Calculator() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h1 className="text-3xl mb-2">Calculadora de Ahorro</h1>
+        <h1 className="text-3xl mb-2 dark:text-white">Calculadora de Ahorro</h1>
         <p className="text-gray-500">
           Descubre cuánto puedes ahorrar optimizando tus suscripciones
         </p>
@@ -96,8 +96,8 @@ export default function Calculator() {
           </div>
 
           {/* Quick Presets */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h3 className="font-semibold mb-4">Ejemplos populares</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold mb-4 dark:text-white">Ejemplos populares</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
                 { name: "Netflix", amount: "19.99" },
@@ -108,7 +108,7 @@ export default function Calculator() {
                 <button
                   key={preset.name}
                   onClick={() => setMonthlyAmount(preset.amount)}
-                  className="px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors border border-gray-200"
+                  className="px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors border border-gray-200 dark:border-gray-600"
                 >
                   {preset.name} - ${preset.amount}
                 </button>
@@ -120,9 +120,9 @@ export default function Calculator() {
         {/* Results Section */}
         <div>
           {/* Time Projections */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-xl font-semibold">Proyección de Gastos</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="text-xl font-semibold dark:text-white">Proyección de Gastos</h2>
             </div>
 
             <div className="p-6 space-y-4">
@@ -136,14 +136,14 @@ export default function Calculator() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
                 >
-                  <span className="font-medium text-gray-700">{item.label}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{item.label}</span>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-gray-900">
+                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
                       ${item.value.toFixed(2)}
                     </span>
-                    <span className="text-sm text-gray-500 ml-1">{item.period}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">{item.period}</span>
                   </div>
                 </div>
               ))}
@@ -164,32 +164,32 @@ export default function Calculator() {
 
       {/* Savings Scenarios */}
       <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-6">Escenarios de Ahorro</h2>
+        <h2 className="text-2xl font-semibold mb-6 dark:text-white">Escenarios de Ahorro</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {savingsScenarios.map((scenario) => (
             <div
               key={scenario.name}
-              className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start gap-3 mb-4">
                 <TrendingDown className={`w-6 h-6 text-${scenario.color}-600 flex-shrink-0`} />
                 <div>
-                  <h3 className="font-semibold text-lg mb-1">{scenario.name}</h3>
-                  <p className="text-sm text-gray-500">{scenario.description}</p>
+                  <h3 className="font-semibold text-lg mb-1 dark:text-white">{scenario.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{scenario.description}</p>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-4 border-t border-gray-100">
+              <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Ahorro anual</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Ahorro anual</p>
                   <p className={`text-2xl font-bold text-${scenario.color}-600`}>
                     ${scenario.yearly.toFixed(2)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Ahorro en 5 años</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Ahorro en 5 años</p>
                   <p className={`text-xl font-bold text-${scenario.color}-600`}>
                     ${scenario.fiveYears.toFixed(2)}
                   </p>
@@ -201,9 +201,9 @@ export default function Calculator() {
       </div>
 
       {/* Insights */}
-      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-xl p-6 border border-emerald-100">
-        <h3 className="font-semibold text-gray-900 mb-3">💡 Recomendación</h3>
-        <p className="text-gray-700 text-sm">
+      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">💡 Recomendación</h3>
+        <p className="text-gray-700 dark:text-gray-200 text-sm">
           Si esta suscripción te cuesta ${calculations.monthly.toFixed(2)} al mes,
           considera si realmente la usas lo suficiente para justificar los{" "}
           <span className="font-bold">${calculations.yearly.toFixed(2)}</span> al año.
