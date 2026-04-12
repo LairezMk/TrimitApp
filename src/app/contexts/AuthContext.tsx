@@ -3,13 +3,15 @@ import type { ReactNode } from "react";
 import type { User } from "firebase/auth";
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
 } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
+import { auth, db, googleProvider } from "../lib/firebase";
 import { bootstrapUserWorkspace } from "../services/userBootstrap";
 
 interface RegisterPayload {
@@ -23,6 +25,7 @@ interface AuthContextValue {
   loading: boolean;
   register: (payload: RegisterPayload) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<{ isNewUser: boolean; accessToken: string | null }>;
   logout: () => Promise<void>;
 }
 
@@ -75,12 +78,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const loginWithGoogle = async () => {
+    const credential = await signInWithPopup(auth, googleProvider);
+    const additional = GoogleAuthProvider.credentialFromResult(credential);
+    const isNewUser =
+      credential.user.metadata.creationTime === credential.user.metadata.lastSignInTime;
+
+    await bootstrapUserWorkspace({
+      uid: credential.user.uid,
+      email: credential.user.email,
+      displayName: credential.user.displayName || "Usuario",
+    });
+
+    await setDoc(
+      doc(db, "users", credential.user.uid),
+      {
+        lastLoginAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    return { isNewUser, accessToken: additional?.accessToken || null };
+  };
+
   const logout = async () => {
     await signOut(auth);
   };
 
   const value = useMemo(
-    () => ({ user, loading, register, login, logout }),
+    () => ({ user, loading, register, login, loginWithGoogle, logout }),
     [user, loading],
   );
 

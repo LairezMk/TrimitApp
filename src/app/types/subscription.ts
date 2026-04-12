@@ -10,6 +10,7 @@ export interface Subscription {
   icon: string;
   color: string;
   notes?: string;
+  source?: "manual" | "gmail-detected";
   rules?: SubscriptionRule[];
 }
 

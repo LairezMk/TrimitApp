@@ -6,6 +6,8 @@ import AuthGuard from "./components/auth/AuthGuard";
 import Dashboard from "./pages/Dashboard";
 import Subscriptions from "./pages/Subscriptions";
 import AddSubscription from "./pages/AddSubscription";
+import EditSubscription from "./pages/EditSubscription";
+import GmailSubscriptionConfirmation from "./pages/GmailSubscriptionConfirmation";
 import SubscriptionDetail from "./pages/SubscriptionDetail";
 import Calendar from "./pages/Calendar";
 import Analytics from "./pages/Analytics";
@@ -53,8 +55,16 @@ export const router = createBrowserRouter([
             Component: AddSubscription,
           },
           {
+            path: "/subscriptions/gmail-confirmation",
+            Component: GmailSubscriptionConfirmation,
+          },
+          {
             path: "/subscriptions/:id",
             Component: SubscriptionDetail,
+          },
+          {
+            path: "/subscriptions/:id/edit",
+            Component: EditSubscription,
           },
           {
             path: "/calendar",

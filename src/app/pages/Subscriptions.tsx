@@ -3,22 +3,14 @@ import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import { Plus, Search } from "lucide-react";
 import { SubscriptionCard } from "../components/SubscriptionCard";
-import { EditSubscriptionSheet } from "../components/EditSubscriptionSheet";
 import type { Subscription } from "../types/subscription";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  deleteUserSubscription,
-  subscribeToUserSubscriptions,
-  updateUserSubscription,
-} from "../services/subscriptions";
+import { subscribeToUserSubscriptions } from "../services/subscriptions";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [selectedSubscription, setSelectedSubscription] =
-    useState<Subscription | null>(null);
-  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState(true);
@@ -48,38 +40,7 @@ export default function Subscriptions() {
   }, [user]);
 
   const handleEditSubscription = (subscription: Subscription) => {
-    setSelectedSubscription(subscription);
-    setIsEditSheetOpen(true);
-  };
-
-  const handleSaveSubscription = async (updatedSubscription: Subscription) => {
-    if (!user) {
-      return;
-    }
-
-    await updateUserSubscription(user.uid, updatedSubscription.id, {
-      name: updatedSubscription.name,
-      category: updatedSubscription.category,
-      amount: updatedSubscription.amount,
-      currency: updatedSubscription.currency,
-      status: updatedSubscription.status,
-      isRecurring: updatedSubscription.isRecurring,
-      nextPaymentDate: updatedSubscription.nextPaymentDate,
-      icon: updatedSubscription.icon,
-      color: updatedSubscription.color,
-      notes: updatedSubscription.notes || "",
-    });
-
-    setIsEditSheetOpen(false);
-  };
-
-  const handleDeleteSubscription = async (id: string) => {
-    if (!user) {
-      return;
-    }
-
-    await deleteUserSubscription(user.uid, id);
-    setIsEditSheetOpen(false);
+    navigate(`/subscriptions/${subscription.id}/edit`);
   };
 
   const totalMonthly = subscriptions
@@ -103,7 +64,7 @@ export default function Subscriptions() {
   });
 
   return (
-    <div className="p-8">
+    <div className="p-6 md:p-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl mb-2">Mis Suscripciones</h1>
@@ -113,7 +74,7 @@ export default function Subscriptions() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm mb-2">Gasto mensual total</p>
           <p className="text-3xl text-emerald-600">${totalMonthly.toFixed(2)}</p>
@@ -135,8 +96,8 @@ export default function Subscriptions() {
       )}
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-6">
+        <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center justify-between">
           <div className="flex-1 relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -147,8 +108,8 @@ export default function Subscriptions() {
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
+          <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+            <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setFilterStatus("all")}
                 className={`px-4 py-2 rounded-md text-sm transition-colors ${
@@ -182,7 +143,7 @@ export default function Subscriptions() {
             </div>
             <Button
               onClick={() => navigate("/subscriptions/add")}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nueva
@@ -192,7 +153,7 @@ export default function Subscriptions() {
       </div>
 
       {/* Subscriptions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
         {loading && (
           <p className="text-gray-500">Cargando suscripciones...</p>
         )}
@@ -207,17 +168,6 @@ export default function Subscriptions() {
           <p className="text-gray-500">No hay suscripciones registradas todavía.</p>
         )}
       </div>
-
-      {/* Edit Subscription Sheet */}
-      {selectedSubscription && (
-        <EditSubscriptionSheet
-          subscription={selectedSubscription}
-          isOpen={isEditSheetOpen}
-          onClose={() => setIsEditSheetOpen(false)}
-          onSave={handleSaveSubscription}
-          onDelete={handleDeleteSubscription}
-        />
-      )}
     </div>
   );
 }

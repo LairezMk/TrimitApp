@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
   orderBy,
   query,
@@ -23,6 +24,7 @@ interface UpsertSubscriptionInput {
   icon: string;
   color: string;
   notes?: string;
+  source?: Subscription["source"];
 }
 
 function toDateValue(value: unknown): Date {
@@ -57,6 +59,7 @@ function mapDocToSubscription(id: string, data: Record<string, unknown>): Subscr
     icon: (data.icon as string) || "S",
     color: (data.color as string) || "bg-emerald-500",
     notes: (data.notes as string) || "",
+    source: (data.source as Subscription["source"]) || "manual",
     rules: Array.isArray(data.rules) ? (data.rules as Subscription["rules"]) : [],
   };
 }
@@ -108,4 +111,15 @@ export async function updateUserSubscription(
 export async function deleteUserSubscription(uid: string, subscriptionId: string) {
   const ref = doc(db, "users", uid, "subscriptions", subscriptionId);
   await deleteDoc(ref);
+}
+
+export async function getUserSubscription(uid: string, subscriptionId: string) {
+  const ref = doc(db, "users", uid, "subscriptions", subscriptionId);
+  const snapshot = await getDoc(ref);
+
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  return mapDocToSubscription(snapshot.id, snapshot.data() as Record<string, unknown>);
 }

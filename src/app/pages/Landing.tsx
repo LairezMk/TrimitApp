@@ -16,18 +16,62 @@ import {
   Shield,
   Zap,
   DollarSign,
-  Users
+  Users,
+  Github,
+  Linkedin,
+  Globe
 } from "lucide-react";
 
 export default function Landing() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const [showDevMenu, setShowDevMenu] = useState(false);
+  const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
   const isHeaderVisible = useScrollDirection();
+
+  const teamMembers = [
+    {
+      name: "Jonathan Gaviria Ocampo",
+      role: "Backend & Pruebas",
+      description:
+        "Responsable del desarrollo backend y las pruebas del sistema, asegurando que la plataforma funcione correctamente y que la detección de suscripciones sea confiable.",
+      details: "Le apasiona la calidad del código y la estabilidad de la plataforma.",
+      socials: [
+        { label: "GitHub", url: "", icon: Github },
+        { label: "LinkedIn", url: "", icon: Linkedin },
+      ],
+    },
+    {
+      name: "Samuel Herrera Marin",
+      role: "Frontend & Diseño",
+      description:
+        "Encargado del desarrollo frontend y el diseño de la interfaz, trabajando en que la aplicación sea intuitiva, visualmente clara y fácil de usar.",
+      details: "Se enfoca en la experiencia de usuario y en crear interfaces modernas.",
+      socials: [
+        { label: "GitHub", url: "https://github.com/LairezMk", icon: Github },
+        { label: "LinkedIn", url: "", icon: Linkedin },
+      ],
+    },
+    {
+      name: "Juan David Correa",
+      role: "Marketing & Estrategia",
+      description:
+        "Responsable del marketing, la documentación y la validación del proyecto, enfocándose en analizar el mercado y definir la estrategia del producto.",
+      details: "Lidera la estrategia del producto y la comunicación con los usuarios.",
+      socials: [
+        { label: "Portafolio", url: "", icon: Globe },
+        { label: "LinkedIn", url: "", icon: Linkedin },
+      ],
+    },
+  ];
   
   const handleCTA = () => {
     // Redirigir al formulario de registro
     window.open('https://docs.google.com/forms/d/e/1FAIpQLScn7fIHROr0874UGZrPLwhJbdRybQ_Q46eiyYZZxsq2s8QXIQ/viewform?usp=header', '_blank');
+  };
+
+  const toggleCardFlip = (index: number) => {
+    setFlippedCards((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
   return (
@@ -315,36 +359,83 @@ export default function Landing() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Jonathan Gaviria Ocampo",
-                role: "Backend & Pruebas",
-                description: "Responsable del desarrollo backend y las pruebas del sistema, asegurando que la plataforma funcione correctamente y que la detección de suscripciones sea confiable."
-              },
-              {
-                name: "Samuel Herrera Marin",
-                role: "Frontend & Diseño",
-                description: "Encargado del desarrollo frontend y el diseño de la interfaz, trabajando en que la aplicación sea intuitiva, visualmente clara y fácil de usar."
-              },
-              {
-                name: "Juan David Correa",
-                role: "Marketing & Estrategia",
-                description: "Responsable del marketing, la documentación y la validación del proyecto, enfocándose en analizar el mercado y definir la estrategia del producto."
-              }
-            ].map((member, index) => (
-              <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
-                <div className="w-20 h-20 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4 mx-auto">
-                  {member.name.split(' ')[0][0]}{member.name.split(' ')[1][0]}
+            {teamMembers.map((member, index) => (
+              <div key={member.name} className="group [perspective:1200px]">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => toggleCardFlip(index)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      toggleCardFlip(index);
+                    }
+                  }}
+                  className={`relative h-[390px] cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
+                    flippedCards[index] ? "[transform:rotateY(180deg)]" : ""
+                  } [transform-style:preserve-3d]`}
+                >
+                  <div className="absolute inset-0 bg-gray-50 dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 [backface-visibility:hidden]">
+                    <div className="w-20 h-20 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4 mx-auto transition-transform duration-300 group-hover:scale-110">
+                      {member.name.split(" ")[0][0]}
+                      {member.name.split(" ")[1][0]}
+                    </div>
+                    <h3 className="text-xl font-semibold text-center mb-2 dark:text-white">
+                      {member.name}
+                    </h3>
+                    <p className="text-emerald-600 dark:text-emerald-400 text-center font-medium mb-4">
+                      {member.role}
+                    </p>
+                    <p className="text-gray-600 dark:text-gray-400 text-center text-sm">
+                      {member.description}
+                    </p>
+                    <p className="mt-5 text-center text-xs text-gray-500 dark:text-gray-400">
+                      Haz clic para ver redes sociales
+                    </p>
+                  </div>
+
+                  <div className="absolute inset-0 rounded-xl p-8 border border-emerald-200 dark:border-emerald-700 bg-gradient-to-br from-emerald-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700 [transform:rotateY(180deg)] [backface-visibility:hidden]">
+                    <h3 className="text-xl font-semibold text-center mb-2 dark:text-white">
+                      {member.name}
+                    </h3>
+                    <p className="text-emerald-600 dark:text-emerald-400 text-center font-medium mb-4">
+                      Información adicional
+                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 text-center mb-6">
+                      {member.details}
+                    </p>
+                    <div className="space-y-3">
+                      {member.socials.map((social) => {
+                        const Icon = social.icon;
+
+                        return social.url ? (
+                          <a
+                            key={social.label}
+                            href={social.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span>{social.label}</span>
+                          </a>
+                        ) : (
+                          <div
+                            key={social.label}
+                            className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-lg bg-white/70 dark:bg-gray-800/70 border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400"
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span>{social.label} no disponible</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-5 text-center text-xs text-gray-500 dark:text-gray-400">
+                      Haz clic para volver
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-center mb-2 dark:text-white">
-                  {member.name}
-                </h3>
-                <p className="text-emerald-600 dark:text-emerald-400 text-center font-medium mb-4">
-                  {member.role}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400 text-center text-sm">
-                  {member.description}
-                </p>
               </div>
             ))}
           </div>

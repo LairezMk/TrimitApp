@@ -1,11 +1,15 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  detectSubscriptionsFromGmail,
+  saveDetectedSubscriptionsDrafts,
+} from "../services/gmailDetection";
 
 type Mode = "login" | "register";
 
 export default function AuthPage() {
-  const { user, loading, login, register } = useAuth();
+  const { user, loading, login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("login");
   const [displayName, setDisplayName] = useState("");
@@ -37,6 +41,34 @@ export default function AuthPage() {
         setMessage("Sesion iniciada correctamente.");
         navigate("/dashboard");
       }
+    } catch (error) {
+      const text = error instanceof Error ? error.message : "Error inesperado";
+      setMessage(text);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setSubmitting(true);
+    setMessage("");
+
+    try {
+      const { isNewUser, accessToken } = await loginWithGoogle();
+
+      if (!isNewUser) {
+        navigate("/dashboard");
+        return;
+      }
+
+      if (!accessToken) {
+        navigate("/dashboard");
+        return;
+      }
+
+      const detected = await detectSubscriptionsFromGmail(accessToken);
+      saveDetectedSubscriptionsDrafts(detected);
+      navigate("/subscriptions/gmail-confirmation");
     } catch (error) {
       const text = error instanceof Error ? error.message : "Error inesperado";
       setMessage(text);
@@ -113,6 +145,15 @@ export default function AuthPage() {
             type="submit"
           >
             {submitting ? "Procesando..." : mode === "login" ? "Entrar" : "Crear cuenta"}
+          </button>
+
+          <button
+            className="w-full border border-gray-300 text-gray-800 rounded-md py-2 font-medium hover:bg-gray-50 disabled:opacity-50"
+            disabled={submitting}
+            type="button"
+            onClick={handleGoogleAuth}
+          >
+            Continuar con Google
           </button>
         </form>
 

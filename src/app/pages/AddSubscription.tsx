@@ -117,7 +117,7 @@ export default function AddSubscription() {
   };
 
   return (
-    <div className="p-8 text-gray-900 dark:text-gray-100">
+    <div className="p-6 md:p-8 text-gray-900 dark:text-gray-100">
       <button
         onClick={() => navigate("/subscriptions")}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -126,13 +126,13 @@ export default function AddSubscription() {
         Volver a Suscripciones
       </button>
 
-      <div className="max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-3xl mb-2 dark:text-white">Nueva Suscripción</h1>
-          <p className="text-gray-500 dark:text-gray-400">Agrega una nueva suscripción a tu lista</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl mb-2 dark:text-white">Nueva Suscripción</h1>
+        <p className="text-gray-500 dark:text-gray-400">Agrega una nueva suscripción a tu lista</p>
+      </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Nombre */}
             <div>
@@ -171,7 +171,7 @@ export default function AddSubscription() {
             </div>
 
             {/* Monto y Moneda */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
@@ -267,7 +267,7 @@ export default function AddSubscription() {
             </div>
 
             {/* Icono y color */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Ícono (1 letra)
@@ -327,11 +327,11 @@ export default function AddSubscription() {
             </div>
 
             {/* Buttons */}
-            <div className="flex gap-4 pt-6">
+            <div className="flex flex-col md:flex-row gap-4 pt-6">
               <button
                 type="button"
                 onClick={() => navigate("/subscriptions")}
-                className="flex-1 px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="md:w-40 px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 Cancelar
               </button>
@@ -353,19 +353,50 @@ export default function AddSubscription() {
         </div>
 
         {/* Quick Templates */}
-        <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Plantillas rápidas</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.keys(QUICK_TEMPLATES).map((service) => (
-              <button
-                key={service}
-                type="button"
-                onClick={() => handleApplyTemplate(service as keyof typeof QUICK_TEMPLATES)}
-                className="px-4 py-2 bg-white dark:bg-slate-900 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-500 transition-colors"
-              >
-                {service}
-              </button>
-            ))}
+        <div className="space-y-4">
+          <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Plantillas rápidas</h3>
+            <div className="grid grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-3">
+              {Object.keys(QUICK_TEMPLATES).map((service) => (
+                <button
+                  key={service}
+                  type="button"
+                  onClick={() => handleApplyTemplate(service as keyof typeof QUICK_TEMPLATES)}
+                  className="px-4 py-2 bg-white dark:bg-slate-900 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-500 transition-colors"
+                >
+                  {service}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+              Vista previa rápida
+            </h3>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div
+                  className={`w-12 h-12 ${formData.color} rounded-xl flex items-center justify-center text-white text-lg`}
+                >
+                  {(formData.icon.trim() || formData.name.trim().charAt(0) || "S")
+                    .charAt(0)
+                    .toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-gray-100">
+                    {formData.name || "Sin nombre"}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {formData.category || "Sin categoría"}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                {formData.currency}
+                {Number(formData.amount || 0).toFixed(2)} / ciclo
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -1,184 +1,292 @@
-import { User, Mail, Phone, MapPin, Calendar, Edit2, Camera, Shield } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { updateProfile } from "firebase/auth";
+import { Calendar, Camera, Mail, MapPin, Phone, Save, User } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { db } from "../lib/firebase";
+import { useAuth } from "../contexts/AuthContext";
+import { subscribeToUserSubscriptions } from "../services/subscriptions";
+
+interface ProfileForm {
+  displayName: string;
+  phone: string;
+  location: string;
+  photoURL: string;
+}
 
 export default function Profile() {
-  const user = {
-    name: "María González",
-    email: "maria.gonzalez@email.com",
-    phone: "+52 555 123 4567",
-    location: "Ciudad de México, México",
-    memberSince: new Date("2023-06-15"),
-    avatar: "MG",
+  const { user } = useAuth();
+  const [form, setForm] = useState<ProfileForm>({
+    displayName: "",
+    phone: "",
+    location: "",
+    photoURL: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [activeCount, setActiveCount] = useState(0);
+  const [monthlyTotal, setMonthlyTotal] = useState(0);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+        const data = snap.data() as Record<string, unknown> | undefined;
+
+        setForm({
+          displayName:
+            (data?.displayName as string | undefined) ||
+            user.displayName ||
+            "Usuario",
+          phone: (data?.phone as string | undefined) || "",
+          location: (data?.location as string | undefined) || "",
+          photoURL:
+            (data?.photoURL as string | undefined) ||
+            user.photoURL ||
+            "",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadProfile();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    return subscribeToUserSubscriptions(
+      user.uid,
+      (subscriptions) => {
+        const active = subscriptions.filter((sub) => sub.status === "active");
+        setActiveCount(active.length);
+        setMonthlyTotal(active.reduce((sum, sub) => sum + sub.amount, 0));
+      },
+      () => undefined,
+    );
+  }, [user]);
+
+  const avatarFallback = useMemo(() => {
+    const name = form.displayName.trim() || user?.displayName || "Usuario";
+    const parts = name.split(" ").filter(Boolean);
+    return (parts[0]?.[0] || "U") + (parts[1]?.[0] || "");
+  }, [form.displayName, user?.displayName]);
+
+  const handleSave = async () => {
+    if (!user) {
+      return;
+    }
+
+    setSaving(true);
+    setMessage(null);
+
+    try {
+      await updateProfile(user, {
+        displayName: form.displayName.trim() || "Usuario",
+        photoURL: form.photoURL.trim() || null,
+      });
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          displayName: form.displayName.trim() || "Usuario",
+          phone: form.phone.trim(),
+          location: form.location.trim(),
+          photoURL: form.photoURL.trim(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+
+      setMessage("Perfil actualizado correctamente.");
+    } catch (error) {
+      const text = error instanceof Error ? error.message : "No se pudo guardar.";
+      setMessage(text);
+    } finally {
+      setSaving(false);
+    }
   };
 
+  if (loading) {
+    return <div className="p-6 md:p-8 text-gray-500">Cargando perfil...</div>;
+  }
+
   return (
-    <div className="p-8">
+    <div className="p-6 md:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl mb-2">Mi Perfil</h1>
-        <p className="text-gray-500">Gestiona tu información personal</p>
+        <h1 className="text-3xl mb-2 dark:text-white">Mi Perfil</h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          Modifica tu información personal y visual de la cuenta.
+        </p>
       </div>
 
-      <div className="max-w-4xl">
-        {/* Profile Header */}
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-8 text-white mb-6 shadow-lg">
-          <div className="flex items-start gap-6">
-            <div className="relative">
-              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold backdrop-blur-sm">
-                {user.avatar}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative">
+                {form.photoURL ? (
+                  <img
+                    src={form.photoURL}
+                    alt="Foto de perfil"
+                    className="w-20 h-20 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-emerald-500 text-white flex items-center justify-center text-2xl font-semibold">
+                    {avatarFallback}
+                  </div>
+                )}
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 grid place-items-center">
+                  <Camera className="w-3.5 h-3.5 text-gray-500" />
+                </div>
               </div>
-              <button className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-gray-100 transition-colors">
-                <Camera className="w-4 h-4 text-emerald-600" />
-              </button>
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
+                  {form.displayName || "Usuario"}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {user?.email || "Sin correo"}
+                </p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold mb-1">{user.name}</h2>
-              <p className="text-emerald-100 mb-4">{user.email}</p>
-              <div className="flex items-center gap-2 text-emerald-100 text-sm">
-                <Calendar className="w-4 h-4" />
-                <span>
-                  Miembro desde {format(user.memberSince, "MMMM yyyy", { locale: es })}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  <span className="inline-flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Nombre visible
+                  </span>
+                </label>
+                <input
+                  value={form.displayName}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, displayName: e.target.value }))
+                  }
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  URL de foto de perfil
+                </label>
+                <input
+                  value={form.photoURL}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, photoURL: e.target.value }))
+                  }
+                  placeholder="https://..."
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  <span className="inline-flex items-center gap-2">
+                    <Phone className="w-4 h-4" />
+                    Teléfono
+                  </span>
+                </label>
+                <input
+                  value={form.phone}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, phone: e.target.value }))
+                  }
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  <span className="inline-flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Ubicación
+                  </span>
+                </label>
+                <input
+                  value={form.location}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, location: e.target.value }))
+                  }
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+              {message && (
+                <p className="text-sm text-gray-600 dark:text-gray-300 self-center">
+                  {message}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <aside className="space-y-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              Resumen de cuenta
+            </p>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Suscripciones activas
+                </span>
+                <span className="font-semibold text-emerald-600">{activeCount}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Gasto mensual
+                </span>
+                <span className="font-semibold">
+                  {monthlyTotal.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Correo
+                </span>
+                <span className="text-sm inline-flex items-center gap-1 text-gray-500">
+                  <Mail className="w-3.5 h-3.5" />
+                  Activo
                 </span>
               </div>
             </div>
-            <button className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-2 transition-colors">
-              <Edit2 className="w-4 h-4" />
-              Editar perfil
-            </button>
-          </div>
-        </div>
-
-        {/* Personal Information */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-semibold">Información Personal</h2>
           </div>
 
-          <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between py-4 border-b border-gray-100">
-              <div className="flex items-center gap-4">
-                <User className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Nombre completo</p>
-                  <p className="font-medium">{user.name}</p>
-                </div>
-              </div>
-              <button className="text-emerald-600 hover:text-emerald-700 text-sm">
-                Editar
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between py-4 border-b border-gray-100">
-              <div className="flex items-center gap-4">
-                <Mail className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Correo electrónico</p>
-                  <p className="font-medium">{user.email}</p>
-                </div>
-              </div>
-              <button className="text-emerald-600 hover:text-emerald-700 text-sm">
-                Editar
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between py-4 border-b border-gray-100">
-              <div className="flex items-center gap-4">
-                <Phone className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Teléfono</p>
-                  <p className="font-medium">{user.phone}</p>
-                </div>
-              </div>
-              <button className="text-emerald-600 hover:text-emerald-700 text-sm">
-                Editar
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-4">
-                <MapPin className="w-5 h-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Ubicación</p>
-                  <p className="font-medium">{user.location}</p>
-                </div>
-              </div>
-              <button className="text-emerald-600 hover:text-emerald-700 text-sm">
-                Editar
-              </button>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <Calendar className="w-4 h-4" />
+              Miembro desde{" "}
+              {format(
+                new Date(user?.metadata.creationTime || Date.now()),
+                "MMMM yyyy",
+                { locale: es },
+              )}
             </div>
           </div>
-        </div>
-
-        {/* Account Stats */}
-        <div className="grid grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
-            <p className="text-3xl font-bold text-emerald-600 mb-1">8</p>
-            <p className="text-sm text-gray-500">Suscripciones activas</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
-            <p className="text-3xl font-bold text-blue-600 mb-1">$172.93</p>
-            <p className="text-sm text-gray-500">Gasto mensual</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
-            <p className="text-3xl font-bold text-purple-600 mb-1">33</p>
-            <p className="text-sm text-gray-500">Meses como miembro</p>
-          </div>
-        </div>
-
-        {/* Security */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-gray-700" />
-              <h2 className="text-xl font-semibold">Seguridad</h2>
-            </div>
-          </div>
-
-          <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between py-4 border-b border-gray-100">
-              <div>
-                <p className="font-medium">Contraseña</p>
-                <p className="text-sm text-gray-500">Última actualización hace 3 meses</p>
-              </div>
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm">
-                Cambiar contraseña
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between py-4 border-b border-gray-100">
-              <div>
-                <p className="font-medium">Autenticación de dos factores</p>
-                <p className="text-sm text-gray-500">Protege tu cuenta con 2FA</p>
-              </div>
-              <label className="relative inline-block w-12 h-6">
-                <input type="checkbox" className="peer sr-only" />
-                <span className="absolute cursor-pointer inset-0 bg-gray-300 rounded-full transition peer-checked:bg-emerald-500"></span>
-                <span className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition peer-checked:translate-x-6"></span>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between py-4">
-              <div>
-                <p className="font-medium">Sesiones activas</p>
-                <p className="text-sm text-gray-500">Gestiona tus dispositivos conectados</p>
-              </div>
-              <button className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
-                Ver detalles →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Danger Zone */}
-        <div className="mt-6 bg-red-50 rounded-xl p-6 border border-red-200">
-          <h3 className="font-semibold text-red-900 mb-2">Zona de peligro</h3>
-          <p className="text-sm text-red-700 mb-4">
-            Estas acciones son irreversibles. Por favor, procede con precaución.
-          </p>
-          <button className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium">
-            Eliminar cuenta permanentemente
-          </button>
-        </div>
+        </aside>
       </div>
     </div>
   );

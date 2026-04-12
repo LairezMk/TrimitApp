@@ -20,15 +20,13 @@ import {
   LogOut,
   Moon,
   Sun,
-  Home,
-  Plus,
 } from "lucide-react";
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     await logout();
@@ -82,6 +80,15 @@ export default function Layout() {
     },
   ];
 
+  const userName = user?.displayName?.trim() || "Usuario";
+  const userEmail = user?.email || "Sin correo";
+  const userInitials = userName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
       {/* Sidebar */}
@@ -98,6 +105,29 @@ export default function Layout() {
               className="h-12 w-auto mx-auto brightness-0 invert" 
             />
           </div>
+
+          <button
+            onClick={() => navigate("/profile")}
+            className="w-full mb-6 rounded-xl border border-slate-700/70 bg-slate-800/50 p-3 text-left hover:bg-slate-700/60 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              {user?.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt="Foto de perfil"
+                  className="w-10 h-10 rounded-full object-cover border border-slate-500"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {userInitials || "U"}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white truncate">{userName}</p>
+                <p className="text-xs text-gray-400 truncate">{userEmail}</p>
+              </div>
+            </div>
+          </button>
 
           {/* Menu Sections */}
           <nav className="space-y-6">
