@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -8,303 +8,205 @@ import {
   TrendingDown,
   TrendingUp,
   Filter,
+  PlusCircle,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { subscribeToUserSubscriptions } from "../services/subscriptions";
+import {
+  createUserPayment,
+  subscribeToUserPayments,
+  type UserPayment,
+} from "../services/payments";
 import type { Subscription } from "../types/subscription";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
-interface Payment {
+type DisplayPayment = {
   id: string;
   subscription: Subscription;
   date: Date;
   amount: number;
   status: "paid" | "upcoming";
+  source: "manual" | "projected" | "imported";
+};
+
+function toCurrencySymbol(currency: string) {
+  if (currency === "USD") {
+    return "$";
+  }
+  if (currency === "EUR") {
+    return "EUR ";
+  }
+  if (currency === "COP") {
+    return "COP ";
+  }
+  return `${currency} `;
 }
 
-// Mock data - Pagos pasados
-const PAST_PAYMENTS: Payment[] = [
-  {
-    id: "p1",
-    subscription: {
-      id: "1",
-      name: "Netflix",
-      category: "Entretenimiento",
-      amount: 19.61,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-28"),
-      icon: "N",
-      color: "bg-red-500",
-    },
-    date: new Date("2026-01-28"),
-    amount: 19.61,
-    status: "paid",
-  },
-  {
-    id: "p2",
-    subscription: {
-      id: "6",
-      name: "Amazon Prime",
-      category: "Entretenimiento",
-      amount: 14.99,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-22"),
-      icon: "A",
-      color: "bg-sky-500",
-    },
-    date: new Date("2026-01-22"),
-    amount: 14.99,
-    status: "paid",
-  },
-  {
-    id: "p3",
-    subscription: {
-      id: "8",
-      name: "Notion",
-      category: "Productividad",
-      amount: 10.0,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-27"),
-      icon: "N",
-      color: "bg-gray-800",
-    },
-    date: new Date("2026-01-27"),
-    amount: 10.0,
-    status: "paid",
-  },
-  {
-    id: "p4",
-    subscription: {
-      id: "2",
-      name: "Gym Active",
-      category: "Salud",
-      amount: 10.4,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-03-05"),
-      icon: "G",
-      color: "bg-orange-500",
-    },
-    date: new Date("2026-02-05"),
-    amount: 10.4,
-    status: "paid",
-  },
-  {
-    id: "p5",
-    subscription: {
-      id: "4",
-      name: "Adobe Creative Cloud",
-      category: "Productividad",
-      amount: 54.99,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-03-01"),
-      icon: "A",
-      color: "bg-red-600",
-    },
-    date: new Date("2026-02-01"),
-    amount: 54.99,
-    status: "paid",
-  },
-  {
-    id: "p6",
-    subscription: {
-      id: "1",
-      name: "Netflix",
-      category: "Entretenimiento",
-      amount: 19.61,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-28"),
-      icon: "N",
-      color: "bg-red-500",
-    },
-    date: new Date("2025-12-28"),
-    amount: 19.61,
-    status: "paid",
-  },
-];
-
-// Mock data - Pagos futuros
-const UPCOMING_PAYMENTS: Payment[] = [
-  {
-    id: "u1",
-    subscription: {
-      id: "6",
-      name: "Amazon Prime",
-      category: "Entretenimiento",
-      amount: 14.99,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-22"),
-      icon: "A",
-      color: "bg-sky-500",
-    },
-    date: new Date("2026-02-22"),
-    amount: 14.99,
-    status: "upcoming",
-  },
-  {
-    id: "u2",
-    subscription: {
-      id: "3",
-      name: "Disney+",
-      category: "Entretenimiento",
-      amount: 21.96,
-      currency: "$",
-      status: "forgotten",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-25"),
-      icon: "D",
-      color: "bg-blue-600",
-    },
-    date: new Date("2026-02-25"),
-    amount: 21.96,
-    status: "upcoming",
-  },
-  {
-    id: "u3",
-    subscription: {
-      id: "8",
-      name: "Notion",
-      category: "Productividad",
-      amount: 10.0,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-27"),
-      icon: "N",
-      color: "bg-gray-800",
-    },
-    date: new Date("2026-02-27"),
-    amount: 10.0,
-    status: "upcoming",
-  },
-  {
-    id: "u4",
-    subscription: {
-      id: "1",
-      name: "Netflix",
-      category: "Entretenimiento",
-      amount: 19.61,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-02-28"),
-      icon: "N",
-      color: "bg-red-500",
-    },
-    date: new Date("2026-02-28"),
-    amount: 19.61,
-    status: "upcoming",
-  },
-  {
-    id: "u5",
-    subscription: {
-      id: "4",
-      name: "Adobe Creative Cloud",
-      category: "Productividad",
-      amount: 54.99,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-03-01"),
-      icon: "A",
-      color: "bg-red-600",
-    },
-    date: new Date("2026-03-01"),
-    amount: 54.99,
-    status: "upcoming",
-  },
-  {
-    id: "u6",
-    subscription: {
-      id: "2",
-      name: "Gym Active",
-      category: "Salud",
-      amount: 10.4,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-03-05"),
-      icon: "G",
-      color: "bg-orange-500",
-    },
-    date: new Date("2026-03-05"),
-    amount: 10.4,
-    status: "upcoming",
-  },
-  {
-    id: "u7",
-    subscription: {
-      id: "5",
-      name: "Spotify",
-      category: "Música",
-      amount: 9.99,
-      currency: "$",
-      status: "suspended",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-03-10"),
-      icon: "S",
-      color: "bg-green-500",
-    },
-    date: new Date("2026-03-10"),
-    amount: 9.99,
-    status: "upcoming",
-  },
-  {
-    id: "u8",
-    subscription: {
-      id: "7",
-      name: "YouTube Premium",
-      category: "Entretenimiento",
-      amount: 11.99,
-      currency: "$",
-      status: "active",
-      isRecurring: true,
-      nextPaymentDate: new Date("2026-03-15"),
-      icon: "Y",
-      color: "bg-red-500",
-    },
-    date: new Date("2026-03-15"),
-    amount: 11.99,
-    status: "upcoming",
-  },
-];
-
 export default function Payments() {
+  const { user } = useAuth();
   const [filter, setFilter] = useState<"all" | "paid" | "upcoming">("all");
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [payments, setPayments] = useState<UserPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Combinar y ordenar todos los pagos por fecha
-  const allPayments = [...PAST_PAYMENTS, ...UPCOMING_PAYMENTS].sort(
-    (a, b) => a.date.getTime() - b.date.getTime()
+  const [newSubscriptionId, setNewSubscriptionId] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
+  const [addingPayment, setAddingPayment] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setSubscriptions([]);
+      setPayments([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubSubs = subscribeToUserSubscriptions(
+      user.uid,
+      (data) => {
+        setSubscriptions(data);
+        if (!newSubscriptionId && data.length > 0) {
+          setNewSubscriptionId(data[0].id);
+          setNewAmount(String(data[0].amount));
+        }
+      },
+      (err) => setError(err.message),
+    );
+
+    const unsubPayments = subscribeToUserPayments(
+      user.uid,
+      (data) => {
+        setPayments(data);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
+
+    return () => {
+      unsubSubs();
+      unsubPayments();
+    };
+  }, [user, newSubscriptionId]);
+
+  const activeSubscriptions = useMemo(
+    () => subscriptions.filter((subscription) => subscription.status === "active"),
+    [subscriptions],
+  );
+
+  const upcomingProjected = useMemo<DisplayPayment[]>(() => {
+    const paidBySubscription = new Map<string, UserPayment[]>();
+    for (const payment of payments) {
+      const list = paidBySubscription.get(payment.subscriptionId) || [];
+      list.push(payment);
+      paidBySubscription.set(payment.subscriptionId, list);
+    }
+
+    return activeSubscriptions.map((subscription) => {
+      const recorded = paidBySubscription.get(subscription.id) || [];
+      const newest = recorded
+        .slice()
+        .sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime())[0];
+
+      return {
+        id: `projected-${subscription.id}`,
+        subscription,
+        date: newest ? subscription.nextPaymentDate : subscription.nextPaymentDate,
+        amount: subscription.amount,
+        status: "upcoming",
+        source: "projected",
+      };
+    });
+  }, [activeSubscriptions, payments]);
+
+  const paidTimeline = useMemo<DisplayPayment[]>(
+    () =>
+      payments.map((payment) => ({
+        id: payment.id,
+        subscription:
+          subscriptions.find((sub) => sub.id === payment.subscriptionId) || {
+            id: payment.subscriptionId,
+            name: payment.subscriptionName,
+            category: payment.category,
+            amount: payment.amount,
+            currency: payment.currency,
+            status: "active",
+            isRecurring: true,
+            nextPaymentDate: payment.paymentDate,
+            icon: payment.subscriptionName.charAt(0).toUpperCase() || "S",
+            color: "bg-emerald-500",
+          },
+        date: payment.paymentDate,
+        amount: payment.amount,
+        status: "paid",
+        source: payment.source,
+      })),
+    [payments, subscriptions],
+  );
+
+  const allPayments = useMemo(
+    () =>
+      [...paidTimeline, ...upcomingProjected].sort(
+        (a, b) => a.date.getTime() - b.date.getTime(),
+      ),
+    [paidTimeline, upcomingProjected],
   );
 
   const filteredPayments =
-    filter === "all"
-      ? allPayments
-      : allPayments.filter((p) => p.status === filter);
+    filter === "all" ? allPayments : allPayments.filter((payment) => payment.status === filter);
 
-  const totalPaid = PAST_PAYMENTS.reduce((sum, p) => sum + p.amount, 0);
-  const totalUpcoming = UPCOMING_PAYMENTS.reduce((sum, p) => sum + p.amount, 0);
+  const totalPaid = paidTimeline.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalUpcoming = upcomingProjected.reduce((sum, payment) => sum + payment.amount, 0);
+
+  const nextUpcoming = upcomingProjected
+    .slice()
+    .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
 
   const getDaysUntilPayment = (date: Date) => {
     const today = new Date();
     const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const handleAddPayment = async () => {
+    if (!user) {
+      return;
+    }
+
+    const selected = subscriptions.find((subscription) => subscription.id === newSubscriptionId);
+    if (!selected || !newAmount || !newDate) {
+      return;
+    }
+
+    setAddingPayment(true);
+    setError(null);
+
+    try {
+      await createUserPayment(user.uid, {
+        subscriptionId: selected.id,
+        subscriptionName: selected.name,
+        category: selected.category,
+        amount: Number(newAmount),
+        currency: selected.currency,
+        paymentDate: new Date(newDate),
+        source: "manual",
+        status: "paid",
+      });
+    } catch (err) {
+      const text = err instanceof Error ? err.message : "No se pudo registrar el pago.";
+      setError(text);
+    } finally {
+      setAddingPayment(false);
+    }
   };
 
   return (
     <div className="p-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Historial de Pagos</h1>
         <p className="text-gray-500">
@@ -312,7 +214,63 @@ export default function Payments() {
         </p>
       </div>
 
-      {/* Stats Cards */}
+      {error && (
+        <div className="mb-6">
+          <ErrorState
+            title="Error al cargar pagos"
+            message={error}
+            onRetry={() => window.location.reload()}
+          />
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <PlusCircle className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-lg dark:text-white">Registrar pago</h2>
+        </div>
+        <div className="grid md:grid-cols-4 gap-3">
+          <select
+            value={newSubscriptionId}
+            onChange={(e) => {
+              setNewSubscriptionId(e.target.value);
+              const selected = subscriptions.find((sub) => sub.id === e.target.value);
+              if (selected) {
+                setNewAmount(String(selected.amount));
+              }
+            }}
+            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+          >
+            {subscriptions.map((subscription) => (
+              <option key={subscription.id} value={subscription.id}>
+                {subscription.name}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            step="0.01"
+            value={newAmount}
+            onChange={(e) => setNewAmount(e.target.value)}
+            placeholder="Monto"
+            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+          />
+          <input
+            type="date"
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+          />
+          <button
+            onClick={handleAddPayment}
+            disabled={addingPayment || !subscriptions.length}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg disabled:opacity-60"
+          >
+            {addingPayment ? "Guardando..." : "Agregar pago"}
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-2">
@@ -320,9 +278,7 @@ export default function Payments() {
             <TrendingDown className="w-5 h-5 text-red-500" />
           </div>
           <p className="text-3xl text-red-600">${totalPaid.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            {PAST_PAYMENTS.length} pagos realizados
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{paidTimeline.length} pagos realizados</p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
@@ -332,7 +288,7 @@ export default function Payments() {
           </div>
           <p className="text-3xl text-emerald-600">${totalUpcoming.toFixed(2)}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {UPCOMING_PAYMENTS.length} pagos programados
+            {upcomingProjected.length} pagos programados
           </p>
         </div>
 
@@ -342,16 +298,18 @@ export default function Payments() {
             <Clock className="w-5 h-5" />
           </div>
           <p className="text-3xl">
-            {getDaysUntilPayment(UPCOMING_PAYMENTS[0].date)} días
+            {nextUpcoming ? `${getDaysUntilPayment(nextUpcoming.date)} días` : "--"}
           </p>
           <p className="text-xs text-emerald-100 mt-1">
-            {UPCOMING_PAYMENTS[0].subscription.name} - $
-            {UPCOMING_PAYMENTS[0].amount}
+            {nextUpcoming
+              ? `${nextUpcoming.subscription.name} - ${toCurrencySymbol(
+                  nextUpcoming.subscription.currency,
+                )}${nextUpcoming.amount.toFixed(2)}`
+              : "Sin pagos próximos"}
           </p>
         </div>
       </div>
 
-      {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -359,165 +317,143 @@ export default function Payments() {
             <span className="text-sm text-gray-600 dark:text-gray-300">Filtrar por:</span>
           </div>
           <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-            <button
-              onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                filter === "all" ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white" : "text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              Todos
-            </button>
-            <button
-              onClick={() => setFilter("paid")}
-              className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                filter === "paid" ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white" : "text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              Pagados
-            </button>
-            <button
-              onClick={() => setFilter("upcoming")}
-              className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                filter === "upcoming" ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white" : "text-gray-600 dark:text-gray-300"
-              }`}
-            >
-              Próximos
-            </button>
+            {(["all", "paid", "upcoming"] as const).map((targetFilter) => (
+              <button
+                key={targetFilter}
+                onClick={() => setFilter(targetFilter)}
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  filter === targetFilter
+                    ? "bg-white dark:bg-gray-800 shadow-sm dark:text-white"
+                    : "text-gray-600 dark:text-gray-300"
+                }`}
+              >
+                {targetFilter === "all"
+                  ? "Todos"
+                  : targetFilter === "paid"
+                  ? "Pagados"
+                  : "Próximos"}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Payments Timeline */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
           <h2 className="text-xl dark:text-white">Cronología de Pagos</h2>
         </div>
 
         <div className="divide-y divide-gray-100 dark:divide-gray-700">
-          {filteredPayments.map((payment, index) => {
-            const isUpcoming = payment.status === "upcoming";
-            const daysUntil = isUpcoming
-              ? getDaysUntilPayment(payment.date)
-              : null;
+          {loading && (
+            <div className="p-6">
+              <LoadingState title="Cargando pagos..." />
+            </div>
+          )}
+          {!loading &&
+            filteredPayments.map((payment, index) => {
+              const isUpcoming = payment.status === "upcoming";
+              const daysUntil = isUpcoming ? getDaysUntilPayment(payment.date) : null;
 
-            return (
-              <div
-                key={payment.id}
-                className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                  isUpcoming ? "bg-blue-50/30 dark:bg-blue-900/10" : ""
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  {/* Timeline indicator */}
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        isUpcoming
-                          ? "bg-emerald-100 text-emerald-600"
-                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200"
-                      }`}
-                    >
-                      {isUpcoming ? (
-                        <Clock className="w-5 h-5" />
-                      ) : (
-                        <CheckCircle2 className="w-5 h-5" />
-                      )}
-                    </div>
-                    {index < filteredPayments.length - 1 && (
-                      <div className="w-0.5 h-12 bg-gray-200 mt-2" />
-                    )}
-                  </div>
-
-                  {/* Subscription info */}
-                  <div className="flex-1 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+              return (
+                <div
+                  key={payment.id}
+                  className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                    isUpcoming ? "bg-blue-50/30 dark:bg-blue-900/10" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-center">
                       <div
-                        className={`w-12 h-12 ${payment.subscription.color} rounded-xl flex items-center justify-center text-white text-lg`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          isUpcoming
+                            ? "bg-emerald-100 text-emerald-600"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-200"
+                        }`}
                       >
-                        {payment.subscription.icon}
+                        {isUpcoming ? (
+                          <Clock className="w-5 h-5" />
+                        ) : (
+                          <CheckCircle2 className="w-5 h-5" />
+                        )}
                       </div>
-                      <div>
-                        <h3 className="font-medium dark:text-white">
-                          {payment.subscription.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {payment.subscription.category}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Date and amount */}
-                    <div className="text-right">
-                      <p className="font-medium text-lg dark:text-white">
-                        ${payment.amount.toFixed(2)}
-                      </p>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-4 h-4" />
-                        <span>
-                          {format(payment.date, "d 'de' MMMM, yyyy", {
-                            locale: es,
-                          })}
-                        </span>
-                      </div>
-                      {isUpcoming && daysUntil !== null && (
-                        <p
-                          className={`text-xs mt-1 ${
-                            daysUntil <= 3
-                              ? "text-red-600 font-medium"
-                              : daysUntil <= 7
-                              ? "text-amber-600"
-                              : "text-emerald-600"
-                          }`}
-                        >
-                          {daysUntil === 0
-                            ? "Hoy"
-                            : daysUntil === 1
-                            ? "Mañana"
-                            : daysUntil < 0
-                            ? "Vencido"
-                            : `En ${daysUntil} días`}
-                        </p>
+                      {index < filteredPayments.length - 1 && (
+                        <div className="w-0.5 h-12 bg-gray-200 mt-2" />
                       )}
                     </div>
-                  </div>
 
-                  {/* Status badge */}
-                  <div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isUpcoming
-                          ? "bg-emerald-100 text-emerald-700"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
-                      }`}
-                    >
-                      {isUpcoming ? "Programado" : "Pagado"}
-                    </span>
+                    <div className="flex-1 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`w-12 h-12 ${payment.subscription.color} rounded-xl flex items-center justify-center text-white text-lg`}
+                        >
+                          {payment.subscription.icon}
+                        </div>
+                        <div>
+                          <h3 className="font-medium dark:text-white">
+                            {payment.subscription.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {payment.subscription.category}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="font-medium text-lg dark:text-white">
+                          {toCurrencySymbol(payment.subscription.currency)}
+                          {payment.amount.toFixed(2)}
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {format(payment.date, "d 'de' MMMM, yyyy", { locale: es })}
+                          </span>
+                        </div>
+                        {isUpcoming && daysUntil !== null && (
+                          <p
+                            className={`text-xs mt-1 ${
+                              daysUntil <= 3
+                                ? "text-red-600 font-medium"
+                                : daysUntil <= 7
+                                ? "text-amber-600"
+                                : "text-emerald-600"
+                            }`}
+                          >
+                            {daysUntil === 0
+                              ? "Hoy"
+                              : daysUntil === 1
+                              ? "Mañana"
+                              : daysUntil < 0
+                              ? "Vencido"
+                              : `En ${daysUntil} días`}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          isUpcoming
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                        }`}
+                      >
+                        {isUpcoming ? "Programado" : "Pagado"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Summary footer */}
-      <div className="mt-6 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
-              Total de pagos mostrados
-            </p>
-            <p className="text-2xl dark:text-white">
-              $
-              {filteredPayments
-                .reduce((sum, p) => sum + p.amount, 0)
-                .toFixed(2)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Cantidad de pagos</p>
-            <p className="text-2xl dark:text-white">{filteredPayments.length}</p>
-          </div>
+              );
+            })}
+          {!loading && filteredPayments.length === 0 && (
+            <div className="p-6">
+              <EmptyState
+                title="No hay pagos para este filtro"
+                description="Prueba con otro filtro o registra tu primer pago manual."
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

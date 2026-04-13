@@ -2,6 +2,7 @@ import type { Subscription } from "../types/subscription";
 import { Calendar, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { subscriptionColorStyle } from "../utils/subscriptionColor";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -37,7 +38,8 @@ export function SubscriptionCard({
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div
-            className={`w-12 h-12 ${subscription.color} rounded-xl flex items-center justify-center text-white text-lg`}
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg"
+            style={subscriptionColorStyle(subscription.color)}
           >
             {subscription.icon}
           </div>

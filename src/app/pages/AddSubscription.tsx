@@ -1,50 +1,43 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, DollarSign, Calendar, Tag, RefreshCw, Bell } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { createUserSubscription } from "../services/subscriptions";
-
-const COLOR_OPTIONS = [
-  "bg-red-500",
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-orange-500",
-  "bg-purple-500",
-  "bg-pink-500",
-  "bg-cyan-500",
-  "bg-gray-700",
-];
+import { subscribeToUserCategories, type UserCategory } from "../services/categories";
+import { SubscriptionColorPicker } from "../components/SubscriptionColorPicker";
+import { applyColorIntensity, normalizeHexColor } from "../utils/subscriptionColor";
 
 const QUICK_TEMPLATES = {
   Netflix: {
     category: "Entretenimiento",
     amount: "19.99",
     icon: "N",
-    color: "bg-red-500",
+    color: "#ef4444",
   },
   Spotify: {
     category: "Música",
     amount: "9.99",
     icon: "S",
-    color: "bg-emerald-500",
+    color: "#10b981",
   },
   "Disney+": {
     category: "Entretenimiento",
     amount: "13.99",
     icon: "D",
-    color: "bg-blue-500",
+    color: "#3b82f6",
   },
   "YouTube Premium": {
     category: "Entretenimiento",
     amount: "11.99",
     icon: "Y",
-    color: "bg-red-500",
+    color: "#ef4444",
   },
 } as const;
 
 export default function AddSubscription() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [categories, setCategories] = useState<UserCategory[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -56,14 +49,31 @@ export default function AddSubscription() {
     isRecurring: true,
     reminderDays: "3",
     icon: "S",
-    color: "bg-emerald-500",
+    color: "#10b981",
     notes: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [colorShade, setColorShade] = useState(500);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    return subscribeToUserCategories(
+      user.uid,
+      (data) => setCategories(data),
+      () => undefined,
+    );
+  }, [user]);
 
   const fieldClassName =
     "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500";
+
+  const finalCardColor = useMemo(
+    () => applyColorIntensity(normalizeHexColor(formData.color), colorShade),
+    [formData.color, colorShade],
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -91,7 +101,7 @@ export default function AddSubscription() {
         isRecurring: formData.isRecurring,
         nextPaymentDate: new Date(formData.nextPaymentDate),
         icon: formData.icon.trim() ? formData.icon.trim().charAt(0).toUpperCase() : formData.name.trim().charAt(0).toUpperCase(),
-        color: formData.color,
+        color: finalCardColor,
         notes: formData.notes,
       });
 
@@ -112,7 +122,7 @@ export default function AddSubscription() {
       category: template.category,
       amount: template.amount,
       icon: template.icon,
-      color: template.color,
+      color: normalizeHexColor(template.color),
     }));
   };
 
@@ -160,13 +170,15 @@ export default function AddSubscription() {
                 className={fieldClassName}
               >
                 <option value="">Seleccionar categoría</option>
-                <option value="Entretenimiento">Entretenimiento</option>
-                <option value="Productividad">Productividad</option>
-                <option value="Salud">Salud</option>
-                <option value="Música">Música</option>
-                <option value="Educación">Educación</option>
-                <option value="Noticias">Noticias</option>
-                <option value="Otros">Otros</option>
+                {formData.category &&
+                  !categories.some((category) => category.name === formData.category) && (
+                    <option value={formData.category}>{formData.category}</option>
+                  )}
+                {categories.map((category) => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -280,18 +292,14 @@ export default function AddSubscription() {
                   className={fieldClassName}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Color</label>
-                <select
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className={fieldClassName}
-                >
-                  {COLOR_OPTIONS.map((color) => (
-                    <option key={color} value={color}>{color}</option>
-                  ))}
-                </select>
-              </div>
+              <SubscriptionColorPicker
+                value={formData.color}
+                shade={colorShade}
+                onColorChange={(color) =>
+                  setFormData({ ...formData, color: normalizeHexColor(color) })
+                }
+                onShadeChange={setColorShade}
+              />
             </div>
 
             {/* Notas */}
@@ -377,7 +385,8 @@ export default function AddSubscription() {
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
               <div className="flex items-center gap-3 mb-4">
                 <div
-                  className={`w-12 h-12 ${formData.color} rounded-xl flex items-center justify-center text-white text-lg`}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg"
+                  style={{ backgroundColor: finalCardColor }}
                 >
                   {(formData.icon.trim() || formData.name.trim().charAt(0) || "S")
                     .charAt(0)

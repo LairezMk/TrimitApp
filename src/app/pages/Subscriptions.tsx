@@ -6,6 +6,7 @@ import { SubscriptionCard } from "../components/SubscriptionCard";
 import type { Subscription } from "../types/subscription";
 import { useAuth } from "../contexts/AuthContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
@@ -90,8 +91,12 @@ export default function Subscriptions() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          Error al cargar suscripciones: {error}
+        <div className="mb-6">
+          <ErrorState
+            title="Error al cargar suscripciones"
+            message={error}
+            onRetry={() => window.location.reload()}
+          />
         </div>
       )}
 
@@ -154,9 +159,7 @@ export default function Subscriptions() {
 
       {/* Subscriptions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-        {loading && (
-          <p className="text-gray-500">Cargando suscripciones...</p>
-        )}
+        {loading && <LoadingState title="Cargando suscripciones..." />}
         {filteredSubscriptions.map((subscription) => (
           <SubscriptionCard
             key={subscription.id}
@@ -165,7 +168,12 @@ export default function Subscriptions() {
           />
         ))}
         {!loading && filteredSubscriptions.length === 0 && (
-          <p className="text-gray-500">No hay suscripciones registradas todavía.</p>
+          <EmptyState
+            title="No hay suscripciones registradas"
+            description="Agrega tu primera suscripción para comenzar a gestionar tus pagos."
+            actionLabel="Crear suscripción"
+            onAction={() => navigate("/subscriptions/add")}
+          />
         )}
       </div>
     </div>

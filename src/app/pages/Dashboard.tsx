@@ -14,6 +14,7 @@ import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import type { Subscription } from "../types/subscription";
+import { EmptyState, LoadingState } from "../components/PageStates";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -164,6 +165,7 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="p-6">
           <div className="space-y-4">
+            {loading && <LoadingState title="Cargando suscripciones..." />}
             {recentSubscriptions.map((sub, idx) => (
               <div
                 key={idx}
@@ -196,9 +198,12 @@ export default function Dashboard() {
               </div>
             ))}
             {!loading && recentSubscriptions.length === 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Aun no tienes suscripciones guardadas.
-              </p>
+              <EmptyState
+                title="Aún no tienes suscripciones"
+                description="Registra una suscripción para desbloquear el resumen del dashboard."
+                actionLabel="Crear suscripción"
+                onAction={() => navigate("/subscriptions/add")}
+              />
             )}
           </div>
         </CardContent>

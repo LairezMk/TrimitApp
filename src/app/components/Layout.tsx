@@ -17,6 +17,7 @@ import {
   Lightbulb,
   Calculator,
   Bell,
+  Settings,
   LogOut,
   Moon,
   Sun,
@@ -167,6 +168,18 @@ export default function Layout() {
         {/* Bottom Actions */}
         <div className="sticky bottom-0 bg-slate-800 dark:bg-black border-t border-slate-700/50 dark:border-slate-800 p-6 space-y-2">
           {/* Theme Toggle */}
+          <button
+            onClick={() => navigate("/settings")}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium transform hover:translate-x-1 ${
+              isActive("/settings")
+                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/50"
+                : "text-gray-300 hover:bg-slate-700/50 hover:text-white"
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>Configuración</span>
+          </button>
+
           <button
             onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-slate-700/50 hover:text-white transition-all duration-300 text-sm font-medium transform hover:translate-x-1"

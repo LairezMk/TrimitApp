@@ -1,98 +1,41 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, DollarSign } from "lucide-react";
 import { Button } from "../components/ui/button";
 import type { Subscription } from "../types/subscription";
-
-const MOCK_SUBSCRIPTIONS: Subscription[] = [
-  {
-    id: "1",
-    name: "Netflix",
-    category: "Entretenimiento",
-    amount: 19.61,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-28"),
-    icon: "N",
-    color: "bg-red-500",
-  },
-  {
-    id: "2",
-    name: "Gym Active",
-    category: "Salud",
-    amount: 10.4,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-05"),
-    icon: "G",
-    color: "bg-orange-500",
-  },
-  {
-    id: "3",
-    name: "Disney+",
-    category: "Entretenimiento",
-    amount: 21.96,
-    currency: "$",
-    status: "forgotten",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-25"),
-    icon: "D",
-    color: "bg-blue-600",
-  },
-  {
-    id: "4",
-    name: "Adobe Creative Cloud",
-    category: "Productividad",
-    amount: 54.99,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-01"),
-    icon: "A",
-    color: "bg-red-600",
-  },
-  {
-    id: "5",
-    name: "Amazon Prime",
-    category: "Entretenimiento",
-    amount: 14.99,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-22"),
-    icon: "A",
-    color: "bg-sky-500",
-  },
-  {
-    id: "7",
-    name: "YouTube Premium",
-    category: "Entretenimiento",
-    amount: 11.99,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-03-15"),
-    icon: "Y",
-    color: "bg-red-500",
-  },
-  {
-    id: "8",
-    name: "Notion",
-    category: "Productividad",
-    amount: 10.0,
-    currency: "$",
-    status: "active",
-    isRecurring: true,
-    nextPaymentDate: new Date("2026-02-27"),
-    icon: "N",
-    color: "bg-gray-800",
-  },
-];
+import { useAuth } from "../contexts/AuthContext";
+import { subscribeToUserSubscriptions } from "../services/subscriptions";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
 export default function Calendar() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 1)); // February 2026
+  const { user } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setSubscriptions([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubscribe = subscribeToUserSubscriptions(
+      user.uid,
+      (data) => {
+        setSubscriptions(data.filter((sub) => sub.status === "active"));
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
+
+    return unsubscribe;
+  }, [user]);
 
   const monthNames = [
     "Enero",
@@ -123,7 +66,7 @@ export default function Calendar() {
   };
 
   const getSubscriptionsForDate = (date: Date) => {
-    return MOCK_SUBSCRIPTIONS.filter((sub) => {
+    return subscriptions.filter((sub) => {
       const subDate = sub.nextPaymentDate;
       return (
         subDate.getDate() === date.getDate() &&
@@ -166,6 +109,20 @@ export default function Calendar() {
     ? getSubscriptionsForDate(selectedDate)
     : [];
 
+  const monthlySubscriptions = useMemo(
+    () =>
+      subscriptions.filter((sub) => {
+        const subDate = sub.nextPaymentDate;
+        return (
+          subDate.getMonth() === currentDate.getMonth() &&
+          subDate.getFullYear() === currentDate.getFullYear()
+        );
+      }),
+    [subscriptions, currentDate],
+  );
+
+  const hasCalendarData = subscriptions.length > 0;
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -198,6 +155,23 @@ export default function Calendar() {
             </div>
           </div>
 
+          {error && (
+            <div className="mb-4">
+              <ErrorState
+                title="Error al cargar el calendario"
+                message={error}
+                onRetry={() => window.location.reload()}
+              />
+            </div>
+          )}
+
+          {!loading && !hasCalendarData ? (
+            <EmptyState
+              title="No hay suscripciones para calendario"
+              description="Agrega suscripciones activas para ver pagos en el calendario."
+            />
+          ) : (
+            <>
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-2">
             {/* Day headers */}
@@ -295,6 +269,8 @@ export default function Calendar() {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
 
         {/* Sidebar - Selected Date Details */}
@@ -308,7 +284,9 @@ export default function Calendar() {
                 : "Selecciona un día"}
             </h3>
 
-            {selectedDateSubs.length > 0 ? (
+            {loading ? (
+              <LoadingState title="Cargando calendario..." description="Preparando pagos por fecha." />
+            ) : selectedDateSubs.length > 0 ? (
               <>
                 <div className="space-y-3 mb-4">
                   {selectedDateSubs.map((sub) => (
@@ -342,14 +320,15 @@ export default function Calendar() {
                 </div>
               </>
             ) : selectedDate ? (
-              <p className="text-gray-500 text-sm text-center py-8">
-                No hay pagos programados para este día
-              </p>
+              <EmptyState
+                title="Sin pagos ese día"
+                description="No hay pagos programados para la fecha seleccionada."
+              />
             ) : (
-              <p className="text-gray-500 text-sm text-center py-8">
-                Selecciona un día en el calendario para ver los pagos
-                programados
-              </p>
+              <EmptyState
+                title="Selecciona un día"
+                description="Elige una fecha del calendario para ver los pagos programados."
+              />
             )}
           </div>
 
@@ -361,26 +340,12 @@ export default function Calendar() {
             </div>
             <p className="text-3xl mb-4">
               $
-              {MOCK_SUBSCRIPTIONS.filter((sub) => {
-                const subDate = sub.nextPaymentDate;
-                return (
-                  subDate.getMonth() === currentDate.getMonth() &&
-                  subDate.getFullYear() === currentDate.getFullYear()
-                );
-              })
+              {monthlySubscriptions
                 .reduce((sum, sub) => sum + sub.amount, 0)
                 .toFixed(2)}
             </p>
             <p className="text-emerald-100 text-sm">
-              {
-                MOCK_SUBSCRIPTIONS.filter((sub) => {
-                  const subDate = sub.nextPaymentDate;
-                  return (
-                    subDate.getMonth() === currentDate.getMonth() &&
-                    subDate.getFullYear() === currentDate.getFullYear()
-                  );
-                }).length
-              }{" "}
+              {monthlySubscriptions.length}{" "}
               pagos programados
             </p>
           </div>

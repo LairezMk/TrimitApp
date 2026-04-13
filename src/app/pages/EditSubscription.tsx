@@ -5,7 +5,6 @@ import {
   DollarSign,
   Calendar,
   Tag,
-  Bell,
   Save,
   Trash2,
   AlertCircle,
@@ -16,17 +15,9 @@ import {
   getUserSubscription,
   updateUserSubscription,
 } from "../services/subscriptions";
-
-const COLOR_OPTIONS = [
-  "bg-red-500",
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-orange-500",
-  "bg-purple-500",
-  "bg-pink-500",
-  "bg-cyan-500",
-  "bg-gray-700",
-];
+import { subscribeToUserCategories, type UserCategory } from "../services/categories";
+import { SubscriptionColorPicker } from "../components/SubscriptionColorPicker";
+import { applyColorIntensity, normalizeHexColor } from "../utils/subscriptionColor";
 
 type FormData = {
   name: string;
@@ -47,13 +38,27 @@ export default function EditSubscription() {
   const { user } = useAuth();
 
   const [formData, setFormData] = useState<FormData | null>(null);
+  const [categories, setCategories] = useState<UserCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [colorShade, setColorShade] = useState(500);
 
   const fieldClassName =
     "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500";
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    return subscribeToUserCategories(
+      user.uid,
+      (data) => setCategories(data),
+      () => undefined,
+    );
+  }, [user]);
 
   useEffect(() => {
     const loadSubscription = async () => {
@@ -83,7 +88,7 @@ export default function EditSubscription() {
           nextPaymentDate: subscription.nextPaymentDate.toISOString().split("T")[0],
           isRecurring: subscription.isRecurring,
           icon: subscription.icon,
-          color: subscription.color,
+          color: normalizeHexColor(subscription.color),
           notes: subscription.notes || "",
         });
       } catch (err) {
@@ -109,6 +114,11 @@ export default function EditSubscription() {
 
     return formData.name.trim().charAt(0).toUpperCase() || "S";
   }, [formData]);
+
+  const finalCardColor = useMemo(
+    () => applyColorIntensity(normalizeHexColor(formData?.color || "#10b981"), colorShade),
+    [formData?.color, colorShade],
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -141,7 +151,7 @@ export default function EditSubscription() {
         isRecurring: formData.isRecurring,
         nextPaymentDate: new Date(formData.nextPaymentDate),
         icon: previewIcon,
-        color: formData.color,
+        color: finalCardColor,
         notes: formData.notes,
       });
 
@@ -246,13 +256,15 @@ export default function EditSubscription() {
                   }
                   className={fieldClassName}
                 >
-                  <option value="Entretenimiento">Entretenimiento</option>
-                  <option value="Productividad">Productividad</option>
-                  <option value="Salud">Salud</option>
-                  <option value="Música">Música</option>
-                  <option value="Educación">Educación</option>
-                  <option value="Noticias">Noticias</option>
-                  <option value="Otros">Otros</option>
+                  {formData.category &&
+                    !categories.some((category) => category.name === formData.category) && (
+                      <option value={formData.category}>{formData.category}</option>
+                    )}
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -363,23 +375,14 @@ export default function EditSubscription() {
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
-                  <Bell className="w-4 h-4" />
-                  Color de tarjeta
-                </label>
-                <select
-                  value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                  className={fieldClassName}
-                >
-                  {COLOR_OPTIONS.map((color) => (
-                    <option key={color} value={color}>
-                      {color}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SubscriptionColorPicker
+                value={formData.color}
+                shade={colorShade}
+                onColorChange={(color) =>
+                  setFormData({ ...formData, color: normalizeHexColor(color) })
+                }
+                onShadeChange={setColorShade}
+              />
 
               <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -439,7 +442,8 @@ export default function EditSubscription() {
             <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
               <div className="flex items-center gap-3 mb-4">
                 <div
-                  className={`w-12 h-12 ${formData.color} rounded-xl flex items-center justify-center text-white text-lg`}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg"
+                  style={{ backgroundColor: finalCardColor }}
                 >
                   {previewIcon}
                 </div>
