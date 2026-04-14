@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import Landing from "./pages/Landing";
 import Layout from "./components/Layout";
 import AuthPage from "./pages/Auth";
+import ForgotPasswordPage from "./pages/ForgotPassword";
 import AuthGuard from "./components/auth/AuthGuard";
 import Dashboard from "./pages/Dashboard";
 import Subscriptions from "./pages/Subscriptions";
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
   {
     path: "/auth",
     Component: AuthPage,
+  },
+  {
+    path: "/auth/forgot-password",
+    Component: ForgotPasswordPage,
   },
   {
     Component: AuthGuard,

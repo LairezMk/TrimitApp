@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
-import { Calendar, Camera, Mail, MapPin, Phone, Save, User } from "lucide-react";
+import { Calendar, Camera, KeyRound, Mail, MapPin, Phone, Save, User } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { db } from "../lib/firebase";
@@ -16,16 +16,21 @@ interface ProfileForm {
 }
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, changePassword } = useAuth();
   const [form, setForm] = useState<ProfileForm>({
     displayName: "",
     phone: "",
     location: "",
     photoURL: "",
   });
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [activeCount, setActiveCount] = useState(0);
   const [monthlyTotal, setMonthlyTotal] = useState(0);
 
@@ -115,6 +120,41 @@ export default function Profile() {
       setMessage(text);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordMessage(null);
+
+    if (!newPassword.trim()) {
+      setPasswordMessage("Ingresa una nueva contrasena.");
+      return;
+    }
+
+    if (newPassword.trim().length < 8) {
+      setPasswordMessage("La nueva contrasena debe tener al menos 8 caracteres.");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordMessage("La confirmacion de contrasena no coincide.");
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+      setPasswordMessage("Contrasena actualizada correctamente.");
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : "No se pudo actualizar la contrasena.";
+      setPasswordMessage(text);
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -237,6 +277,68 @@ export default function Profile() {
               {message && (
                 <p className="text-sm text-gray-600 dark:text-gray-300 self-center">
                   {message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 inline-flex items-center gap-2">
+              <KeyRound className="w-4 h-4" />
+              Seguridad
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  Contrasena actual
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Solo requerida para cuentas con email y contrasena"
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  Nueva contrasena
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
+                  Confirmar nueva contrasena
+                </label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleChangePassword}
+                disabled={changingPassword}
+                className="px-6 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <KeyRound className="w-4 h-4" />
+                {changingPassword ? "Actualizando..." : "Cambiar contrasena"}
+              </button>
+              {passwordMessage && (
+                <p className="text-sm text-gray-600 dark:text-gray-300 self-center">
+                  {passwordMessage}
                 </p>
               )}
             </div>

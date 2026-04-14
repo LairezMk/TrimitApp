@@ -2,12 +2,16 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { User } from "firebase/auth";
 import {
+  EmailAuthProvider,
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   onAuthStateChanged,
+  reauthenticateWithCredential,
+  sendPasswordResetEmail,
   signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
+  updatePassword,
   updateProfile,
 } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -26,6 +30,8 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<{ isNewUser: boolean; accessToken: string | null }>;
+  sendResetPasswordCode: (email: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -106,8 +112,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
+  const sendResetPasswordCode = async (email: string) => {
+    await sendPasswordResetEmail(auth, email.trim());
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (!auth.currentUser) {
+      throw new Error("No hay una sesion activa.");
+    }
+
+    const trimmedCurrentPassword = currentPassword.trim();
+    const trimmedNewPassword = newPassword.trim();
+    const hasPasswordProvider = auth.currentUser.providerData.some(
+      (provider) => provider.providerId === "password",
+    );
+
+    if (hasPasswordProvider) {
+      if (!trimmedCurrentPassword) {
+        throw new Error("Debes ingresar tu contrasena actual para cambiarla.");
+      }
+      if (!auth.currentUser.email) {
+        throw new Error("No se encontro correo asociado a la cuenta.");
+      }
+
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        trimmedCurrentPassword,
+      );
+
+      await reauthenticateWithCredential(auth.currentUser, credential);
+    }
+
+    await updatePassword(auth.currentUser, trimmedNewPassword);
+  };
+
   const value = useMemo(
-    () => ({ user, loading, register, login, loginWithGoogle, logout }),
+    () => ({
+      user,
+      loading,
+      register,
+      login,
+      loginWithGoogle,
+      sendResetPasswordCode,
+      changePassword,
+      logout,
+    }),
     [user, loading],
   );
 
