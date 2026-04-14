@@ -83,7 +83,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 md:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+    <div className="p-4 md:p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Configuración</h1>
         <p className="text-gray-500 dark:text-gray-400">
@@ -91,7 +91,7 @@ export default function Settings() {
         </p>
       </div>
 
-      <div className="max-w-5xl space-y-6">
+      <div className="max-w-5xl space-y-4 md:space-y-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
           <div className="p-6 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-3">

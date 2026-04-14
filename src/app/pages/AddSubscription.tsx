@@ -127,7 +127,7 @@ export default function AddSubscription() {
   };
 
   return (
-    <div className="p-6 md:p-8 text-gray-900 dark:text-gray-100">
+    <div className="p-4 md:p-6 lg:p-8 text-gray-900 dark:text-gray-100">
       <button
         onClick={() => navigate("/subscriptions")}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -136,14 +136,14 @@ export default function AddSubscription() {
         Volver a Suscripciones
       </button>
 
-      <div className="mb-8">
+      <div className="mb-6 md:mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Nueva Suscripción</h1>
         <p className="text-gray-500 dark:text-gray-400">Agrega una nueva suscripción a tu lista</p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-8">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 lg:p-8">
+          <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
             {/* Nombre */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
@@ -183,7 +183,7 @@ export default function AddSubscription() {
             </div>
 
             {/* Monto y Moneda */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
@@ -279,7 +279,7 @@ export default function AddSubscription() {
             </div>
 
             {/* Icono y color */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Ícono (1 letra)
@@ -361,10 +361,10 @@ export default function AddSubscription() {
         </div>
 
         {/* Quick Templates */}
-        <div className="space-y-4">
+        <div className="space-y-4 md:space-y-6">
           <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Plantillas rápidas</h3>
-            <div className="grid grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
               {Object.keys(QUICK_TEMPLATES).map((service) => (
                 <button
                   key={service}

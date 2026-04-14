@@ -59,14 +59,14 @@ export default function Archived() {
   const totalSaved = archivedSubscriptions.reduce((sum, sub) => sum + sub.amount, 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Archivadas</h1>
         <p className="text-gray-500">Revisa las suscripciones que has cancelado</p>
       </div>
 
       {/* Search and Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-8 flex items-center gap-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -85,7 +85,7 @@ export default function Archived() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center gap-3 mb-2">
             <Archive className="w-8 h-8" />

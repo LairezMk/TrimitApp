@@ -17,17 +17,25 @@ import {
   Lightbulb,
   Calculator,
   Bell,
+  CircleHelp,
   Settings,
   LogOut,
   Moon,
   Sun,
+  Menu,
+  X,
 } from "lucide-react";
+import { PageTransition } from "./motion/PageTransition";
+import { PageGuideButton } from "./help/PageGuideButton";
+import { PageTourOverlay } from "./help/PageTourOverlay";
+import { useState } from "react";
 
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { logout, user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -36,6 +44,11 @@ export default function Layout() {
 
   const isActive = (path: string) => {
     return location.pathname === path || location.pathname.startsWith(path + "/");
+  };
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setMobileMenuOpen(false);
   };
 
   const menuSections = [
@@ -77,6 +90,7 @@ export default function Layout() {
       title: "CUENTA",
       items: [
         { icon: Bell, label: "Notificaciones", path: "/notifications" },
+        { icon: CircleHelp, label: "Ayuda", path: "/help" },
       ],
     },
   ];
@@ -92,8 +106,105 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-800 z-50 flex items-center justify-between px-4 md:hidden">
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center"
+          aria-label="Abrir menú"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => handleNavigate("/dashboard")}
+          className="text-sm font-semibold text-gray-800 dark:text-gray-100"
+        >
+          Trimit
+        </button>
+        <button
+          onClick={() => handleNavigate("/profile")}
+          className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 bg-emerald-500 text-white grid place-items-center text-xs font-semibold"
+        >
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="Perfil" className="w-full h-full object-cover" />
+          ) : (
+            <span>{userInitials || "U"}</span>
+          )}
+        </button>
+      </div>
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] md:hidden">
+          <button
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Cerrar menú"
+          />
+          <div className="absolute left-0 top-0 h-full w-[84vw] max-w-[320px] bg-slate-900 text-white p-4 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <p className="font-semibold">Menú</p>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {menuSections.map((section, idx) => (
+              <div key={idx} className="mb-5">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 px-2">
+                  {section.title}
+                </p>
+                <div className="space-y-1">
+                  {section.items.map((item, itemIdx) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
+                    return (
+                      <button
+                        key={itemIdx}
+                        onClick={() => handleNavigate(item.path)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${
+                          active ? "bg-emerald-500 text-white" : "text-gray-200 hover:bg-white/10"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              <button
+                onClick={() => handleNavigate("/settings")}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-200 hover:bg-white/10"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Configuración</span>
+              </button>
+              <button
+                onClick={toggleTheme}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-200 hover:bg-white/10"
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                <span>{theme === "dark" ? "Modo claro" : "Modo oscuro"}</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-300 hover:bg-red-500/20"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar sesión</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-800 to-slate-900 dark:from-slate-900 dark:to-black shadow-2xl z-50 overflow-y-auto transition-all duration-300">
+      <aside className="hidden md:block fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-800 to-slate-900 dark:from-slate-900 dark:to-black shadow-2xl z-50 overflow-y-auto transition-all duration-300">
         <div className="p-6">
           {/* Logo */}
           <div 
@@ -145,6 +256,7 @@ export default function Layout() {
                       key={itemIdx}
                       onClick={() => navigate(item.path)}
                       className={`
+                        motion-nav-button
                         w-full flex items-center gap-3 px-3 py-2.5 rounded-lg 
                         text-sm font-medium transition-all duration-300
                         transform hover:translate-x-1
@@ -170,7 +282,7 @@ export default function Layout() {
           {/* Theme Toggle */}
           <button
             onClick={() => navigate("/settings")}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium transform hover:translate-x-1 ${
+            className={`motion-nav-button w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium transform hover:translate-x-1 ${
               isActive("/settings")
                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/50"
                 : "text-gray-300 hover:bg-slate-700/50 hover:text-white"
@@ -182,7 +294,7 @@ export default function Layout() {
 
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-slate-700/50 hover:text-white transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
+            className="motion-nav-button w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-slate-700/50 hover:text-white transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
           >
             {theme === "dark" ? (
               <>
@@ -200,7 +312,7 @@ export default function Layout() {
           {/* Logout */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
+            className="motion-nav-button w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
           >
             <LogOut className="w-4 h-4" />
             <span>Cerrar sesión</span>
@@ -209,8 +321,12 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="app-content ml-64 flex-1 min-h-screen">
-        <Outlet />
+      <main className="app-content pt-16 md:pt-0 md:ml-64 flex-1 min-h-screen">
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
+        <PageGuideButton />
+        <PageTourOverlay />
       </main>
     </div>
   );

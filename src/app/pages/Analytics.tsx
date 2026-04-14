@@ -150,7 +150,7 @@ export default function Analytics() {
     previousMonth > 0 ? ((currentMonth - previousMonth) / previousMonth) * 100 : 0;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2">Análisis y Estadísticas</h1>
         <p className="text-gray-500">Visualiza tus gastos y patrones reales</p>
@@ -181,7 +181,7 @@ export default function Analytics() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <DollarSign className="w-8 h-8" />
@@ -224,10 +224,10 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 lg:gap-6 mb-6">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <h2 className="text-xl font-semibold mb-4">Tendencia mensual (pagos reales)</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
@@ -240,7 +240,7 @@ export default function Analytics() {
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <h2 className="text-xl font-semibold mb-4">Distribución por categoría activa</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={260}>
             <RePieChart>
               <Pie
                 data={categoryData}
@@ -265,7 +265,7 @@ export default function Analytics() {
 
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
         <h2 className="text-xl font-semibold mb-4">Comparación de gastos mensuales</h2>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={260}>
           <BarChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />

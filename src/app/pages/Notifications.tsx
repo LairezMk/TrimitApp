@@ -84,15 +84,15 @@ export default function Notifications() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl mb-2 dark:text-white">Notificaciones</h1>
           <p className="text-gray-500">
             {unreadCount > 0 ? `Tienes ${unreadCount} notificaciones sin leer` : "Estás al día"}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Configurar
@@ -104,7 +104,7 @@ export default function Notifications() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">

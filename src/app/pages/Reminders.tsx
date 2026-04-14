@@ -200,8 +200,8 @@ export default function Reminders() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl mb-2 dark:text-white">Recordatorios</h1>
           <p className="text-gray-500">Configura alertas para tus suscripciones</p>
@@ -221,7 +221,7 @@ export default function Reminders() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <Bell className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Recordatorios Activos</p>
@@ -340,7 +340,7 @@ export default function Reminders() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 lg:gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-4 flex items-center gap-2 dark:text-white">
             <Bell className="w-5 h-5 text-emerald-600" />

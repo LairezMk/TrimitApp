@@ -33,7 +33,7 @@ export function SubscriptionCard({
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer group"
+      className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all cursor-pointer group motion-card-grow"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">

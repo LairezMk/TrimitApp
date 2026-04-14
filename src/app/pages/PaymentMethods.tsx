@@ -29,20 +29,20 @@ const paymentMethods = [
 
 export default function PaymentMethods() {
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl mb-2">Métodos de Pago</h1>
           <p className="text-gray-500">Gestiona tus tarjetas y métodos de pago</p>
         </div>
-        <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors">
+        <button className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-colors">
           <PlusCircle className="w-5 h-5" />
           Agregar Método
         </button>
       </div>
 
       {/* Security Notice */}
-      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 mb-8 flex items-start gap-4">
+      <div className="bg-blue-50 rounded-xl p-6 border border-blue-200 mb-8 flex flex-col sm:flex-row items-start gap-4">
         <Shield className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
         <div>
           <h3 className="font-semibold text-blue-900 mb-1">Tus datos están seguros</h3>

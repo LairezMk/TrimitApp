@@ -187,7 +187,7 @@ export default function EditSubscription() {
 
   if (loading) {
     return (
-      <div className="p-8 text-gray-600 dark:text-gray-300">
+      <div className="p-4 md:p-6 lg:p-8 text-gray-600 dark:text-gray-300">
         Cargando suscripción...
       </div>
     );
@@ -195,7 +195,7 @@ export default function EditSubscription() {
 
   if (!formData) {
     return (
-      <div className="p-8 text-gray-900 dark:text-gray-100">
+      <div className="p-4 md:p-6 lg:p-8 text-gray-900 dark:text-gray-100">
         <button
           onClick={() => navigate("/subscriptions")}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white mb-6 transition-colors"
@@ -211,7 +211,7 @@ export default function EditSubscription() {
   }
 
   return (
-    <div className="p-6 md:p-8 text-gray-900 dark:text-gray-100">
+    <div className="p-4 md:p-6 lg:p-8 text-gray-900 dark:text-gray-100">
       <button
         onClick={() => navigate("/subscriptions")}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white mb-6 transition-colors"
@@ -227,8 +227,8 @@ export default function EditSubscription() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 lg:p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="lg:col-span-2">

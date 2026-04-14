@@ -75,7 +75,7 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors motion-page">
       <DevMenu showDevMenu={showDevMenu} setShowDevMenu={setShowDevMenu} pages={pages} />
 
 
@@ -109,7 +109,7 @@ export default function Landing() {
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className="p-2 md:p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="motion-nav-button p-2 md:p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               >
                 {theme === 'dark' ? (
@@ -120,14 +120,14 @@ export default function Landing() {
               </button>
               
               <button
-                className="hidden sm:block text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-3 md:px-6 py-1.5 md:py-2.5 text-sm md:text-lg"
+                className="motion-nav-button text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-2 sm:px-3 md:px-6 py-1.5 md:py-2.5 text-sm md:text-lg"
                 onClick={() => navigate('/auth')}
               >
                 Iniciar sesión
               </button>
               <Button
                 onClick={handleCTA}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 sm:px-6 md:px-8 py-2 md:py-3 text-sm md:text-lg shadow-lg shadow-emerald-500/30"
+                className="motion-nav-button bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 sm:px-6 md:px-8 py-2 md:py-3 text-sm md:text-lg shadow-lg shadow-emerald-500/30"
               >
                 Comenzar gratis
               </Button>
@@ -141,29 +141,47 @@ export default function Landing() {
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-full text-sm font-medium">
+              <div
+                className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-full text-sm font-medium motion-stagger-item"
+                style={{ animationDelay: "70ms" }}
+              >
                 <Sparkles className="w-4 h-4" />
                 Diseñado para usuarios en Latinoamérica
               </div>
               
-              <h1 className="text-5xl lg:text-6xl font-bold leading-tight dark:text-white">
+              <h1
+                className="text-5xl lg:text-6xl font-bold leading-tight dark:text-white motion-stagger-item"
+                style={{ animationDelay: "150ms" }}
+              >
                 Deja de perder dinero al mes en suscripciones invisibles
+                <span className="block motion-gradient-text">
+                  y toma el control total de tus finanzas
+                </span>
               </h1>
               
-              <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
+              <p
+                className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed motion-stagger-item"
+                style={{ animationDelay: "240ms" }}
+              >
                 Trimit detecta automáticamente tus suscripciones, te avisa antes de cada cobro y te ayuda a cancelar lo que no necesitas.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div
+                className="flex flex-col sm:flex-row gap-4 motion-stagger-item"
+                style={{ animationDelay: "330ms" }}
+              >
                 <Button
                   onClick={handleCTA}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-8 py-6 text-lg font-semibold shadow-xl shadow-emerald-500/30"
+                  className="motion-nav-button bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-8 py-6 text-lg font-semibold shadow-xl shadow-emerald-500/30"
                 >
                   Comenzar gratis
                 </Button>
               </div>
 
-              <div className="flex items-center gap-8 pt-4">
+              <div
+                className="flex items-center gap-8 pt-4 motion-stagger-item"
+                style={{ animationDelay: "430ms" }}
+              >
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                   <span className="text-gray-600 dark:text-gray-400">Sin tarjeta</span>
@@ -180,9 +198,9 @@ export default function Landing() {
             </div>
 
             {/* Dashboard Preview */}
-            <div className="relative">
+            <div className="relative motion-stagger-item" style={{ animationDelay: "520ms" }}>
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-3xl blur-3xl opacity-20"></div>
-              <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700">
+              <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700 motion-tilt-card">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="font-semibold text-gray-900 dark:text-white">Tus Suscripciones</h3>
                   <div className="flex gap-2">
@@ -199,7 +217,11 @@ export default function Landing() {
                     { name: "Gym", category: "Salud", amount: "$89.000", color: "bg-orange-500" },
                     { name: "Adobe CC", category: "Productividad", amount: "$95.000", color: "bg-red-600" }
                   ].map((sub, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors motion-stagger-item"
+                      style={{ animationDelay: `${560 + i * 80}ms` }}
+                    >
                       <div className="flex items-center gap-3">
                         <div className={`w-10 h-10 ${sub.color} rounded-lg flex items-center justify-center text-white font-semibold`}>
                           {sub.name[0]}
@@ -216,7 +238,7 @@ export default function Landing() {
                   ))}
                 </div>
 
-                <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl p-4 text-white">
+                <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl p-4 text-white motion-card-grow">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-emerald-100 text-sm">Estás gastando cada mes</p>
@@ -249,7 +271,8 @@ export default function Landing() {
               return (
                 <div 
                   key={index} 
-                  className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 group"
+                  className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 group motion-tilt-card motion-stagger-item"
+                  style={{ animationDelay: `${index * 90}ms` }}
                 >
                   <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500 transition-colors">
                     <Icon className="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:text-white transition-colors" />
@@ -275,9 +298,13 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {steps.map((step, index) => (
-              <div key={index} className="relative">
+              <div
+                key={index}
+                className="relative motion-stagger-item"
+                style={{ animationDelay: `${index * 120}ms` }}
+              >
                 <div className="flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg">
+                  <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg motion-card-grow">
                     {step.number}
                   </div>
                   <h3 className="text-xl font-semibold mb-2 dark:text-white">{step.title}</h3>
@@ -334,7 +361,7 @@ export default function Landing() {
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-colors">
+                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-colors motion-tilt-card">
                     <Icon className="w-8 h-8 text-white mb-3" />
                     <h4 className="text-white font-semibold mb-2">{item.title}</h4>
                     <p className="text-emerald-100 text-sm">{item.desc}</p>
@@ -360,7 +387,7 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {teamMembers.map((member, index) => (
-              <div key={member.name} className="group [perspective:1200px]">
+              <div key={member.name} className="group [perspective:1200px] motion-stagger-item" style={{ animationDelay: `${index * 130}ms` }}>
                 <div
                   role="button"
                   tabIndex={0}
@@ -371,7 +398,7 @@ export default function Landing() {
                       toggleCardFlip(index);
                     }
                   }}
-                  className={`relative h-[390px] cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
+                  className={`relative h-[390px] cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl motion-tilt-card ${
                     flippedCards[index] ? "[transform:rotateY(180deg)]" : ""
                   } [transform-style:preserve-3d]`}
                 >

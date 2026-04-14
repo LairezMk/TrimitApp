@@ -110,14 +110,14 @@ export default function Budget() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-6 lg:p-8">
         <LoadingState title="Cargando presupuesto..." />
       </div>
     );
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl mb-2 dark:text-white">Presupuesto</h1>
@@ -133,7 +133,10 @@ export default function Budget() {
         </button>
       </div>
 
-      <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-8 text-white shadow-lg mb-8">
+      <div
+        className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-8 text-white shadow-lg mb-8"
+        data-tour="budget-overview"
+      >
         <div className="grid md:grid-cols-2 gap-6 items-end">
           <div>
             <p className="text-emerald-100 text-sm mb-1">Presupuesto Mensual</p>
@@ -169,22 +172,25 @@ export default function Budget() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6"
+        data-tour="budget-categories"
+      >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold dark:text-white">Presupuesto por Categoría</h2>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <input
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="Categoría"
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 w-full sm:w-auto"
             />
             <input
               type="number"
               value={newCategoryLimit}
               onChange={(e) => setNewCategoryLimit(e.target.value)}
               placeholder="Límite"
-              className="px-3 py-2 w-28 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+              className="px-3 py-2 w-full sm:w-28 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
             />
             <button
               onClick={handleAddCategory}
@@ -286,7 +292,10 @@ export default function Budget() {
         </div>
       )}
 
-      <div className="bg-blue-50 dark:bg-slate-800 rounded-xl p-6 border border-blue-200 dark:border-slate-600">
+      <div
+        className="bg-blue-50 dark:bg-slate-800 rounded-xl p-6 border border-blue-200 dark:border-slate-600"
+        data-tour="budget-insights"
+      >
         <div className="flex gap-4">
           <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
             <TrendingDown className="w-6 h-6 text-white" />

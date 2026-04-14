@@ -159,11 +159,11 @@ export default function Profile() {
   };
 
   if (loading) {
-    return <div className="p-6 md:p-8 text-gray-500">Cargando perfil...</div>;
+    return <div className="p-4 md:p-6 lg:p-8 text-gray-500">Cargando perfil...</div>;
   }
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Mi Perfil</h1>
         <p className="text-gray-500 dark:text-gray-400">
@@ -171,8 +171,8 @@ export default function Profile() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
+        <div className="xl:col-span-2 space-y-4 md:space-y-6">
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center gap-4 mb-6">
               <div className="relative">

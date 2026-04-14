@@ -88,7 +88,7 @@ export default function GmailSubscriptionConfirmation() {
   };
 
   return (
-    <div className="p-6 md:p-8 text-gray-900 dark:text-gray-100">
+    <div className="p-4 md:p-6 lg:p-8 text-gray-900 dark:text-gray-100">
       <button
         onClick={handleSkip}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white mb-6 transition-colors"
@@ -153,7 +153,7 @@ export default function GmailSubscriptionConfirmation() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Nombre</label>
                 <input

@@ -90,9 +90,12 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-8 space-y-8 animate-fade-in">
+    <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 lg:space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+        data-tour="dashboard-header"
+      >
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Panel de Control
@@ -111,13 +114,13 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6" data-tour="dashboard-stats">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <Card 
               key={idx} 
-              className="hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-white/70"
+              className="motion-card-grow hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-white/70"
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -148,7 +151,10 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Subscriptions */}
-      <Card className="shadow-lg bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-white/70">
+      <Card
+        className="shadow-lg bg-white dark:bg-slate-900/70 border border-gray-100 dark:border-white/70"
+        data-tour="dashboard-recent"
+      >
         <CardHeader className="border-b border-gray-100 dark:border-white/20">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl font-semibold dark:text-white">
@@ -210,7 +216,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-6" data-tour="dashboard-actions">
         <Card 
           className="shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-emerald-50 to-cyan-50 dark:from-slate-900/70 dark:to-slate-800/70 border border-gray-100 dark:border-white/70"
           onClick={() => navigate("/calendar")}

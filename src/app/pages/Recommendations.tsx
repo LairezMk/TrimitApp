@@ -155,8 +155,8 @@ export default function Recommendations() {
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-start justify-between gap-4">
+    <div className="p-4 md:p-6 lg:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl mb-2 dark:text-white">Recomendaciones</h1>
           <p className="text-gray-500">Análisis en tiempo real de tus suscripciones y ofertas</p>
@@ -180,7 +180,7 @@ export default function Recommendations() {
         </div>
       )}
 
-      <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-8 text-white shadow-lg mb-8">
+      <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 md:p-8 text-white shadow-lg mb-8">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">

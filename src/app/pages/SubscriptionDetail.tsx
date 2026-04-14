@@ -31,7 +31,7 @@ export default function SubscriptionDetail() {
   const monthsActive = 33; // desde junio 2023
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <button
         onClick={() => navigate("/dashboard")}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -42,8 +42,8 @@ export default function SubscriptionDetail() {
 
       <div className="max-w-5xl">
         {/* Header Card */}
-        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 text-white mb-8 shadow-xl">
-          <div className="flex items-start justify-between mb-6">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-5 md:p-8 text-white mb-8 shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-6 gap-4">
             <div className="flex items-center gap-4">
               <div className={`w-16 h-16 ${subscription.color} rounded-2xl flex items-center justify-center text-2xl font-bold shadow-lg`}>
                 {subscription.icon}
@@ -53,7 +53,7 @@ export default function SubscriptionDetail() {
                 <p className="text-gray-300">{subscription.category}</p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg flex items-center gap-2 transition-colors">
                 <Edit2 className="w-4 h-4" />
                 Editar
@@ -65,7 +65,7 @@ export default function SubscriptionDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <div>
               <p className="text-gray-400 text-sm mb-1">Próximo pago</p>
               <p className="text-2xl font-bold">

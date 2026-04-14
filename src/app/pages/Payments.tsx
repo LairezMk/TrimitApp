@@ -206,7 +206,7 @@ export default function Payments() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Historial de Pagos</h1>
         <p className="text-gray-500">
@@ -224,12 +224,15 @@ export default function Payments() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-8">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-8"
+        data-tour="payments-register"
+      >
         <div className="flex items-center gap-3 mb-4">
           <PlusCircle className="w-5 h-5 text-emerald-600" />
           <h2 className="text-lg dark:text-white">Registrar pago</h2>
         </div>
-        <div className="grid md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <select
             value={newSubscriptionId}
             onChange={(e) => {
@@ -271,7 +274,7 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8" data-tour="payments-stats">
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-2">
             <p className="text-gray-500 text-sm">Total pagado</p>
@@ -310,13 +313,16 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 mb-6"
+        data-tour="payments-filters"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-gray-400" />
             <span className="text-sm text-gray-600 dark:text-gray-300">Filtrar por:</span>
           </div>
-          <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 overflow-x-auto">
             {(["all", "paid", "upcoming"] as const).map((targetFilter) => (
               <button
                 key={targetFilter}
@@ -338,7 +344,10 @@ export default function Payments() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
+        data-tour="payments-timeline"
+      >
         <div className="p-6 border-b border-gray-100 dark:border-gray-700">
           <h2 className="text-xl dark:text-white">Cronología de Pagos</h2>
         </div>

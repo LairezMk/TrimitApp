@@ -1,0 +1,221 @@
+.animation-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.floating-particles {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floating-particles span {
+  position: absolute;
+  border-radius: 9999px;
+  background: color-mix(in oklab, currentColor 20%, transparent);
+  opacity: 0.35;
+  animation: trimit-float linear infinite;
+}
+
+.dark .floating-particles span {
+  opacity: 0.45;
+}
+
+.cursor-dot,
+.cursor-ring,
+.cursor-trail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate3d(-50%, -50%, 0);
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 50;
+  mix-blend-mode: screen;
+}
+
+.cursor-dot {
+  width: 8px;
+  height: 8px;
+  background: rgba(16, 185, 129, 0.9);
+}
+
+.cursor-ring {
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(34, 211, 238, 0.75);
+  transition: width 0.18s ease, height 0.18s ease, border-color 0.18s ease;
+}
+
+.cursor-trail {
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  filter: blur(1px);
+}
+
+.cursor-ring.is-hovering {
+  width: 36px;
+  height: 36px;
+  border-color: rgba(16, 185, 129, 0.95);
+}
+
+.ripple-surface {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.ripple-wave {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  border-radius: 9999px;
+  border: 2px solid rgba(16, 185, 129, 0.7);
+  animation: trimit-ripple 650ms ease-out forwards;
+}
+
+.motion-page {
+  animation: trimit-page-enter 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.motion-stagger-item {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+  animation: trimit-stagger-in 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.motion-gradient-text {
+  background-image: linear-gradient(120deg, #22c55e, #06b6d4, #6366f1, #22c55e);
+  background-size: 240% 240%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: trimit-gradient-pan 8s ease infinite;
+}
+
+.motion-nav-button {
+  position: relative;
+  isolation: isolate;
+}
+
+.motion-nav-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(16, 185, 129, 0.35), transparent 70%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+  z-index: -1;
+}
+
+.motion-nav-button:hover::after {
+  opacity: 1;
+}
+
+.motion-filter-chip {
+  transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+
+.motion-filter-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -14px rgba(16, 185, 129, 0.7);
+}
+
+.motion-card-grow {
+  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 280ms ease;
+}
+
+.motion-card-grow:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.3);
+}
+
+.motion-tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.motion-tilt-card:hover {
+  transform: rotateX(3deg) rotateY(-4deg) translateY(-6px);
+}
+
+@keyframes trimit-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes trimit-stagger-in {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes trimit-gradient-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes trimit-ripple {
+  from {
+    transform: scale(0.2);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(5.5);
+    opacity: 0;
+  }
+}
+
+@keyframes trimit-float {
+  0% {
+    transform: translateY(105vh) translateX(0);
+  }
+  100% {
+    transform: translateY(-12vh) translateX(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-dot,
+  .cursor-ring,
+  .cursor-trail,
+  .ripple-wave,
+  .motion-page,
+  .motion-stagger-item,
+  .floating-particles span,
+  .motion-gradient-text {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .cursor-dot,
+  .cursor-ring,
+  .cursor-trail {
+    display: none !important;
+  }
+}

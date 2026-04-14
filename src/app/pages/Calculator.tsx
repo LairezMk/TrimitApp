@@ -41,7 +41,7 @@ export default function Calculator() {
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Calculadora de Ahorro</h1>
         <p className="text-gray-500">
@@ -49,10 +49,10 @@ export default function Calculator() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
         {/* Input Section */}
         <div>
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-8 text-white shadow-lg mb-6">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 md:p-8 text-white shadow-lg mb-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
                 <CalcIcon className="w-6 h-6" />
@@ -166,7 +166,7 @@ export default function Calculator() {
       <div className="mt-8">
         <h2 className="text-2xl font-semibold mb-6 dark:text-white">Escenarios de Ahorro</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
           {savingsScenarios.map((scenario) => (
             <div
               key={scenario.name}

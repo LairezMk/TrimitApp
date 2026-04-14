@@ -65,7 +65,7 @@ export default function Subscriptions() {
   });
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl mb-2">Mis Suscripciones</h1>
@@ -75,16 +75,16 @@ export default function Subscriptions() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8" data-tour="subscriptions-stats">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Gasto mensual total</p>
           <p className="text-3xl text-emerald-600">${totalMonthly.toFixed(2)}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Suscripciones activas</p>
           <p className="text-3xl">{activeCount}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Suscripciones olvidadas</p>
           <p className="text-3xl text-amber-600">{forgottenCount}</p>
         </div>
@@ -101,7 +101,10 @@ export default function Subscriptions() {
       )}
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-6">
+      <div
+        className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-5 md:mb-6"
+        data-tour="subscriptions-filters"
+      >
         <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center justify-between">
           <div className="flex-1 relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -117,7 +120,7 @@ export default function Subscriptions() {
             <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setFilterStatus("all")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                className={`motion-filter-chip px-4 py-2 rounded-md text-sm transition-colors ${
                   filterStatus === "all"
                     ? "bg-white shadow-sm"
                     : "text-gray-600"
@@ -127,7 +130,7 @@ export default function Subscriptions() {
               </button>
               <button
                 onClick={() => setFilterStatus("active")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                className={`motion-filter-chip px-4 py-2 rounded-md text-sm transition-colors ${
                   filterStatus === "active"
                     ? "bg-white shadow-sm"
                     : "text-gray-600"
@@ -137,7 +140,7 @@ export default function Subscriptions() {
               </button>
               <button
                 onClick={() => setFilterStatus("forgotten")}
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                className={`motion-filter-chip px-4 py-2 rounded-md text-sm transition-colors ${
                   filterStatus === "forgotten"
                     ? "bg-white shadow-sm"
                     : "text-gray-600"
@@ -158,14 +161,19 @@ export default function Subscriptions() {
       </div>
 
       {/* Subscriptions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6" data-tour="subscriptions-grid">
         {loading && <LoadingState title="Cargando suscripciones..." />}
-        {filteredSubscriptions.map((subscription) => (
-          <SubscriptionCard
+        {filteredSubscriptions.map((subscription, index) => (
+          <div
             key={subscription.id}
-            subscription={subscription}
-            onClick={() => handleEditSubscription(subscription)}
-          />
+            className="motion-stagger-item"
+            style={{ animationDelay: `${Math.min(index * 70, 700)}ms` }}
+          >
+            <SubscriptionCard
+              subscription={subscription}
+              onClick={() => handleEditSubscription(subscription)}
+            />
+          </div>
         ))}
         {!loading && filteredSubscriptions.length === 0 && (
           <EmptyState

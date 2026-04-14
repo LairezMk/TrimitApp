@@ -144,7 +144,7 @@ export default function Trends() {
   }, [subscriptions, payments, percentageChange, currentMonth, previousMonth]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Tendencias y Análisis</h1>
         <p className="text-gray-500">Patrones basados en tus datos reales</p>
@@ -169,7 +169,7 @@ export default function Trends() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <Activity className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Gasto este mes</p>
@@ -210,9 +210,9 @@ export default function Trends() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Evolución de Gastos</h2>
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={trendData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
@@ -232,7 +232,7 @@ export default function Trends() {
 
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Insights del Mes</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
           {insights.map((insight, index) => (
             <div
               key={`${insight.title}-${index}`}

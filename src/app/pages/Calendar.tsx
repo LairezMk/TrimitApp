@@ -124,7 +124,7 @@ export default function Calendar() {
   const hasCalendarData = subscriptions.length > 0;
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl mb-2">Calendario de Pagos</h1>
@@ -133,9 +133,12 @@ export default function Calendar() {
         </p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
         {/* Calendar */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div
+          className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+          data-tour="calendar-main"
+        >
           {/* Month Navigation */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl">
@@ -173,7 +176,7 @@ export default function Calendar() {
           ) : (
             <>
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-1.5 md:gap-2">
             {/* Day headers */}
             {daysOfWeek.map((day) => (
               <div
@@ -275,7 +278,10 @@ export default function Calendar() {
 
         {/* Sidebar - Selected Date Details */}
         <div className="space-y-6">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div
+            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+            data-tour="calendar-day-detail"
+          >
             <h3 className="font-medium mb-4">
               {selectedDate
                 ? `Pagos del ${selectedDate.getDate()} de ${
@@ -333,7 +339,10 @@ export default function Calendar() {
           </div>
 
           {/* Monthly Summary */}
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-sm text-white">
+          <div
+            className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 shadow-sm text-white"
+            data-tour="calendar-summary"
+          >
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-5 h-5" />
               <h3 className="font-medium">Resumen del mes</h3>

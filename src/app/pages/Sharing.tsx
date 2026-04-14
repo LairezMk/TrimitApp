@@ -40,20 +40,20 @@ export default function Sharing() {
   );
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 md:p-6 lg:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Compartidas</h1>
           <p className="text-gray-500">Gestiona tus suscripciones compartidas con otros</p>
         </div>
-        <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors">
+          <button className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-colors">
           <Plus className="w-5 h-5" />
           Agregar Compartida
         </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8">
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <Users className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Ahorro Total</p>
@@ -92,7 +92,7 @@ export default function Sharing() {
               className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
           >
             <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-6 gap-4">
                 <div className="flex items-center gap-4">
                   <div
                     className={`w-16 h-16 ${subscription.color} rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg`}
@@ -107,7 +107,7 @@ export default function Sharing() {
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-left lg:text-right">
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Tu parte</p>
                   <p className="text-3xl font-bold text-emerald-600">
                     ${subscription.yourShare.toFixed(2)}
@@ -174,7 +174,7 @@ export default function Sharing() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-3 mt-4">
+              <div className="flex flex-col sm:flex-row gap-3 mt-4">
                 <button className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
                   <Mail className="w-4 h-4" />
                   Enviar recordatorio
@@ -199,11 +199,11 @@ export default function Sharing() {
           Divide los costos de tus suscripciones con amigos y familia.
           ¡Actualmente estás ahorrando ${totalSavings.toFixed(2)} al mes!
         </p>
-        <div className="flex justify-center gap-4">
-          <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors font-medium">
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors font-medium w-full sm:w-auto">
             Agregar nueva compartida
           </button>
-          <button className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium">
+          <button className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium w-full sm:w-auto">
             Ver todas las invitaciones
           </button>
         </div>
