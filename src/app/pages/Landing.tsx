@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import logoImage from "../../assets/0d23369e4a896d703eefe2aaa97e96c4234407d6.png";
 import { useTheme } from "../contexts/ThemeContext";
 import { useScrollDirection } from "../hooks/useScrollDirection";
-import { DevMenu } from "../components/dev/DevMenu";
-import { pages, features, steps } from "../constants/landing-data";
+import { features, steps } from "../constants/landing-data";
 
-import { 
-  CheckCircle2, 
-  TrendingDown, 
+import {
+  CheckCircle2,
+  TrendingDown,
   Sparkles,
   Moon,
   Sun,
@@ -18,14 +17,11 @@ import {
   DollarSign,
   Users,
   Github,
-  Linkedin,
-  Globe
 } from "lucide-react";
 
 export default function Landing() {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [showDevMenu, setShowDevMenu] = useState(false);
   const [flippedCards, setFlippedCards] = useState<Record<number, boolean>>({});
   const isHeaderVisible = useScrollDirection();
 
@@ -35,10 +31,10 @@ export default function Landing() {
       role: "Backend & Pruebas",
       description:
         "Responsable del desarrollo backend y las pruebas del sistema, asegurando que la plataforma funcione correctamente y que la detección de suscripciones sea confiable.",
-      details: "Le apasiona la calidad del código y la estabilidad de la plataforma.",
+      details:
+        "Le apasiona la calidad del código y la estabilidad de la plataforma.",
       socials: [
-        { label: "GitHub", url: "", icon: Github },
-        { label: "LinkedIn", url: "", icon: Linkedin },
+        { label: "GitHub", url: "https://github.com/NotJomy", icon: Github },
       ],
     },
     {
@@ -46,10 +42,10 @@ export default function Landing() {
       role: "Frontend & Diseño",
       description:
         "Encargado del desarrollo frontend y el diseño de la interfaz, trabajando en que la aplicación sea intuitiva, visualmente clara y fácil de usar.",
-      details: "Se enfoca en la experiencia de usuario y en crear interfaces modernas.",
+      details:
+        "Se enfoca en la experiencia de usuario y en crear interfaces modernas.",
       socials: [
         { label: "GitHub", url: "https://github.com/LairezMk", icon: Github },
-        { label: "LinkedIn", url: "", icon: Linkedin },
       ],
     },
     {
@@ -57,17 +53,24 @@ export default function Landing() {
       role: "Marketing & Estrategia",
       description:
         "Responsable del marketing, la documentación y la validación del proyecto, enfocándose en analizar el mercado y definir la estrategia del producto.",
-      details: "Lidera la estrategia del producto y la comunicación con los usuarios.",
+      details:
+        "Lidera la estrategia del producto y la comunicación con los usuarios.",
       socials: [
-        { label: "Portafolio", url: "", icon: Globe },
-        { label: "LinkedIn", url: "", icon: Linkedin },
+        {
+          label: "GitHub",
+          url: "https://github.com/davidramos1121",
+          icon: Github,
+        },
       ],
     },
   ];
-  
+
   const handleCTA = () => {
     // Redirigir al formulario de registro
-    window.open('https://docs.google.com/forms/d/e/1FAIpQLScn7fIHROr0874UGZrPLwhJbdRybQ_Q46eiyYZZxsq2s8QXIQ/viewform?usp=header', '_blank');
+    window.open(
+      "https://docs.google.com/forms/d/e/1FAIpQLScn7fIHROr0874UGZrPLwhJbdRybQ_Q46eiyYZZxsq2s8QXIQ/viewform?usp=header",
+      "_blank",
+    );
   };
 
   const toggleCardFlip = (index: number) => {
@@ -76,11 +79,8 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors motion-page">
-      <DevMenu showDevMenu={showDevMenu} setShowDevMenu={setShowDevMenu} pages={pages} />
-
-
       {/* Header */}
-      <header 
+      <header
         className={`fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50 transition-transform duration-300 ease-in-out ${
           isHeaderVisible ? "translate-y-0" : "-translate-y-full"
         }`}
@@ -88,20 +88,44 @@ export default function Landing() {
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex justify-between items-center py-2 md:py-3">
             {/* Logo - versión clara */}
-            <img src={logoImage} alt="Trimit" className="h-16 sm:h-20 md:h-32 lg:h-36 w-auto dark:hidden" />
+            <img
+              src={logoImage}
+              alt="Trimit"
+              className="h-16 sm:h-20 md:h-32 lg:h-36 w-auto dark:hidden"
+            />
             {/* Logo - versión oscura con letras blancas */}
-            <img src={logoImage} alt="Trimit" className="h-16 sm:h-20 md:h-32 lg:h-36 w-auto hidden dark:block" style={{ filter: 'brightness(0) saturate(100%) invert(95%) sepia(100%) saturate(0%) hue-rotate(180deg) brightness(103%) contrast(103%)' }} />
+            <img
+              src={logoImage}
+              alt="Trimit"
+              className="h-16 sm:h-20 md:h-32 lg:h-36 w-auto hidden dark:block"
+              style={{
+                filter:
+                  "brightness(0) saturate(100%) invert(95%) sepia(100%) saturate(0%) hue-rotate(180deg) brightness(103%) contrast(103%)",
+              }}
+            />
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg">
+              <a
+                href="#features"
+                className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg"
+              >
                 Características
               </a>
-              <a href="#how-it-works" className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg">
+              <a
+                href="#how-it-works"
+                className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg"
+              >
                 Cómo funciona
               </a>
-              <a href="#benefits" className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg">
+              <a
+                href="#benefits"
+                className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg"
+              >
                 Beneficios
               </a>
-              <a href="#team" className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg">
+              <a
+                href="#team"
+                className="text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors text-lg"
+              >
                 Nuestro Equipo
               </a>
             </nav>
@@ -110,18 +134,22 @@ export default function Landing() {
               <button
                 onClick={toggleTheme}
                 className="motion-nav-button p-2 md:p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+                title={
+                  theme === "dark"
+                    ? "Cambiar a modo claro"
+                    : "Cambiar a modo oscuro"
+                }
               >
-                {theme === 'dark' ? (
+                {theme === "dark" ? (
                   <Sun className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
                 ) : (
                   <Moon className="w-5 h-5 md:w-6 md:h-6 text-gray-700" />
                 )}
               </button>
-              
+
               <button
                 className="motion-nav-button text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors px-2 sm:px-3 md:px-6 py-1.5 md:py-2.5 text-sm md:text-lg"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate("/auth")}
               >
                 Iniciar sesión
               </button>
@@ -148,7 +176,7 @@ export default function Landing() {
                 <Sparkles className="w-4 h-4" />
                 Diseñado para usuarios en Latinoamérica
               </div>
-              
+
               <h1
                 className="text-5xl lg:text-6xl font-bold leading-tight dark:text-white motion-stagger-item"
                 style={{ animationDelay: "150ms" }}
@@ -158,12 +186,13 @@ export default function Landing() {
                   y toma el control total de tus finanzas
                 </span>
               </h1>
-              
+
               <p
                 className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed motion-stagger-item"
                 style={{ animationDelay: "240ms" }}
               >
-                Trimit detecta automáticamente tus suscripciones, te avisa antes de cada cobro y te ayuda a cancelar lo que no necesitas.
+                Trimit detecta automáticamente tus suscripciones, te avisa antes
+                de cada cobro y te ayuda a cancelar lo que no necesitas.
               </p>
 
               <div
@@ -184,25 +213,36 @@ export default function Landing() {
               >
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span className="text-gray-600 dark:text-gray-400">Sin tarjeta</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Sin tarjeta
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span className="text-gray-600 dark:text-gray-400">Gratis 30 días</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Gratis 30 días
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  <span className="text-gray-600 dark:text-gray-400">Cancela cuando quieras</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    Cancela cuando quieras
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Dashboard Preview */}
-            <div className="relative motion-stagger-item" style={{ animationDelay: "520ms" }}>
+            <div
+              className="relative motion-stagger-item"
+              style={{ animationDelay: "520ms" }}
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-3xl blur-3xl opacity-20"></div>
               <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700 motion-tilt-card">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">Tus Suscripciones</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Tus Suscripciones
+                  </h3>
                   <div className="flex gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
@@ -212,10 +252,30 @@ export default function Landing() {
 
                 <div className="space-y-3 mb-6">
                   {[
-                    { name: "Netflix", category: "Entretenimiento", amount: "$44.900", color: "bg-red-500" },
-                    { name: "Spotify", category: "Música", amount: "$24.900", color: "bg-green-500" },
-                    { name: "Gym", category: "Salud", amount: "$89.000", color: "bg-orange-500" },
-                    { name: "Adobe CC", category: "Productividad", amount: "$95.000", color: "bg-red-600" }
+                    {
+                      name: "Netflix",
+                      category: "Entretenimiento",
+                      amount: "$44.900",
+                      color: "bg-red-500",
+                    },
+                    {
+                      name: "Spotify",
+                      category: "Música",
+                      amount: "$24.900",
+                      color: "bg-green-500",
+                    },
+                    {
+                      name: "Gym",
+                      category: "Salud",
+                      amount: "$89.000",
+                      color: "bg-orange-500",
+                    },
+                    {
+                      name: "Adobe CC",
+                      category: "Productividad",
+                      amount: "$95.000",
+                      color: "bg-red-600",
+                    },
                   ].map((sub, i) => (
                     <div
                       key={i}
@@ -223,17 +283,25 @@ export default function Landing() {
                       style={{ animationDelay: `${560 + i * 80}ms` }}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 ${sub.color} rounded-lg flex items-center justify-center text-white font-semibold`}>
+                        <div
+                          className={`w-10 h-10 ${sub.color} rounded-lg flex items-center justify-center text-white font-semibold`}
+                        >
                           {sub.name[0]}
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-sm dark:text-white">{sub.name}</p>
+                            <p className="font-medium text-sm dark:text-white">
+                              {sub.name}
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{sub.category}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {sub.category}
+                          </p>
                         </div>
                       </div>
-                      <span className="font-semibold text-gray-900 dark:text-white">{sub.amount}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">
+                        {sub.amount}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -241,7 +309,9 @@ export default function Landing() {
                 <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl p-4 text-white motion-card-grow">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="text-emerald-100 text-sm">Estás gastando cada mes</p>
+                      <p className="text-emerald-100 text-sm">
+                        Estás gastando cada mes
+                      </p>
                       <p className="text-3xl font-bold">$253.800</p>
                     </div>
                     <TrendingDown className="w-8 h-8 text-emerald-100" />
@@ -261,7 +331,8 @@ export default function Landing() {
               Todo lo que necesitas para controlar tus gastos
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Herramientas poderosas diseñadas para ayudarte a ahorrar y gestionar mejor tu dinero
+              Herramientas poderosas diseñadas para ayudarte a ahorrar y
+              gestionar mejor tu dinero
             </p>
           </div>
 
@@ -269,16 +340,20 @@ export default function Landing() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 group motion-tilt-card motion-stagger-item"
                   style={{ animationDelay: `${index * 90}ms` }}
                 >
                   <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:bg-emerald-500 transition-colors">
                     <Icon className="w-6 h-6 text-emerald-600 dark:text-emerald-400 group-hover:text-white transition-colors" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2 dark:text-white">{feature.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                  <h3 className="text-xl font-semibold mb-2 dark:text-white">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {feature.description}
+                  </p>
                 </div>
               );
             })}
@@ -290,7 +365,9 @@ export default function Landing() {
       <section id="how-it-works" className="py-20 bg-white dark:bg-gray-900">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 dark:text-white">Cómo funciona Trimit</h2>
+            <h2 className="text-4xl font-bold mb-4 dark:text-white">
+              Cómo funciona Trimit
+            </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Comienza a ahorrar en solo 3 pasos simples
             </p>
@@ -307,8 +384,12 @@ export default function Landing() {
                   <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4 shadow-lg motion-card-grow">
                     {step.number}
                   </div>
-                  <h3 className="text-xl font-semibold mb-2 dark:text-white">{step.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{step.description}</p>
+                  <h3 className="text-xl font-semibold mb-2 dark:text-white">
+                    {step.title}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {step.description}
+                  </p>
                 </div>
                 {index < steps.length - 1 && (
                   <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-emerald-500 to-cyan-500 opacity-30"></div>
@@ -320,7 +401,10 @@ export default function Landing() {
       </section>
 
       {/* Benefits Section */}
-      <section id="benefits" className="py-20 bg-gradient-to-br from-emerald-500 to-cyan-500">
+      <section
+        id="benefits"
+        className="py-20 bg-gradient-to-br from-emerald-500 to-cyan-500"
+      >
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-white space-y-6">
@@ -328,14 +412,16 @@ export default function Landing() {
                 Recupera el control de tu dinero
               </h2>
               <p className="text-xl text-emerald-50">
-                La mayoría de las personas pagan por servicios que no usan. Trimit te ayuda a identificarlos y cancelarlos antes de que drenen tu cuenta.
+                La mayoría de las personas pagan por servicios que no usan.
+                Trimit te ayuda a identificarlos y cancelarlos antes de que
+                drenen tu cuenta.
               </p>
-              
+
               <div className="space-y-4">
                 {[
                   "Identifica tus suscripciones automáticamente con tu correo",
                   "Recibe alertas antes de cada renovación",
-                  "Compara precios y encuentra alternativas más baratas"
+                  "Compara precios y encuentra alternativas más baratas",
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-start gap-3">
                     <CheckCircle2 className="w-6 h-6 flex-shrink-0 mt-0.5" />
@@ -354,16 +440,37 @@ export default function Landing() {
 
             <div className="grid grid-cols-2 gap-4">
               {[
-                { icon: Shield, title: "100% Seguro", desc: "Encriptación de nivel bancario" },
-                { icon: Zap, title: "Rápido", desc: "Configuración en menos de 2 minutos" },
-                { icon: DollarSign, title: "Ahorro Real", desc: "Recupera el control de tus gastos" },
-                { icon: Users, title: "Para Todos", desc: "Fácil de usar, sin complicaciones" }
+                {
+                  icon: Shield,
+                  title: "100% Seguro",
+                  desc: "Encriptación de nivel bancario",
+                },
+                {
+                  icon: Zap,
+                  title: "Rápido",
+                  desc: "Configuración en menos de 2 minutos",
+                },
+                {
+                  icon: DollarSign,
+                  title: "Ahorro Real",
+                  desc: "Recupera el control de tus gastos",
+                },
+                {
+                  icon: Users,
+                  title: "Para Todos",
+                  desc: "Fácil de usar, sin complicaciones",
+                },
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-colors motion-tilt-card">
+                  <div
+                    key={index}
+                    className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-colors motion-tilt-card"
+                  >
                     <Icon className="w-8 h-8 text-white mb-3" />
-                    <h4 className="text-white font-semibold mb-2">{item.title}</h4>
+                    <h4 className="text-white font-semibold mb-2">
+                      {item.title}
+                    </h4>
                     <p className="text-emerald-100 text-sm">{item.desc}</p>
                   </div>
                 );
@@ -381,13 +488,18 @@ export default function Landing() {
               Nuestro Equipo
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Juntos trabajamos en construir una solución que permita a las personas tener mayor control sobre sus suscripciones
+              Juntos trabajamos en construir una solución que permita a las
+              personas tener mayor control sobre sus suscripciones
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {teamMembers.map((member, index) => (
-              <div key={member.name} className="group [perspective:1200px] motion-stagger-item" style={{ animationDelay: `${index * 130}ms` }}>
+              <div
+                key={member.name}
+                className="group [perspective:1200px] motion-stagger-item"
+                style={{ animationDelay: `${index * 130}ms` }}
+              >
                 <div
                   role="button"
                   tabIndex={0}
@@ -398,7 +510,7 @@ export default function Landing() {
                       toggleCardFlip(index);
                     }
                   }}
-                  className={`relative h-[390px] cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl motion-tilt-card ${
+                  className={`relative h-[390px] cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${
                     flippedCards[index] ? "[transform:rotateY(180deg)]" : ""
                   } [transform-style:preserve-3d]`}
                 >
@@ -417,7 +529,7 @@ export default function Landing() {
                       {member.description}
                     </p>
                     <p className="mt-5 text-center text-xs text-gray-500 dark:text-gray-400">
-                      Haz clic para ver redes sociales
+                      Haz clic para ver GitHub
                     </p>
                   </div>
 
@@ -499,40 +611,104 @@ export default function Landing() {
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <img src={logoImage} alt="Trimit" className="h-24 md:h-28 lg:h-32 w-auto mb-4" />
+              <img
+                src={logoImage}
+                alt="Trimit"
+                className="h-24 md:h-28 lg:h-32 w-auto mb-4"
+              />
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 Control total de tus suscripciones en un solo lugar.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4 dark:text-white">Producto</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Características</a></li>
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Precios</a></li>
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Seguridad</a></li>
+                <li>
+                  <Link
+                    to="/features"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Características
+                  </Link>
+                </li>
+                <li>
+                  <span className="text-gray-400 dark:text-gray-500 cursor-not-allowed">
+                    Precios (próximamente)
+                  </span>
+                </li>
+                <li>
+                  <Link
+                    to="/security"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Seguridad
+                  </Link>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4 dark:text-white">Compañía</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Acerca de</a></li>
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Blog</a></li>
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Contacto</a></li>
+                <li>
+                  <Link
+                    to="/about"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Acerca de
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/blog"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/contact"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Contacto
+                  </Link>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-semibold mb-4 dark:text-white">Legal</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Privacidad</a></li>
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Términos</a></li>
-                <li><a href="#" className="hover:text-emerald-600 dark:hover:text-emerald-400">Cookies</a></li>
+                <li>
+                  <Link
+                    to="/privacy"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Privacidad
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/terms"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Términos
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/cookies"
+                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                  >
+                    Cookies
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="pt-8 border-t border-gray-200 dark:border-gray-800 text-center text-gray-600 dark:text-gray-400 text-sm">
             <p>© 2026 Trimit. Todos los derechos reservados.</p>
           </div>

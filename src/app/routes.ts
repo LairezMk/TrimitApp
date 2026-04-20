@@ -27,6 +27,14 @@ import Sharing from "./pages/Sharing";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
+import FeaturesPage from "./pages/Features";
+import SecurityPage from "./pages/Security";
+import AboutPage from "./pages/About";
+import BlogPage from "./pages/Blog";
+import ContactPage from "./pages/Contact";
+import PrivacyPage from "./pages/Privacy";
+import TermsPage from "./pages/Terms";
+import CookiesPage from "./pages/Cookies";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +48,38 @@ export const router = createBrowserRouter([
   {
     path: "/auth/forgot-password",
     Component: ForgotPasswordPage,
+  },
+  {
+    path: "/features",
+    Component: FeaturesPage,
+  },
+  {
+    path: "/security",
+    Component: SecurityPage,
+  },
+  {
+    path: "/about",
+    Component: AboutPage,
+  },
+  {
+    path: "/blog",
+    Component: BlogPage,
+  },
+  {
+    path: "/contact",
+    Component: ContactPage,
+  },
+  {
+    path: "/privacy",
+    Component: PrivacyPage,
+  },
+  {
+    path: "/terms",
+    Component: TermsPage,
+  },
+  {
+    path: "/cookies",
+    Component: CookiesPage,
   },
   {
     Component: AuthGuard,
