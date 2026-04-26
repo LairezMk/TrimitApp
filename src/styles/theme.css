@@ -2,6 +2,45 @@
 
 :root {
   --font-size: 16px;
+  --trimit-font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --trimit-cursor-dot: rgba(16, 185, 129, 0.9);
+  --trimit-cursor-ring: rgba(34, 211, 238, 0.75);
+  --trimit-cursor-trail: rgba(16, 185, 129, 0.3);
+  --trimit-ripple: rgba(16, 185, 129, 0.7);
+  --trimit-nav-glow: rgba(16, 185, 129, 0.35);
+  --trimit-gradient-colors: #22c55e, #06b6d4, #6366f1, #22c55e;
+  --trimit-particle-color-light: rgba(16, 185, 129, 0.38);
+  --trimit-particle-color-dark: rgba(34, 211, 238, 0.4);
+  --trimit-page-duration: 520ms;
+  --trimit-stagger-duration: 500ms;
+  --trimit-card-lift: 1.02;
+  --trimit-app-bg-light: #f4fbf8;
+  --trimit-app-card-light: #ffffff;
+  --trimit-app-card-alt-light: #ecfdf5;
+  --trimit-app-border-light: #cdeee1;
+  --trimit-app-text-light: #0f172a;
+  --trimit-app-text-muted-light: #475569;
+  --trimit-app-accent-light: #10b981;
+  --trimit-app-accent-soft-light: #d1fae5;
+  --trimit-app-sidebar-light: #f2fbf7;
+  --trimit-app-bg-dark: #061412;
+  --trimit-app-card-dark: #0b1f1b;
+  --trimit-app-card-alt-dark: #13332d;
+  --trimit-app-border-dark: #1f4a41;
+  --trimit-app-text-dark: #e2f6ef;
+  --trimit-app-text-muted-dark: #9ec8bb;
+  --trimit-app-accent-dark: #14b8a6;
+  --trimit-app-accent-soft-dark: #12352f;
+  --trimit-app-sidebar-dark: #0b1f1b;
+  --trimit-app-bg: var(--trimit-app-bg-light);
+  --trimit-app-card: var(--trimit-app-card-light);
+  --trimit-app-card-alt: var(--trimit-app-card-alt-light);
+  --trimit-app-border: var(--trimit-app-border-light);
+  --trimit-app-text: var(--trimit-app-text-light);
+  --trimit-app-text-muted: var(--trimit-app-text-muted-light);
+  --trimit-app-accent: var(--trimit-app-accent-light);
+  --trimit-app-accent-soft: var(--trimit-app-accent-soft-light);
+  --trimit-app-sidebar: var(--trimit-app-sidebar-light);
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
   --card: #ffffff;
@@ -42,6 +81,15 @@
 }
 
 .dark {
+  --trimit-app-bg: var(--trimit-app-bg-dark);
+  --trimit-app-card: var(--trimit-app-card-dark);
+  --trimit-app-card-alt: var(--trimit-app-card-alt-dark);
+  --trimit-app-border: var(--trimit-app-border-dark);
+  --trimit-app-text: var(--trimit-app-text-dark);
+  --trimit-app-text-muted: var(--trimit-app-text-muted-dark);
+  --trimit-app-accent: var(--trimit-app-accent-dark);
+  --trimit-app-accent-soft: var(--trimit-app-accent-soft-dark);
+  --trimit-app-sidebar: var(--trimit-app-sidebar-dark);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
@@ -126,6 +174,8 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--trimit-font-family);
+    transition: background-color 260ms ease, color 260ms ease;
   }
 
   /**
@@ -181,26 +231,101 @@
 }
 
 @layer utilities {
-  .dark .app-content .bg-white {
-    background-color: rgb(17 24 39);
+  html[data-visual-theme] .floating-particles {
+    color: var(--trimit-particle-color-light);
   }
 
-  .dark .app-content .bg-gray-50 {
-    background-color: rgb(31 41 55);
+  html.dark[data-visual-theme] .floating-particles {
+    color: var(--trimit-particle-color-dark);
   }
 
-  .dark .app-content .text-gray-900 {
-    color: rgb(243 244 246);
+  html[data-visual-theme="nova-neon"] .app-content {
+    text-shadow: 0 0 0 transparent;
   }
 
-  .dark .app-content .text-gray-700,
-  .dark .app-content .text-gray-600,
-  .dark .app-content .text-gray-500 {
-    color: rgb(209 213 219);
+  html[data-visual-theme="midnight-glass"] .app-content .bg-white {
+    backdrop-filter: blur(8px);
   }
 
-  .dark .app-content .border-gray-200,
-  .dark .app-content .border-gray-300 {
-    border-color: rgb(75 85 99);
+  html[data-visual-theme="sunset-paper"] .app-content .rounded-xl,
+  html[data-visual-theme="sunset-paper"] .app-content .rounded-2xl {
+    border-radius: calc(var(--radius) + 0.25rem);
+  }
+
+  html[data-visual-theme] .app-content {
+    background-color: var(--trimit-app-bg);
+  }
+
+  html[data-visual-theme] .app-content .bg-white,
+  html[data-visual-theme] .app-content .bg-gray-50,
+  html[data-visual-theme] .app-content .bg-gray-100 {
+    background-color: var(--trimit-app-card);
+  }
+
+  html[data-visual-theme] .app-content .from-emerald-50,
+  html[data-visual-theme] .app-content .to-blue-50 {
+    --tw-gradient-from: var(--trimit-app-accent-soft) var(--tw-gradient-from-position);
+    --tw-gradient-to: color-mix(in oklab, var(--trimit-app-card-alt), transparent 0%)
+      var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+
+  html.dark[data-visual-theme] .app-content .from-emerald-900\/20,
+  html.dark[data-visual-theme] .app-content .to-blue-900\/20 {
+    --tw-gradient-from: color-mix(in oklab, var(--trimit-app-accent-soft), transparent 25%)
+      var(--tw-gradient-from-position);
+    --tw-gradient-to: color-mix(in oklab, var(--trimit-app-card-alt), transparent 25%)
+      var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+
+  html[data-visual-theme] .app-content .text-gray-900,
+  html[data-visual-theme] .app-content .text-gray-800,
+  html[data-visual-theme] .app-content .text-gray-700 {
+    color: var(--trimit-app-text);
+  }
+
+  html[data-visual-theme] .app-content .text-gray-600,
+  html[data-visual-theme] .app-content .text-gray-500,
+  html[data-visual-theme] .app-content .text-gray-400 {
+    color: var(--trimit-app-text-muted);
+  }
+
+  html[data-visual-theme] .app-content .border-gray-100,
+  html[data-visual-theme] .app-content .border-gray-200,
+  html[data-visual-theme] .app-content .border-gray-300,
+  html[data-visual-theme] .app-content .dark\:border-gray-700 {
+    border-color: var(--trimit-app-border);
+  }
+
+  html[data-visual-theme] .app-content .bg-emerald-500 {
+    background-color: var(--trimit-app-accent);
+  }
+
+  html[data-visual-theme] .app-content .hover\:bg-emerald-600:hover {
+    background-color: color-mix(in oklab, var(--trimit-app-accent), black 12%);
+  }
+
+  html[data-visual-theme] .app-content .text-emerald-600,
+  html[data-visual-theme] .app-content .text-emerald-500,
+  html[data-visual-theme] .app-content .dark\:text-emerald-400 {
+    color: var(--trimit-app-accent);
+  }
+
+  html[data-visual-theme] .app-content .bg-emerald-100,
+  html[data-visual-theme] .app-content .dark\:bg-emerald-900,
+  html[data-visual-theme] .app-content .dark\:bg-emerald-900\/20 {
+    background-color: var(--trimit-app-accent-soft);
+  }
+
+  html[data-visual-theme] .app-content .shadow-sm,
+  html[data-visual-theme] .app-content .shadow-md {
+    box-shadow: 0 12px 28px -24px color-mix(in oklab, var(--trimit-app-accent), black 60%);
+  }
+
+  html[data-visual-theme] .app-content .rounded-xl,
+  html[data-visual-theme] .app-content .rounded-2xl {
+    transition: background-color 240ms ease, border-color 240ms ease, color 240ms ease,
+      box-shadow 240ms ease, transform 240ms ease;
   }
 }

@@ -7,6 +7,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
+  reauthenticateWithPopup,
   sendPasswordResetEmail,
   signInWithPopup,
   signInWithEmailAndPassword,
@@ -30,6 +31,7 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<{ isNewUser: boolean; accessToken: string | null }>;
+  requestGmailAccessToken: () => Promise<string>;
   sendResetPasswordCode: (email: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -112,6 +114,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOut(auth);
   };
 
+  const requestGmailAccessToken = async () => {
+    if (!auth.currentUser) {
+      throw new Error("Debes iniciar sesión para detectar suscripciones por correo.");
+    }
+
+    const credential = await reauthenticateWithPopup(auth.currentUser, googleProvider);
+    const additional = GoogleAuthProvider.credentialFromResult(credential);
+
+    if (!additional?.accessToken) {
+      throw new Error("No se pudo obtener acceso a Gmail. Intenta de nuevo.");
+    }
+
+    return additional.accessToken;
+  };
+
   const sendResetPasswordCode = async (email: string) => {
     await sendPasswordResetEmail(auth, email.trim());
   };
@@ -153,6 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       login,
       loginWithGoogle,
+      requestGmailAccessToken,
       sendResetPasswordCode,
       changePassword,
       logout,

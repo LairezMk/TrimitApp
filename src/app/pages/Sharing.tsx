@@ -1,212 +1,501 @@
-import { Users, Plus, DollarSign, CheckCircle, Mail, Copy, UserPlus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Copy,
+  Mail,
+  Plus,
+  Trash2,
+  Users,
+  UserPlus,
+  Wallet,
+  CircleCheckBig,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import type { Subscription } from "../types/subscription";
+import { subscribeToUserSubscriptions } from "../services/subscriptions";
+import {
+  createSharedGroup,
+  deleteSharedGroup,
+  subscribeToSharedGroups,
+  updateSharedGroup,
+  type SharedSubscriptionGroup,
+} from "../services/sharing";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
-const sharedSubscriptions = [
-  {
-    id: 1,
-    name: "Netflix",
-    totalCost: 19.61,
-    sharedWith: 3,
-    yourShare: 4.90,
-    members: ["Ana García", "Carlos López", "María Fernández"],
-    icon: "N",
-    color: "bg-red-500",
-  },
-  {
-    id: 2,
-    name: "Spotify Family",
-    totalCost: 15.99,
-    sharedWith: 5,
-    yourShare: 2.67,
-    members: ["Pedro Sánchez", "Laura Martín", "José Rodríguez", "Isabel Torres"],
-    icon: "S",
-    color: "bg-green-500",
-  },
-  {
-    id: 3,
-    name: "Disney+",
-    totalCost: 21.96,
-    sharedWith: 2,
-    yourShare: 7.32,
-    members: ["Roberto Díaz", "Carmen Ruiz"],
-    icon: "D",
-    color: "bg-blue-600",
-  },
-];
+function normalizeCurrency(currency: string) {
+  if (currency === "USD" || currency === "EUR" || currency === "COP") {
+    return currency;
+  }
+  return "COP";
+}
+
+function formatCurrency(value: number, currency: string) {
+  const code = normalizeCurrency(currency);
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: code,
+    maximumFractionDigits: code === "COP" ? 0 : 2,
+  }).format(value);
+}
+
+function parseMemberNames(raw: string) {
+  return raw
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter((item, index, array) => Boolean(item) && array.indexOf(item) === index);
+}
 
 export default function Sharing() {
-  const totalSavings = sharedSubscriptions.reduce(
-    (sum, sub) => sum + (sub.totalCost - sub.yourShare),
-    0
-  );
+  const { user } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [groups, setGroups] = useState<SharedSubscriptionGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const [newSubscriptionId, setNewSubscriptionId] = useState("");
+  const [newMembers, setNewMembers] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [processingGroupId, setProcessingGroupId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setSubscriptions([]);
+      setGroups([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubSubscriptions = subscribeToUserSubscriptions(
+      user.uid,
+      (data) => {
+        setSubscriptions(data.filter((subscription) => subscription.status === "active"));
+      },
+      (err) => setError(err.message),
+    );
+
+    const unsubGroups = subscribeToSharedGroups(
+      user.uid,
+      (data) => {
+        setGroups(data);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
+
+    return () => {
+      unsubSubscriptions();
+      unsubGroups();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!newSubscriptionId && subscriptions.length > 0) {
+      setNewSubscriptionId(subscriptions[0].id);
+    }
+  }, [subscriptions, newSubscriptionId]);
+
+  const groupCards = useMemo(() => {
+    const byId = new Map(subscriptions.map((subscription) => [subscription.id, subscription]));
+    return groups
+      .map((group) => {
+        const subscription = byId.get(group.subscriptionId);
+        if (!subscription) {
+          return null;
+        }
+        const memberCount = group.memberNames.length + 1;
+        const yourShare = subscription.amount / memberCount;
+        const savings = subscription.amount - yourShare;
+        return { group, subscription, memberCount, yourShare, savings };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item));
+  }, [groups, subscriptions]);
+
+  const totalShared = groupCards.length;
+  const totalMembers = groupCards.reduce((sum, item) => sum + item.memberCount, 0);
+  const totalYourShare = groupCards.reduce((sum, item) => sum + item.yourShare, 0);
+  const totalSavings = groupCards.reduce((sum, item) => sum + item.savings, 0);
+
+  const handleCreateGroup = async () => {
+    if (!user) {
+      return;
+    }
+
+    const memberNames = parseMemberNames(newMembers);
+    if (!newSubscriptionId || memberNames.length === 0) {
+      setError("Selecciona una suscripción e ingresa al menos un integrante.");
+      return;
+    }
+
+    setCreating(true);
+    setError(null);
+    setFeedback(null);
+    try {
+      await createSharedGroup(user.uid, {
+        subscriptionId: newSubscriptionId,
+        memberNames,
+        notes: newNotes.trim(),
+      });
+      setNewMembers("");
+      setNewNotes("");
+      setFeedback("Suscripción compartida creada correctamente.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo crear el grupo.";
+      setError(message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleAddMember = async (group: SharedSubscriptionGroup, member: string) => {
+    if (!user || !member.trim()) {
+      return;
+    }
+
+    const memberNames = parseMemberNames([...group.memberNames, member.trim()].join(","));
+    setProcessingGroupId(group.id);
+    setError(null);
+    setFeedback(null);
+    try {
+      await updateSharedGroup(user.uid, group.id, {
+        subscriptionId: group.subscriptionId,
+        memberNames,
+        notes: group.notes || "",
+      });
+      setFeedback("Integrante agregado correctamente.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo agregar el integrante.";
+      setError(message);
+    } finally {
+      setProcessingGroupId(null);
+    }
+  };
+
+  const handleRemoveMember = async (group: SharedSubscriptionGroup, memberToRemove: string) => {
+    if (!user) {
+      return;
+    }
+
+    const memberNames = group.memberNames.filter((member) => member !== memberToRemove);
+    setProcessingGroupId(group.id);
+    setError(null);
+    setFeedback(null);
+    try {
+      await updateSharedGroup(user.uid, group.id, {
+        subscriptionId: group.subscriptionId,
+        memberNames,
+        notes: group.notes || "",
+      });
+      setFeedback("Integrante eliminado.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo eliminar el integrante.";
+      setError(message);
+    } finally {
+      setProcessingGroupId(null);
+    }
+  };
+
+  const handleDeleteGroup = async (groupId: string) => {
+    if (!user) {
+      return;
+    }
+    setProcessingGroupId(groupId);
+    setError(null);
+    setFeedback(null);
+    try {
+      await deleteSharedGroup(user.uid, groupId);
+      setFeedback("Grupo compartido eliminado.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo eliminar el grupo.";
+      setError(message);
+    } finally {
+      setProcessingGroupId(null);
+    }
+  };
+
+  const handleCopyLink = async (groupId: string) => {
+    const url = `${window.location.origin}/sharing?group=${groupId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setFeedback("Enlace copiado al portapapeles.");
+    } catch {
+      setError("No se pudo copiar el enlace.");
+    }
+  };
+
+  const handleReminder = (subscriptionName: string, amount: number, currency: string) => {
+    const subject = encodeURIComponent(`Recordatorio de pago - ${subscriptionName}`);
+    const body = encodeURIComponent(
+      `Hola, este es un recordatorio del pago compartido de ${subscriptionName}. Tu parte corresponde a ${formatCurrency(amount, currency)}.`,
+    );
+    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Compartidas</h1>
-          <p className="text-gray-500">Gestiona tus suscripciones compartidas con otros</p>
+      <div className="mb-8">
+        <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Compartidas</h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          Crea grupos de pago compartido sobre tus suscripciones activas.
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-5">
+          <ErrorState title="No se pudo completar la acción" message={error} />
         </div>
-          <button className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white px-4 md:px-6 py-2.5 md:py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg transition-colors">
-          <Plus className="w-5 h-5" />
-          Agregar Compartida
+      )}
+      {feedback && (
+        <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+          {feedback}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6">
+        <div className="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
+          <Wallet className="w-8 h-8 mb-2" />
+          <p className="text-emerald-100 text-sm">Ahorro mensual total</p>
+          <p className="text-3xl font-bold">{formatCurrency(totalSavings, "COP")}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Compartidas</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalShared}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Miembros totales</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalMembers}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Tu pago mensual</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            {formatCurrency(totalYourShare, "COP")}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
+        <h2 className="text-lg font-semibold mb-4 dark:text-white">Crear compartida</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm text-gray-500 dark:text-gray-400 block mb-1">
+              Suscripción
+            </label>
+            <select
+              value={newSubscriptionId}
+              onChange={(event) => setNewSubscriptionId(event.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+            >
+              {subscriptions.length === 0 && <option value="">No tienes activas</option>}
+              {subscriptions.map((subscription) => (
+                <option key={subscription.id} value={subscription.id}>
+                  {subscription.name} · {formatCurrency(subscription.amount, subscription.currency)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-sm text-gray-500 dark:text-gray-400 block mb-1">
+              Integrantes (separados por coma o salto de línea)
+            </label>
+            <textarea
+              value={newMembers}
+              onChange={(event) => setNewMembers(event.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white resize-none"
+              placeholder="Ana Pérez, Carlos Ruiz"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-gray-500 dark:text-gray-400 block mb-1">
+              Notas (opcional)
+            </label>
+            <textarea
+              value={newNotes}
+              onChange={(event) => setNewNotes(event.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white resize-none"
+              placeholder="Grupo familiar"
+            />
+          </div>
+        </div>
+        <button
+          onClick={handleCreateGroup}
+          disabled={creating || subscriptions.length === 0}
+          className="mt-4 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-medium disabled:opacity-50 inline-flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          {creating ? "Creando..." : "Crear compartida"}
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8">
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
-          <Users className="w-8 h-8 mb-2" />
-          <p className="text-emerald-100 text-sm">Ahorro Total</p>
-          <p className="text-3xl font-bold">${totalSavings.toFixed(2)}</p>
-          <p className="text-emerald-100 text-xs mt-1">por mes</p>
-        </div>
+      {loading && <LoadingState title="Cargando compartidas..." />}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-gray-500 text-sm mb-1">Suscripciones</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{sharedSubscriptions.length}</p>
-          <p className="text-gray-400 text-xs mt-1">compartidas</p>
-        </div>
+      {!loading && groupCards.length === 0 && (
+        <EmptyState
+          icon={Users}
+          title="Aún no tienes grupos compartidos"
+          description="Crea un grupo para dividir costos con familia o amigos."
+        />
+      )}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-gray-500 text-sm mb-1">Miembros</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {sharedSubscriptions.reduce((sum, sub) => sum + sub.sharedWith, 0)}
-          </p>
-          <p className="text-gray-400 text-xs mt-1">personas en total</p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-gray-500 text-sm mb-1">Tu Parte</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            ${sharedSubscriptions.reduce((sum, sub) => sum + sub.yourShare, 0).toFixed(2)}
-          </p>
-          <p className="text-gray-400 text-xs mt-1">pago mensual</p>
-        </div>
-      </div>
-
-      {/* Shared Subscriptions List */}
-      <div className="space-y-6 mb-8">
-        {sharedSubscriptions.map((subscription) => (
-          <div
-            key={subscription.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow"
-          >
-            <div className="p-6">
-              <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-6 gap-4">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-16 h-16 ${subscription.color} rounded-xl flex items-center justify-center text-white text-2xl font-bold shadow-lg`}
-                  >
-                    {subscription.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-1 dark:text-white">{subscription.name}</h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Compartido con {subscription.sharedWith} personas
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-left lg:text-right">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Tu parte</p>
-                  <p className="text-3xl font-bold text-emerald-600">
-                    ${subscription.yourShare.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                    de ${subscription.totalCost} total
-                  </p>
-                </div>
-              </div>
-
-              {/* Members */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Miembros ({subscription.members.length})
-                  </h4>
-                  <button className="text-emerald-600 hover:text-emerald-700 text-sm font-medium flex items-center gap-1">
-                    <UserPlus className="w-4 h-4" />
-                    Invitar
-                  </button>
-                </div>
-
-                <div className="space-y-2">
-                  {subscription.members.map((member, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-semibold text-sm">
-                          {member.split(" ")[0][0]}
-                          {member.split(" ")[1][0]}
-                        </div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                          {member}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-500" />
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Pagado</span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* You */}
-                  <div className="flex items-center justify-between py-2 px-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                        TÚ
-                      </div>
-                      <span className="text-sm font-medium text-emerald-700">
-                        Tú (Administrador)
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs text-emerald-600 font-medium">
-                        ${subscription.yourShare.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                <button className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Enviar recordatorio
-                </button>
-                <button className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
-                  <Copy className="w-4 h-4" />
-                  Compartir enlace
-                </button>
-              </div>
-            </div>
-          </div>
+      <div className="space-y-4">
+        {groupCards.map(({ group, subscription, memberCount, yourShare, savings }) => (
+          <SharedCard
+            key={group.id}
+            group={group}
+            subscription={subscription}
+            memberCount={memberCount}
+            yourShare={yourShare}
+            savings={savings}
+            processing={processingGroupId === group.id}
+            onDelete={() => handleDeleteGroup(group.id)}
+            onCopy={() => handleCopyLink(group.id)}
+            onReminder={() => handleReminder(subscription.name, yourShare, subscription.currency)}
+            onAddMember={(member) => handleAddMember(group, member)}
+            onRemoveMember={(member) => handleRemoveMember(group, member)}
+          />
         ))}
       </div>
+    </div>
+  );
+}
 
-      {/* Invite Card */}
-      <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-8 border border-emerald-100 dark:border-slate-600 text-center">
-        <Users className="w-12 h-12 text-emerald-600 mx-auto mb-4" />
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-xl">
-          Ahorra más compartiendo
-        </h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-          Divide los costos de tus suscripciones con amigos y familia.
-          ¡Actualmente estás ahorrando ${totalSavings.toFixed(2)} al mes!
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors font-medium w-full sm:w-auto">
-            Agregar nueva compartida
-          </button>
-          <button className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium w-full sm:w-auto">
-            Ver todas las invitaciones
+function SharedCard({
+  group,
+  subscription,
+  memberCount,
+  yourShare,
+  savings,
+  processing,
+  onDelete,
+  onCopy,
+  onReminder,
+  onAddMember,
+  onRemoveMember,
+}: {
+  group: SharedSubscriptionGroup;
+  subscription: Subscription;
+  memberCount: number;
+  yourShare: number;
+  savings: number;
+  processing: boolean;
+  onDelete: () => void;
+  onCopy: () => void;
+  onReminder: () => void;
+  onAddMember: (name: string) => void;
+  onRemoveMember: (name: string) => void;
+}) {
+  const [newMemberName, setNewMemberName] = useState("");
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-12 h-12 ${subscription.color} rounded-xl flex items-center justify-center text-white text-lg font-semibold`}
+          >
+            {subscription.icon}
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {subscription.name}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {memberCount} participantes · Tu parte:{" "}
+              {formatCurrency(yourShare, subscription.currency)}
+            </p>
+          </div>
+        </div>
+        <div className="text-sm text-emerald-600 font-semibold">
+          Ahorras {formatCurrency(savings, subscription.currency)}
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Integrantes</p>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            Actualizado {group.updatedAt.toLocaleDateString("es-CO")}
+          </span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg">
+            <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+              Tú (Administrador)
+            </span>
+            <CircleCheckBig className="w-4 h-4 text-emerald-500" />
+          </div>
+          {group.memberNames.map((member) => (
+            <div
+              key={member}
+              className="flex items-center justify-between py-2 px-3 bg-white dark:bg-gray-800 rounded-lg"
+            >
+              <span className="text-sm text-gray-700 dark:text-gray-200">{member}</span>
+              <button
+                onClick={() => onRemoveMember(member)}
+                disabled={processing}
+                className="text-red-500 hover:text-red-600 disabled:opacity-50"
+                title="Eliminar integrante"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 flex gap-2">
+          <input
+            value={newMemberName}
+            onChange={(event) => setNewMemberName(event.target.value)}
+            placeholder="Nuevo integrante"
+            className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm"
+          />
+          <button
+            onClick={() => {
+              onAddMember(newMemberName);
+              setNewMemberName("");
+            }}
+            disabled={processing || !newMemberName.trim()}
+            className="px-3 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-50 inline-flex items-center gap-1 text-sm"
+          >
+            <UserPlus className="w-4 h-4" />
+            Agregar
           </button>
         </div>
+      </div>
+
+      {group.notes && (
+        <p className="mt-3 text-sm text-gray-600 dark:text-gray-300">
+          <strong>Notas:</strong> {group.notes}
+        </p>
+      )}
+
+      <div className="mt-4 flex flex-col sm:flex-row gap-2">
+        <button
+          onClick={onReminder}
+          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium inline-flex items-center justify-center gap-2 dark:text-gray-200"
+        >
+          <Mail className="w-4 h-4" />
+          Enviar recordatorio
+        </button>
+        <button
+          onClick={onCopy}
+          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm font-medium inline-flex items-center justify-center gap-2 dark:text-gray-200"
+        >
+          <Copy className="w-4 h-4" />
+          Copiar enlace
+        </button>
+        <button
+          onClick={onDelete}
+          disabled={processing}
+          className="px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20 text-sm font-medium disabled:opacity-50 inline-flex items-center justify-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" />
+          Eliminar
+        </button>
       </div>
     </div>
   );

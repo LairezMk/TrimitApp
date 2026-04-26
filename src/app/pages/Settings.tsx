@@ -6,10 +6,16 @@ import {
   Eye,
   Globe,
   Moon,
+  Palette,
+  RotateCcw,
   Save,
   SlidersHorizontal,
 } from "lucide-react";
-import { useTheme } from "../contexts/ThemeContext";
+import {
+  DEFAULT_VISUAL_THEME,
+  type VisualThemeId,
+  useTheme,
+} from "../contexts/ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../lib/firebase";
 
@@ -22,10 +28,19 @@ interface AppPreferences {
   emailEnabled: boolean;
   monthlySummary: boolean;
   autoGmailScan: boolean;
+  visualTheme: VisualThemeId;
 }
 
 export default function Settings() {
-  const { isDark, toggleTheme } = useTheme();
+  const {
+    isDark,
+    toggleTheme,
+    visualThemeOptions,
+    visualTheme,
+    setVisualTheme,
+    resetVisualTheme,
+    setThemeMode,
+  } = useTheme();
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -38,6 +53,7 @@ export default function Settings() {
     emailEnabled: true,
     monthlySummary: true,
     autoGmailScan: true,
+    visualTheme,
   });
 
   useEffect(() => {
@@ -49,12 +65,18 @@ export default function Settings() {
       const snap = await getDoc(doc(db, "users", user.uid));
       const data = snap.data() as Record<string, unknown> | undefined;
       const pref = (data?.preferences || {}) as Partial<AppPreferences>;
-
       setPreferences((prev) => ({ ...prev, ...pref }));
+      if (pref.visualTheme) {
+        setVisualTheme(pref.visualTheme);
+      }
     };
 
     void loadPreferences();
-  }, [user]);
+  }, [user, setVisualTheme]);
+
+  useEffect(() => {
+    setPreferences((prev) => ({ ...prev, visualTheme }));
+  }, [visualTheme]);
 
   const handleSave = async () => {
     if (!user) {
@@ -80,6 +102,13 @@ export default function Settings() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleResetAppearance = () => {
+    setThemeMode("light");
+    resetVisualTheme();
+    setPreferences((prev) => ({ ...prev, visualTheme: DEFAULT_VISUAL_THEME }));
+    setMessage("Apariencia restablecida al estilo predeterminado.");
   };
 
   return (
@@ -157,6 +186,59 @@ export default function Settings() {
               checked={isDark}
               onChange={() => toggleTheme()}
             />
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Palette className="w-5 h-5 text-gray-400" />
+                <div>
+                  <p className="font-medium dark:text-white">Visualización Trimit</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Cambia paleta, tipografía, efectos de cursor y transiciones globales.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {visualThemeOptions.map((option) => {
+                  const selected = preferences.visualTheme === option.id;
+                  const [colorA = "#22c55e", colorB = "#06b6d4"] = option.gradient.split(",").map((color) => color.trim());
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => {
+                        setVisualTheme(option.id);
+                        setPreferences((prev) => ({ ...prev, visualTheme: option.id }));
+                      }}
+                      className={`text-left rounded-xl border px-4 py-4 transition ${
+                        selected
+                          ? "border-emerald-400 bg-emerald-50/70 dark:bg-emerald-900/20"
+                          : "border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="font-medium dark:text-white">{option.name}</span>
+                        <span
+                          className="inline-flex h-3 w-16 rounded-full"
+                          style={{ background: `linear-gradient(90deg, ${colorA}, ${colorB})` }}
+                          aria-hidden
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{option.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleResetAppearance}
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 inline-flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Volver a lo predeterminado
+                </button>
+              </div>
+            </div>
             <ToggleRow
               title="Ocultar montos"
               description="Oculta importes al compartir pantalla"

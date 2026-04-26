@@ -41,27 +41,30 @@
 .cursor-dot {
   width: 8px;
   height: 8px;
-  background: rgba(16, 185, 129, 0.9);
+  background: var(--trimit-cursor-dot, rgba(16, 185, 129, 0.9));
 }
 
 .cursor-ring {
   width: 26px;
   height: 26px;
-  border: 1px solid rgba(34, 211, 238, 0.75);
-  transition: width 0.18s ease, height 0.18s ease, border-color 0.18s ease;
+  border: 1px solid var(--trimit-cursor-ring, rgba(34, 211, 238, 0.75));
+  transition:
+    width 0.18s ease,
+    height 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .cursor-trail {
   width: 64px;
   height: 64px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid var(--trimit-cursor-trail, rgba(16, 185, 129, 0.3));
   filter: blur(1px);
 }
 
 .cursor-ring.is-hovering {
   width: 36px;
   height: 36px;
-  border-color: rgba(16, 185, 129, 0.95);
+  border-color: var(--trimit-cursor-dot, rgba(16, 185, 129, 0.95));
 }
 
 .ripple-surface {
@@ -78,22 +81,27 @@
   margin-left: -9px;
   margin-top: -9px;
   border-radius: 9999px;
-  border: 2px solid rgba(16, 185, 129, 0.7);
+  border: 2px solid var(--trimit-ripple, rgba(16, 185, 129, 0.7));
   animation: trimit-ripple 650ms ease-out forwards;
 }
 
 .motion-page {
-  animation: trimit-page-enter 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: trimit-page-enter var(--trimit-page-duration, 520ms)
+    cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .motion-stagger-item {
   opacity: 0;
   transform: translateY(10px) scale(0.98);
-  animation: trimit-stagger-in 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: trimit-stagger-in var(--trimit-stagger-duration, 500ms)
+    cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .motion-gradient-text {
-  background-image: linear-gradient(120deg, #22c55e, #06b6d4, #6366f1, #22c55e);
+  background-image: linear-gradient(
+    120deg,
+    var(--trimit-gradient-colors, #22c55e, #06b6d4, #6366f1, #22c55e)
+  );
   background-size: 240% 240%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -111,7 +119,11 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(16, 185, 129, 0.35), transparent 70%);
+  background: radial-gradient(
+    circle at var(--mx, 50%) var(--my, 50%),
+    var(--trimit-nav-glow, rgba(16, 185, 129, 0.35)),
+    transparent 70%
+  );
   opacity: 0;
   transition: opacity 220ms ease;
   z-index: -1;
@@ -122,7 +134,10 @@
 }
 
 .motion-filter-chip {
-  transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    background-color 200ms ease;
 }
 
 .motion-filter-chip:hover {
@@ -131,11 +146,13 @@
 }
 
 .motion-card-grow {
-  transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 280ms ease;
+  transition:
+    transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 280ms ease;
 }
 
 .motion-card-grow:hover {
-  transform: translateY(-6px) scale(1.02);
+  transform: translateY(-6px) scale(var(--trimit-card-lift, 1.02));
   box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.3);
 }
 

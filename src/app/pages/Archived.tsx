@@ -1,204 +1,254 @@
-import { Archive, RotateCcw, Trash2, Search, Calendar } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { useEffect, useMemo, useState } from "react";
+import { Archive, RotateCcw, Search, Trash2 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  deleteUserSubscription,
+  subscribeToUserSubscriptions,
+  updateUserSubscription,
+} from "../services/subscriptions";
+import type { Subscription } from "../types/subscription";
+import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
-const archivedSubscriptions = [
-  {
-    id: 1,
-    name: "HBO Max",
-    category: "Entretenimiento",
-    amount: 14.99,
-    icon: "H",
-    color: "bg-purple-600",
-    archivedDate: new Date("2026-01-15"),
-    reason: "Ya no lo uso",
-  },
-  {
-    id: 2,
-    name: "LinkedIn Premium",
-    category: "Productividad",
-    amount: 29.99,
-    icon: "L",
-    color: "bg-blue-700",
-    archivedDate: new Date("2025-12-20"),
-    reason: "Muy caro",
-  },
-  {
-    id: 3,
-    name: "Apple Music",
-    category: "Música",
-    amount: 10.99,
-    icon: "A",
-    color: "bg-pink-500",
-    archivedDate: new Date("2025-11-10"),
-    reason: "Cambié a Spotify",
-  },
-  {
-    id: 4,
-    name: "Paramount+",
-    category: "Entretenimiento",
-    amount: 9.99,
-    icon: "P",
-    color: "bg-blue-500",
-    archivedDate: new Date("2025-10-05"),
-    reason: "Poco contenido",
-  },
-  {
-    id: 5,
-    name: "Duolingo Plus",
-    category: "Educación",
-    amount: 12.99,
-    icon: "D",
-    color: "bg-green-600",
-    archivedDate: new Date("2025-09-18"),
-    reason: "Terminé mi curso",
-  },
-];
+function toCurrencyCode(currency: string) {
+  if (currency === "USD" || currency === "EUR" || currency === "COP") {
+    return currency;
+  }
+  return "COP";
+}
+
+function formatCurrency(value: number, currency: string) {
+  const code = toCurrencyCode(currency);
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: code,
+    maximumFractionDigits: code === "COP" ? 0 : 2,
+  }).format(value);
+}
 
 export default function Archived() {
-  const totalSaved = archivedSubscriptions.reduce((sum, sub) => sum + sub.amount, 0);
+  const { user } = useAuth();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setSubscriptions([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubscribe = subscribeToUserSubscriptions(
+      user.uid,
+      (data) => {
+        setSubscriptions(data);
+        setLoading(false);
+      },
+      (err) => {
+        setError(err.message);
+        setLoading(false);
+      },
+    );
+
+    return unsubscribe;
+  }, [user]);
+
+  const archivedSubscriptions = useMemo(
+    () => subscriptions.filter((subscription) => subscription.status === "suspended"),
+    [subscriptions],
+  );
+
+  const categories = useMemo(
+    () => Array.from(new Set(archivedSubscriptions.map((item) => item.category))).sort(),
+    [archivedSubscriptions],
+  );
+
+  const filteredSubscriptions = useMemo(
+    () =>
+      archivedSubscriptions.filter((subscription) => {
+        const matchesSearch = subscription.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        const matchesCategory =
+          categoryFilter === "all" || subscription.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+      }),
+    [archivedSubscriptions, searchTerm, categoryFilter],
+  );
+
+  const totalSavedMonthly = archivedSubscriptions.reduce(
+    (sum, subscription) => sum + subscription.amount,
+    0,
+  );
+  const totalSavedYearly = totalSavedMonthly * 12;
+
+  const handleRestore = async (subscription: Subscription) => {
+    if (!user) {
+      return;
+    }
+    setProcessingId(subscription.id);
+    setError(null);
+    try {
+      await updateUserSubscription(user.uid, subscription.id, {
+        name: subscription.name,
+        category: subscription.category,
+        amount: subscription.amount,
+        currency: subscription.currency,
+        status: "active",
+        isRecurring: subscription.isRecurring,
+        nextPaymentDate: subscription.nextPaymentDate,
+        icon: subscription.icon,
+        color: subscription.color,
+        notes: subscription.notes || "",
+        source: subscription.source || "manual",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo restaurar la suscripción.";
+      setError(message);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDelete = async (subscriptionId: string) => {
+    if (!user) {
+      return;
+    }
+    setProcessingId(subscriptionId);
+    setError(null);
+    try {
+      await deleteUserSubscription(user.uid, subscriptionId);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "No se pudo eliminar la suscripción.";
+      setError(message);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-3xl mb-2 dark:text-white">Suscripciones Archivadas</h1>
-        <p className="text-gray-500">Revisa las suscripciones que has cancelado</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          Aquí ves suscripciones pausadas. Puedes restaurarlas o eliminarlas.
+        </p>
       </div>
 
-      {/* Search and Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar suscripciones archivadas..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-        <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
-          <option>Todas las categorías</option>
-          <option>Entretenimiento</option>
-          <option>Productividad</option>
-          <option>Música</option>
-          <option>Educación</option>
-        </select>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8">
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
-          <div className="flex items-center gap-3 mb-2">
-            <Archive className="w-8 h-8" />
-            <p className="text-emerald-100 text-sm">Ahorro Mensual</p>
-          </div>
-          <p className="text-4xl font-bold">${totalSaved.toFixed(2)}</p>
-          <p className="text-emerald-100 text-sm mt-2">
-            Por cancelar {archivedSubscriptions.length} suscripciones
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-gray-500 text-sm mb-1">Total Archivadas</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">{archivedSubscriptions.length}</p>
-          <p className="text-gray-400 text-xs mt-2">suscripciones canceladas</p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-gray-500 text-sm mb-1">Última Cancelación</p>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {format(archivedSubscriptions[0].archivedDate, "d MMM", { locale: es })}
-          </p>
-          <p className="text-gray-400 text-xs mt-2">{archivedSubscriptions[0].name}</p>
-        </div>
-      </div>
-
-      {/* Archived List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-          <h2 className="text-xl font-semibold dark:text-white">Lista de Archivadas</h2>
-        </div>
-
-        <div className="divide-y divide-gray-100 dark:divide-gray-700">
-          {archivedSubscriptions.map((subscription) => (
-            <div
-              key={subscription.id}
-              className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div
-                    className={`w-14 h-14 ${subscription.color} rounded-xl flex items-center justify-center text-white text-xl font-bold opacity-60`}
-                  >
-                    {subscription.icon}
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                      {subscription.name}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{subscription.category}</p>
-                    <div className="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        Archivada el{" "}
-                        {format(subscription.archivedDate, "d 'de' MMM yyyy", {
-                          locale: es,
-                        })}
-                      </span>
-                      <span>• {subscription.reason}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-gray-400 text-sm line-through mb-1">
-                      ${subscription.amount}/mes
-                    </p>
-                    <p className="text-emerald-600 text-sm font-medium">
-                      Ahorras ${subscription.amount}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
-                      <RotateCcw className="w-4 h-4" />
-                      Restaurar
-                    </button>
-                    <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Empty State */}
-      {archivedSubscriptions.length === 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Archive className="w-8 h-8 text-gray-400" />
-          </div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            No hay suscripciones archivadas
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400">
-            Las suscripciones que canceles aparecerán aquí
-          </p>
+      {error && (
+        <div className="mb-6">
+          <ErrorState title="No se pudo procesar la acción" message={error} />
         </div>
       )}
 
-      {/* Insight */}
-      <div className="mt-8 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-emerald-100 dark:border-slate-600">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">💰 ¡Excelente trabajo!</h3>
-        <p className="text-gray-700 dark:text-gray-200 text-sm">
-          Al cancelar estas suscripciones, estás ahorrando <span className="font-bold">${totalSaved.toFixed(2)} por mes</span>, lo
-          que equivale a <span className="font-bold">${(totalSaved * 12).toFixed(2)} al año</span>.
-          Sigue optimizando tus gastos.
-        </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6">
+        <div className="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
+          <p className="text-emerald-100 text-sm mb-1">Ahorro mensual actual</p>
+          <p className="text-3xl font-bold">{formatCurrency(totalSavedMonthly, "COP")}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Ahorro anual estimado</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            {formatCurrency(totalSavedYearly, "COP")}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Total archivadas</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            {archivedSubscriptions.length}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar suscripción archivada..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="all">Todas las categorías</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading && <LoadingState title="Cargando suscripciones archivadas..." />}
+
+      {!loading && filteredSubscriptions.length === 0 && (
+        <EmptyState
+          icon={Archive}
+          title="No hay suscripciones archivadas"
+          description="Cuando pauses una suscripción activa, aparecerá aquí."
+        />
+      )}
+
+      <div className="space-y-4">
+        {filteredSubscriptions.map((subscription) => (
+          <div
+            key={subscription.id}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5"
+          >
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-12 h-12 ${subscription.color} rounded-xl flex items-center justify-center text-white text-lg font-semibold opacity-80`}
+                >
+                  {subscription.icon}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {subscription.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {subscription.category} · Próximo cobro detenido:{" "}
+                    {subscription.nextPaymentDate.toLocaleDateString("es-CO")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <p className="text-sm md:text-base font-semibold text-emerald-600">
+                  Ahorras {formatCurrency(subscription.amount, subscription.currency)}
+                </p>
+                <button
+                  onClick={() => handleRestore(subscription)}
+                  disabled={processingId === subscription.id}
+                  className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Restaurar
+                </button>
+                <button
+                  onClick={() => handleDelete(subscription.id)}
+                  disabled={processingId === subscription.id}
+                  className="px-3 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/20 disabled:opacity-50 inline-flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

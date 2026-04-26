@@ -20,6 +20,10 @@ export default function GmailSubscriptionConfirmation() {
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasBankSource = useMemo(
+    () => drafts.some((item) => item.source === "bank-statement"),
+    [drafts],
+  );
 
   const selectedCount = useMemo(
     () => drafts.filter((item) => selected[item.id]).length,
@@ -62,6 +66,9 @@ export default function GmailSubscriptionConfirmation() {
 
     try {
       for (const item of toImport) {
+        const sourceLabel =
+          item.source === "bank-statement" ? "extracto bancario" : "Gmail";
+
         await createUserSubscription(user.uid, {
           name: item.name.trim(),
           category: item.category,
@@ -72,8 +79,8 @@ export default function GmailSubscriptionConfirmation() {
           nextPaymentDate: new Date(item.nextPaymentDate),
           icon: (item.icon.trim() || item.name.charAt(0) || "S").toUpperCase(),
           color: item.color || "bg-emerald-500",
-          notes: `Detectada desde Gmail. Asunto: ${item.subject}`,
-          source: "gmail-detected",
+          notes: `Detectada desde ${sourceLabel}. Referencia: ${item.subject}`,
+          source: item.source,
         });
       }
 
@@ -98,25 +105,25 @@ export default function GmailSubscriptionConfirmation() {
       </button>
 
       <div className="mb-8">
-        <h1 className="text-3xl mb-2 dark:text-white">Detección de Email</h1>
+        <h1 className="text-3xl mb-2 dark:text-white">Detección automática</h1>
         <p className="text-gray-500 dark:text-gray-400">
-          Escaneamos tus correos de los últimos 90 días y detectamos posibles
-          suscripciones. Confirma antes de agregarlas.
+          Revisamos la información detectada y te proponemos posibles
+          suscripciones para importar con seguridad.
         </p>
       </div>
 
       <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-700 p-4 flex items-start gap-3">
         <Mail className="w-5 h-5 mt-0.5 text-emerald-600 dark:text-emerald-400" />
         <div className="text-sm text-emerald-800 dark:text-emerald-300">
-          Detectamos <strong>{drafts.length}</strong> coincidencias (Netflix,
-          Spotify, Disney+, etc.). Revisa montos y próxima renovación antes de
-          importar.
+          Detectamos <strong>{drafts.length}</strong> coincidencias desde{" "}
+          <strong>{hasBankSource ? "extracto bancario/correo" : "correo"}</strong>.
+          Revisa montos y próxima renovación antes de importar.
         </div>
       </div>
 
       {drafts.length === 0 && (
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 text-gray-600 dark:text-gray-300">
-          No encontramos suscripciones claras en los últimos 90 días.
+          No encontramos suscripciones claras para importar.
         </div>
       )}
 

@@ -105,24 +105,24 @@ export default function Layout() {
     .join("");
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-800 z-50 flex items-center justify-between px-4 md:hidden">
+    <div className="trimit-shell flex min-h-screen transition-colors">
+      <div className="trimit-mobile-topbar fixed top-0 left-0 right-0 h-16 backdrop-blur z-50 flex items-center justify-between px-4 md:hidden">
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center"
+          className="trimit-mobile-topbar-btn w-10 h-10 rounded-lg grid place-items-center"
           aria-label="Abrir menú"
         >
           <Menu className="w-5 h-5" />
         </button>
         <button
           onClick={() => handleNavigate("/dashboard")}
-          className="text-sm font-semibold text-gray-800 dark:text-gray-100"
+          className="text-sm font-semibold trimit-sidebar-text"
         >
           Trimit
         </button>
         <button
           onClick={() => handleNavigate("/profile")}
-          className="w-10 h-10 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 bg-emerald-500 text-white grid place-items-center text-xs font-semibold"
+          className="w-10 h-10 rounded-full overflow-hidden border trimit-sidebar-border bg-[var(--trimit-app-accent)] text-white grid place-items-center text-xs font-semibold"
         >
           {user?.photoURL ? (
             <img src={user.photoURL} alt="Perfil" className="w-full h-full object-cover" />
@@ -139,12 +139,12 @@ export default function Layout() {
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Cerrar menú"
           />
-          <div className="absolute left-0 top-0 h-full w-[84vw] max-w-[320px] bg-slate-900 text-white p-4 overflow-y-auto">
+          <div className="trimit-sidebar absolute left-0 top-0 h-full w-[84vw] max-w-[320px] p-4 overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <p className="font-semibold">Menú</p>
+              <p className="font-semibold trimit-sidebar-text">Menú</p>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center"
+                className="trimit-sidebar-item w-9 h-9 rounded-lg grid place-items-center"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -152,7 +152,7 @@ export default function Layout() {
 
             {menuSections.map((section, idx) => (
               <div key={idx} className="mb-5">
-                <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 px-2">
+                <p className="trimit-sidebar-section text-xs uppercase tracking-wider mb-2 px-2">
                   {section.title}
                 </p>
                 <div className="space-y-1">
@@ -164,7 +164,7 @@ export default function Layout() {
                         key={itemIdx}
                         onClick={() => handleNavigate(item.path)}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${
-                          active ? "bg-emerald-500 text-white" : "text-gray-200 hover:bg-white/10"
+                          active ? "trimit-sidebar-item-active" : "trimit-sidebar-item"
                         }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -176,17 +176,17 @@ export default function Layout() {
               </div>
             ))}
 
-            <div className="space-y-2 pt-2 border-t border-white/10">
+            <div className="space-y-2 pt-2 trimit-sidebar-bottom">
               <button
                 onClick={() => handleNavigate("/settings")}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-200 hover:bg-white/10"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm trimit-sidebar-item"
               >
                 <Settings className="w-4 h-4" />
                 <span>Configuración</span>
               </button>
               <button
                 onClick={toggleTheme}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-200 hover:bg-white/10"
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm trimit-sidebar-item"
               >
                 {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 <span>{theme === "dark" ? "Modo claro" : "Modo oscuro"}</span>
@@ -204,7 +204,7 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className="hidden md:block fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-slate-800 to-slate-900 dark:from-slate-900 dark:to-black shadow-2xl z-50 overflow-y-auto transition-all duration-300">
+      <aside className="trimit-sidebar hidden md:block fixed left-0 top-0 h-full w-64 shadow-2xl z-50 overflow-y-auto transition-all duration-300">
         <div className="p-6">
           {/* Logo */}
           <div 
@@ -220,23 +220,23 @@ export default function Layout() {
 
           <button
             onClick={() => navigate("/profile")}
-            className="w-full mb-6 rounded-xl border border-slate-700/70 bg-slate-800/50 p-3 text-left hover:bg-slate-700/60 transition-colors"
+            className="trimit-sidebar-user w-full mb-6 rounded-xl border p-3 text-left transition-colors"
           >
             <div className="flex items-center gap-3">
               {user?.photoURL ? (
                 <img
                   src={user.photoURL}
                   alt="Foto de perfil"
-                  className="w-10 h-10 rounded-full object-cover border border-slate-500"
+                   className="w-10 h-10 rounded-full object-cover border trimit-sidebar-border"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-semibold">
+                  <div className="w-10 h-10 rounded-full bg-[var(--trimit-app-accent)] text-white flex items-center justify-center text-sm font-semibold">
                   {userInitials || "U"}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{userName}</p>
-                <p className="text-xs text-gray-400 truncate">{userEmail}</p>
+                 <p className="trimit-sidebar-text text-sm font-medium truncate">{userName}</p>
+                 <p className="trimit-sidebar-text-muted text-xs truncate">{userEmail}</p>
               </div>
             </div>
           </button>
@@ -245,7 +245,7 @@ export default function Layout() {
           <nav className="space-y-6">
             {menuSections.map((section, idx) => (
               <div key={idx} className="space-y-1">
-                <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                 <p className="trimit-sidebar-section px-3 text-xs font-semibold uppercase tracking-wider mb-3">
                   {section.title}
                 </p>
                 {section.items.map((item, itemIdx) => {
@@ -262,10 +262,10 @@ export default function Layout() {
                         transform hover:translate-x-1
                         ${
                           active
-                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/50"
-                            : "text-gray-300 hover:bg-slate-700/50 hover:text-white"
-                        }
-                      `}
+                             ? "trimit-sidebar-item-active"
+                             : "trimit-sidebar-item"
+                         }
+                       `}
                     >
                       <Icon className={`w-4 h-4 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`} />
                       <span>{item.label}</span>
@@ -278,15 +278,15 @@ export default function Layout() {
         </div>
 
         {/* Bottom Actions */}
-        <div className="sticky bottom-0 bg-slate-800 dark:bg-black border-t border-slate-700/50 dark:border-slate-800 p-6 space-y-2">
+        <div className="trimit-sidebar-bottom sticky bottom-0 p-6 space-y-2">
           {/* Theme Toggle */}
           <button
             onClick={() => navigate("/settings")}
             className={`motion-nav-button w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium transform hover:translate-x-1 ${
               isActive("/settings")
-                ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/50"
-                : "text-gray-300 hover:bg-slate-700/50 hover:text-white"
-            }`}
+                ? "trimit-sidebar-item-active"
+                : "trimit-sidebar-item"
+             }`}
           >
             <Settings className="w-4 h-4" />
             <span>Configuración</span>
@@ -294,7 +294,7 @@ export default function Layout() {
 
           <button
             onClick={toggleTheme}
-            className="motion-nav-button w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-slate-700/50 hover:text-white transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
+            className="motion-nav-button trimit-sidebar-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
           >
             {theme === "dark" ? (
               <>

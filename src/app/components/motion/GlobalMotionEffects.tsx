@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface Ripple {
   id: number;
@@ -7,6 +8,7 @@ interface Ripple {
 }
 
 export function GlobalMotionEffects() {
+  const { activeVisualThemeConfig } = useTheme();
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [cursorEnabled, setCursorEnabled] = useState(false);
   const dotRef = useRef<HTMLDivElement | null>(null);
@@ -15,14 +17,14 @@ export function GlobalMotionEffects() {
 
   const particles = useMemo(
     () =>
-      Array.from({ length: 22 }).map((_, index) => ({
+      Array.from({ length: activeVisualThemeConfig.particleCount }).map((_, index) => ({
         id: index,
         size: 2 + (index % 4),
         left: (index * 17) % 100,
         delay: (index % 7) * 0.6,
         duration: 14 + (index % 8),
       })),
-    [],
+    [activeVisualThemeConfig.particleCount],
   );
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export function GlobalMotionEffects() {
 
   return (
     <>
-      <div className="floating-particles text-emerald-500 dark:text-cyan-400" aria-hidden>
+      <div className="floating-particles" aria-hidden>
         {particles.map((particle) => (
           <span
             key={particle.id}

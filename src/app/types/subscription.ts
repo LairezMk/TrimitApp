@@ -10,7 +10,7 @@ export interface Subscription {
   icon: string;
   color: string;
   notes?: string;
-  source?: "manual" | "gmail-detected";
+  source?: "manual" | "gmail-detected" | "bank-statement";
   rules?: SubscriptionRule[];
 }
 

@@ -105,7 +105,7 @@ export interface DetectedSubscriptionDraft {
   isRecurring: boolean;
   icon: string;
   color: string;
-  source: "gmail-detected";
+  source: "gmail-detected" | "bank-statement";
   confidence: number;
   from: string;
   subject: string;
@@ -136,7 +136,12 @@ interface GmailMessageResponse {
 
 function toBase64(input: string) {
   if (typeof window !== "undefined" && typeof window.btoa === "function") {
-    return window.btoa(input);
+    const bytes = new TextEncoder().encode(input);
+    let binary = "";
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    return window.btoa(binary);
   }
   return input;
 }
@@ -180,59 +185,150 @@ function collectBodyText(part?: GmailMessagePart): string[] {
   return texts;
 }
 
-function normalizeAmount(raw: string) {
-  const trimmed = raw.replace(/\s/g, "");
+function inferCurrency(fragment: string) {
+  const normalized = fragment.toLowerCase();
+  if (
+    normalized.includes("cop") ||
+    normalized.includes("col$") ||
+    normalized.includes("pesos") ||
+    normalized.includes("colombia")
+  ) {
+    return "COP";
+  }
+  if (normalized.includes("eur") || normalized.includes("€")) {
+    return "EUR";
+  }
+  if (normalized.includes("usd")) {
+    return "USD";
+  }
+  return "$";
+}
 
-  if (trimmed.includes(",") && trimmed.includes(".")) {
-    const lastComma = trimmed.lastIndexOf(",");
-    const lastDot = trimmed.lastIndexOf(".");
-    if (lastComma > lastDot) {
-      return Number(trimmed.replace(/\./g, "").replace(",", "."));
-    }
-    return Number(trimmed.replace(/,/g, ""));
+function normalizeAmount(raw: string, currencyHint: string) {
+  const cleaned = raw.replace(/[^\d,.\s]/g, "").replace(/\s/g, "");
+  if (!cleaned) {
+    return null;
   }
 
-  if (trimmed.includes(",")) {
-    const parts = trimmed.split(",");
-    if (parts[parts.length - 1].length === 2) {
-      return Number(trimmed.replace(/\./g, "").replace(",", "."));
-    }
-    return Number(trimmed.replace(/,/g, ""));
+  const hasComma = cleaned.includes(",");
+  const hasDot = cleaned.includes(".");
+  const digitsOnly = cleaned.replace(/[.,]/g, "");
+
+  if (!digitsOnly || digitsOnly.length > 10) {
+    return null;
   }
 
-  return Number(trimmed);
+  if (!hasComma && !hasDot) {
+    const plain = Number(digitsOnly);
+    return Number.isFinite(plain) ? plain : null;
+  }
+
+  if (hasComma && hasDot) {
+    const lastComma = cleaned.lastIndexOf(",");
+    const lastDot = cleaned.lastIndexOf(".");
+    const decimalSep = lastComma > lastDot ? "," : ".";
+    const thousandSep = decimalSep === "," ? "." : ",";
+    const decimalChunks = cleaned.split(decimalSep);
+    const fractional = decimalChunks[decimalChunks.length - 1] || "";
+
+    if (fractional.length <= 2) {
+      const normalized = cleaned.split(thousandSep).join("").replace(decimalSep, ".");
+      const value = Number(normalized);
+      return Number.isFinite(value) ? value : null;
+    }
+
+    const grouped = Number(cleaned.replace(/[.,]/g, ""));
+    return Number.isFinite(grouped) ? grouped : null;
+  }
+
+  const sep = hasComma ? "," : ".";
+  const chunks = cleaned.split(sep);
+  const fractional = chunks[chunks.length - 1] || "";
+
+  if (chunks.length > 2) {
+    const grouped = Number(cleaned.replace(/[.,]/g, ""));
+    return Number.isFinite(grouped) ? grouped : null;
+  }
+
+  if (currencyHint === "COP" && fractional.length === 3) {
+    const grouped = Number(cleaned.replace(/[.,]/g, ""));
+    return Number.isFinite(grouped) ? grouped : null;
+  }
+
+  if (fractional.length === 2) {
+    const decimal = Number(cleaned.replace(sep, "."));
+    return Number.isFinite(decimal) ? decimal : null;
+  }
+
+  if (fractional.length === 3) {
+    const grouped = Number(cleaned.replace(/[.,]/g, ""));
+    return Number.isFinite(grouped) ? grouped : null;
+  }
+
+  const fallback = Number(cleaned.replace(/[.,]/g, ""));
+  return Number.isFinite(fallback) ? fallback : null;
+}
+
+interface AmountCandidate {
+  amount: number;
+  currency: string;
+  score: number;
 }
 
 function extractAmount(text: string) {
   const amountPatterns = [
-    /\b(?:cop|usd|eur)\s*([$€]?\s*[0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{2})?)\b/i,
-    /([$€]\s*[0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{2})?)/i,
-    /\b([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{2})?)\s*(cop|usd|eur)\b/i,
+    /(?:cop|col\$|pesos?|usd|eur|[$€])\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})\s*(?:cop|col\$|pesos?|usd|eur)\b/gi,
+    /(total\s*(?:a\s*pagar|pago)?|valor\s*(?:a\s*pagar)?|importe|monto|factura|vencimiento)\D{0,24}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
   ];
+  const scoringKeywords =
+    /total\s*a\s*pagar|valor\s*a\s*pagar|importe\s*a\s*pagar|saldo\s*a\s*pagar|monto|factura|recibo|vencimiento/i;
+  const candidates: AmountCandidate[] = [];
 
   for (const pattern of amountPatterns) {
-    const match = text.match(pattern);
-    if (!match) {
-      continue;
+    let match = pattern.exec(text);
+    while (match) {
+      const rawAmount = (match[2] || match[1] || "").trim();
+      const matchText = match[0] || "";
+      const currency = inferCurrency(matchText);
+      const amount = normalizeAmount(rawAmount, currency);
+      const start = Math.max(0, (match.index || 0) - 80);
+      const end = Math.min(text.length, (match.index || 0) + matchText.length + 80);
+      const context = text.slice(start, end);
+
+      if (amount && amount > 0) {
+        let score = 40;
+
+        if (scoringKeywords.test(context)) {
+          score += 30;
+        }
+        if (/(cop|col\$|pesos?|[$€]|usd|eur)/i.test(matchText)) {
+          score += 20;
+        }
+        if (amount >= 1000 && amount <= 5_000_000) {
+          score += 15;
+        }
+        if (currency === "COP" && amount < 1000) {
+          score -= 20;
+        }
+        if (/^\d{7,}$/.test(rawAmount.replace(/[.,]/g, ""))) {
+          score -= 20;
+        }
+
+        candidates.push({ amount, currency, score });
+      }
+
+      match = pattern.exec(text);
     }
-
-    const target = (match[1] || "").replace(/[$€]/g, "").trim();
-    const value = normalizeAmount(target);
-    if (!Number.isFinite(value) || value <= 0) {
-      continue;
-    }
-
-    const haystack = match[0].toLowerCase();
-    const currency = haystack.includes("cop")
-      ? "COP"
-      : haystack.includes("eur") || haystack.includes("€")
-      ? "EUR"
-      : "$";
-
-    return { amount: value, currency };
   }
 
-  return null;
+  if (!candidates.length) {
+    return null;
+  }
+
+  candidates.sort((a, b) => b.score - a.score || b.amount - a.amount);
+  const best = candidates[0];
+  return { amount: best.amount, currency: best.currency };
 }
 
 function parseSpanishDate(monthName: string, day: number, year?: number) {
@@ -376,7 +472,13 @@ function isLikelyRecurring(text: string) {
     return true;
   }
 
-  return /\bplan\b/.test(text.toLowerCase()) && /\bpago|cobro|factura|renov/i.test(text);
+  const normalized = text.toLowerCase();
+  return (
+    /\bplan\b/.test(normalized) &&
+    /\b(pago|cobro|factura|renov|recordatorio|vencimiento|estado de cuenta|recibo)\b/i.test(
+      normalized,
+    )
+  );
 }
 
 function parseSenderName(from: string) {
@@ -434,7 +536,7 @@ async function fetchGmailMessages(accessToken: string) {
 
   const query =
     `after:${sinceQuery} (` +
-    "subscription OR suscripción OR invoice OR factura OR renewal OR renovación OR payment OR cobro" +
+    "subscription OR suscripción OR invoice OR factura OR facturación OR bill OR renewal OR renovación OR payment OR cobro OR recordatorio OR vencimiento OR recibo OR estado de cuenta" +
     ")";
 
   const listUrl =

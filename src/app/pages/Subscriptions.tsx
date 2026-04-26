@@ -1,21 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
-import { Plus, Search } from "lucide-react";
+import { FileUp, Loader2, MailSearch, Plus, Search } from "lucide-react";
 import { SubscriptionCard } from "../components/SubscriptionCard";
 import type { Subscription } from "../types/subscription";
 import { useAuth } from "../contexts/AuthContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
+import { detectSubscriptionsFromGmail, saveDetectedSubscriptionsDrafts } from "../services/gmailDetection";
+import { detectSubscriptionsFromBankStatement } from "../services/bankStatementDetection";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, requestGmailAccessToken } = useAuth();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [detectingByEmail, setDetectingByEmail] = useState(false);
+  const [detectingByStatement, setDetectingByStatement] = useState(false);
+  const statementInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -64,6 +69,62 @@ export default function Subscriptions() {
     return matchesSearch && matchesFilter;
   });
 
+  const handleDetectByEmail = async () => {
+    if (!user) {
+      setError("Debes iniciar sesión para detectar suscripciones por correo.");
+      return;
+    }
+
+    setDetectingByEmail(true);
+    setError(null);
+
+    try {
+      const accessToken = await requestGmailAccessToken();
+      const detected = await detectSubscriptionsFromGmail(accessToken);
+      saveDetectedSubscriptionsDrafts(detected);
+      navigate("/subscriptions/gmail-confirmation");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No se pudieron detectar suscripciones desde el correo.";
+      setError(message);
+    } finally {
+      setDetectingByEmail(false);
+    }
+  };
+
+  const handleStatementFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setDetectingByStatement(true);
+    setError(null);
+
+    try {
+      const detected = await detectSubscriptionsFromBankStatement(file);
+      if (!detected.length) {
+        setError(
+          "No encontramos suscripciones en el extracto. Prueba con un archivo más detallado o con mejor formato.",
+        );
+        return;
+      }
+      saveDetectedSubscriptionsDrafts(detected);
+      navigate("/subscriptions/gmail-confirmation");
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No se pudo analizar el extracto bancario.";
+      setError(message);
+    } finally {
+      setDetectingByStatement(false);
+      event.target.value = "";
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8">
       {/* Header */}
@@ -93,14 +154,25 @@ export default function Subscriptions() {
       {error && (
         <div className="mb-6">
           <ErrorState
-            title="Error al cargar suscripciones"
+            title="Ocurrió un error"
             message={error}
             onRetry={() => window.location.reload()}
           />
         </div>
       )}
 
-      {/* Filters and Search */}
+      {(detectingByEmail || detectingByStatement) && (
+        <div className="mb-5 md:mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 flex items-start gap-3 animate-pulse">
+          <Loader2 className="w-5 h-5 mt-0.5 text-emerald-600 animate-spin" />
+          <div className="text-sm text-emerald-800">
+            {detectingByEmail
+              ? "Escaneando correos y detectando suscripciones..."
+              : "Analizando extracto bancario y aplicando reglas de detección..."}
+          </div>
+        </div>
+      )}
+
+      {/* Filters, Search and Actions */}
       <div
         className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-5 md:mb-6"
         data-tour="subscriptions-filters"
@@ -149,6 +221,47 @@ export default function Subscriptions() {
                 Olvidadas
               </button>
             </div>
+            <input
+              ref={statementInputRef}
+              type="file"
+              accept=".pdf,.xls,.xlsx,.csv"
+              className="hidden"
+              onChange={handleStatementFileChange}
+            />
+            <Button
+              onClick={() => statementInputRef.current?.click()}
+              disabled={detectingByStatement || detectingByEmail}
+              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+            >
+              {detectingByStatement ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Analizando...
+                </>
+              ) : (
+                <>
+                  <FileUp className="w-4 h-4 mr-2" />
+                  Subir extracto (PDF/Excel)
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleDetectByEmail}
+              disabled={detectingByStatement || detectingByEmail}
+              className="bg-cyan-600 hover:bg-cyan-700 text-white w-full sm:w-auto"
+            >
+              {detectingByEmail ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Detectando...
+                </>
+              ) : (
+                <>
+                  <MailSearch className="w-4 h-4 mr-2" />
+                  Detectar por correo
+                </>
+              )}
+            </Button>
             <Button
               onClick={() => navigate("/subscriptions/add")}
               className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto"
