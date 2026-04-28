@@ -231,6 +231,95 @@
 }
 
 @layer utilities {
+  .trimit-shell {
+    background: linear-gradient(
+      140deg,
+      color-mix(in oklab, var(--trimit-app-bg), white 4%),
+      color-mix(in oklab, var(--trimit-app-card-alt), var(--trimit-app-bg) 60%)
+    );
+  }
+
+  .trimit-mobile-topbar {
+    background: color-mix(in oklab, var(--trimit-app-card), transparent 15%);
+    border-bottom: 1px solid color-mix(in oklab, var(--trimit-app-border), transparent 20%);
+  }
+
+  .trimit-mobile-topbar-btn {
+    border: 1px solid var(--trimit-app-border);
+    color: var(--trimit-app-text);
+    background: color-mix(in oklab, var(--trimit-app-card), transparent 15%);
+  }
+
+  .trimit-sidebar {
+    background: linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--trimit-app-sidebar), black 6%),
+      color-mix(in oklab, var(--trimit-app-sidebar), black 16%)
+    );
+    color: var(--trimit-app-text);
+    border-right: 1px solid color-mix(in oklab, var(--trimit-app-border), black 20%);
+  }
+
+  .trimit-sidebar-border {
+    border-color: var(--trimit-app-border);
+  }
+
+  .trimit-sidebar-text {
+    color: var(--trimit-app-text);
+  }
+
+  .trimit-sidebar-text-muted {
+    color: var(--trimit-app-text-muted);
+  }
+
+  .trimit-sidebar-section {
+    color: color-mix(in oklab, var(--trimit-app-text-muted), white 10%);
+  }
+
+  .trimit-sidebar-user {
+    background: color-mix(in oklab, var(--trimit-app-card), transparent 12%);
+    border-color: color-mix(in oklab, var(--trimit-app-border), transparent 8%);
+  }
+
+  .trimit-sidebar-user:hover {
+    background: color-mix(in oklab, var(--trimit-app-card-alt), transparent 8%);
+  }
+
+  .trimit-sidebar-item {
+    color: var(--trimit-app-text-muted);
+    background: transparent;
+  }
+
+  .trimit-sidebar-item:hover {
+    color: var(--trimit-app-text);
+    background: color-mix(in oklab, var(--trimit-app-card-alt), transparent 18%);
+  }
+
+  .trimit-sidebar-item-active {
+    color: #ffffff;
+    background: var(--trimit-app-accent);
+    box-shadow: 0 12px 28px -18px color-mix(in oklab, var(--trimit-app-accent), black 45%);
+  }
+
+  .trimit-sidebar-item-danger:hover {
+    color: #fecaca;
+    background: color-mix(in oklab, #ef4444, transparent 76%);
+  }
+
+  .trimit-sidebar-bottom {
+    border-top: 1px solid color-mix(in oklab, var(--trimit-app-border), transparent 20%);
+    background: color-mix(in oklab, var(--trimit-app-sidebar), black 8%);
+    backdrop-filter: blur(8px);
+  }
+
+  .trimit-sidebar-logo {
+    filter: none;
+  }
+
+  .dark .trimit-sidebar-logo {
+    filter: brightness(0) invert(1);
+  }
+
   html[data-visual-theme] .floating-particles {
     color: var(--trimit-particle-color-light);
   }

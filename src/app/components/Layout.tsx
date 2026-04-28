@@ -207,16 +207,17 @@ export default function Layout() {
       <aside className="trimit-sidebar hidden md:block fixed left-0 top-0 h-full w-64 shadow-2xl z-50 overflow-y-auto transition-all duration-300">
         <div className="p-6">
           {/* Logo */}
-          <div 
-            className="mb-8 cursor-pointer transform transition-all duration-300 hover:scale-105"
+          <button
+            type="button"
+            className="mb-5 mx-auto flex w-fit cursor-pointer transform transition-all duration-300 hover:scale-105"
             onClick={() => navigate("/")}
           >
-            <img 
-              src={logoImage} 
-              alt="Trimit" 
-              className="h-12 w-auto mx-auto brightness-0 invert" 
-            />
-          </div>
+             <img 
+               src={logoImage} 
+               alt="Trimit" 
+               className="trimit-sidebar-logo h-60 w-auto mx-auto" 
+             />
+          </button>
 
           <button
             onClick={() => navigate("/profile")}
@@ -312,7 +313,7 @@ export default function Layout() {
           {/* Logout */}
           <button
             onClick={handleLogout}
-            className="motion-nav-button w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-red-500/20 hover:text-red-400 transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
+            className="motion-nav-button trimit-sidebar-item trimit-sidebar-item-danger w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 text-sm font-medium transform hover:translate-x-1"
           >
             <LogOut className="w-4 h-4" />
             <span>Cerrar sesión</span>
