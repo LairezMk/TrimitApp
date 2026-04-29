@@ -16,7 +16,6 @@ export const pages = [
   { name: "Presupuesto", path: "/budget" },
   { name: "Categorías", path: "/categories" },
   { name: "Métodos de Pago", path: "/payment-methods" },
-  { name: "Pagos", path: "/payments" },
   { name: "Reportes", path: "/reports" },
   { name: "Tendencias", path: "/trends" },
   { name: "Recomendaciones", path: "/recommendations" },
@@ -26,6 +25,7 @@ export const pages = [
   { name: "Archivados", path: "/archived" },
   { name: "Compartir", path: "/sharing" },
   { name: "Perfil", path: "/profile" },
+  { name: "Logros", path: "/profile/achievements" },
   { name: "Configuración", path: "/settings" },
   { name: "Ayuda", path: "/help" },
 ];

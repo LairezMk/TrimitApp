@@ -69,7 +69,8 @@ export const HELP_GUIDES: HelpGuide[] = [
   {
     route: "/calendar",
     title: "Calendario",
-    summary: "Visualiza pagos por fecha con detalle diario y resumen mensual.",
+    summary:
+      "Centraliza calendario, próximos pagos, pagos registrados y cronología en una sola vista.",
     steps: [
       {
         title: "Vista del mes",
@@ -78,30 +79,19 @@ export const HELP_GUIDES: HelpGuide[] = [
       },
       {
         title: "Detalle de fecha",
-        description: "Selecciona un día para ver qué suscripciones cobran ese día.",
+        description:
+          "Selecciona un día para ver próximos cobros y pagos ya registrados en esa fecha.",
         selector: "[data-tour='calendar-day-detail']",
       },
       {
         title: "Resumen del mes",
-        description: "Consolida el total de cobros programados del mes.",
+        description: "Consolida totales del mes y próximos vencimientos.",
         selector: "[data-tour='calendar-summary']",
       },
-    ],
-  },
-  {
-    route: "/payments",
-    title: "Pagos",
-    summary: "Registra pagos y revisa la cronología de pagos realizados y próximos.",
-    steps: [
       {
         title: "Registrar pago",
         description: "Agrega manualmente pagos asociados a una suscripción.",
         selector: "[data-tour='payments-register']",
-      },
-      {
-        title: "Resumen financiero",
-        description: "Compara total pagado, próximos pagos y próximo vencimiento.",
-        selector: "[data-tour='payments-stats']",
       },
       {
         title: "Filtros de estado",
@@ -198,6 +188,15 @@ export const HELP_GUIDES: HelpGuide[] = [
     steps: [
       { title: "Información de cuenta", description: "Actualiza nombre, foto y datos personales." },
       { title: "Seguridad", description: "Cambia tu contraseña desde el perfil." },
+    ],
+  },
+  {
+    route: "/profile/achievements",
+    title: "Logros",
+    summary: "Desbloquea insignias según tu actividad y progreso en Trimit.",
+    steps: [
+      { title: "Panel de progreso", description: "Consulta porcentaje completado y últimos logros." },
+      { title: "Listado de logros", description: "Revisa requisitos, rareza y estado de cada logro." },
     ],
   },
   {

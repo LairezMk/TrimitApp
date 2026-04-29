@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
-import { Calendar, Camera, KeyRound, Mail, MapPin, Phone, Save, User } from "lucide-react";
+import { Calendar, Camera, KeyRound, Mail, MapPin, Phone, Save, Trophy, User } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNavigate } from "react-router";
 import { db } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
@@ -16,6 +17,7 @@ interface ProfileForm {
 }
 
 export default function Profile() {
+  const navigate = useNavigate();
   const { user, changePassword } = useAuth();
   const [form, setForm] = useState<ProfileForm>({
     displayName: "",
@@ -387,6 +389,24 @@ export default function Profile() {
                 { locale: es },
               )}
             </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Gamificación</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Sigue tu progreso en logros
+                </p>
+              </div>
+              <Trophy className="w-5 h-5 text-emerald-500" />
+            </div>
+            <button
+              onClick={() => navigate("/profile/achievements")}
+              className="w-full rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 text-sm"
+            >
+              Ver logros
+            </button>
           </div>
         </aside>
       </div>

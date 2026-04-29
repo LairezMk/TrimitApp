@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, redirect } from "react-router";
 import Landing from "./pages/Landing";
 import Layout from "./components/Layout";
 import AuthPage from "./pages/Auth";
@@ -15,7 +15,6 @@ import Analytics from "./pages/Analytics";
 import Budget from "./pages/Budget";
 import Categories from "./pages/Categories";
 import PaymentMethods from "./pages/PaymentMethods";
-import Payments from "./pages/Payments";
 import Reports from "./pages/Reports";
 import Trends from "./pages/Trends";
 import Recommendations from "./pages/Recommendations";
@@ -25,6 +24,7 @@ import Calculator from "./pages/Calculator";
 import Archived from "./pages/Archived";
 import Sharing from "./pages/Sharing";
 import Profile from "./pages/Profile";
+import Achievements from "./pages/Achievements";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
 import FeaturesPage from "./pages/Features";
@@ -133,7 +133,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "/payments",
-            Component: Payments,
+            loader: () => redirect("/calendar"),
           },
           {
             path: "/reports",
@@ -170,6 +170,10 @@ export const router = createBrowserRouter([
           {
             path: "/profile",
             Component: Profile,
+          },
+          {
+            path: "/profile/achievements",
+            Component: Achievements,
           },
           {
             path: "/settings",

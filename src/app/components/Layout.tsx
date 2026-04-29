@@ -5,7 +5,6 @@ import { useAuth } from "../contexts/AuthContext";
 import {
   LayoutDashboard,
   Calendar,
-  CreditCard,
   Target,
   BarChart3,
   TrendingUp,
@@ -17,6 +16,7 @@ import {
   Lightbulb,
   Calculator,
   Bell,
+  Trophy,
   CircleHelp,
   Settings,
   LogOut,
@@ -29,6 +29,7 @@ import { PageTransition } from "./motion/PageTransition";
 import { PageGuideButton } from "./help/PageGuideButton";
 import { PageTourOverlay } from "./help/PageTourOverlay";
 import { useState } from "react";
+import { AchievementsWatcher } from "./gamification/AchievementsWatcher";
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -58,7 +59,6 @@ export default function Layout() {
         { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
         { icon: LayoutDashboard, label: "Suscripciones", path: "/subscriptions" },
         { icon: Calendar, label: "Calendario", path: "/calendar" },
-        { icon: CreditCard, label: "Pagos", path: "/payments" },
         { icon: Target, label: "Presupuesto", path: "/budget" },
       ],
     },
@@ -90,6 +90,7 @@ export default function Layout() {
       title: "CUENTA",
       items: [
         { icon: Bell, label: "Notificaciones", path: "/notifications" },
+        { icon: Trophy, label: "Logros", path: "/profile/achievements" },
         { icon: CircleHelp, label: "Ayuda", path: "/help" },
       ],
     },
@@ -209,14 +210,15 @@ export default function Layout() {
           {/* Logo */}
           <button
             type="button"
-            className="mb-5 mx-auto flex w-fit cursor-pointer transform transition-all duration-300 hover:scale-105"
+            className="mb-3 mx-auto inline-flex w-fit items-center justify-center cursor-pointer border-0 bg-transparent p-0 leading-none transform transition-all duration-300 hover:scale-105"
             onClick={() => navigate("/")}
+            aria-label="Ir al inicio"
           >
-             <img 
-               src={logoImage} 
-               alt="Trimit" 
-               className="trimit-sidebar-logo h-60 w-auto mx-auto" 
-             />
+              <img 
+                src={logoImage} 
+                alt="Trimit" 
+                className="trimit-sidebar-logo block h-20 w-auto select-none" 
+              />
           </button>
 
           <button
@@ -328,6 +330,7 @@ export default function Layout() {
         </PageTransition>
         <PageGuideButton />
         <PageTourOverlay />
+        <AchievementsWatcher />
       </main>
     </div>
   );
