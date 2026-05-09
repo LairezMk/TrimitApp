@@ -114,7 +114,6 @@ export default function Help() {
             </div>
 
             <div className="relative rounded-xl border border-white/50 dark:border-white/10 bg-white/80 dark:bg-black/20 p-5 min-h-[230px]">
-              <div className="absolute left-[8%] top-[18%] w-[62%] h-[22%] border-2 border-emerald-400/90 rounded-lg bg-emerald-100/30 dark:bg-emerald-500/10 pointer-events-none transition-all" />
               <div className="relative z-10">
                 <p className="text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-300 mb-2">
                   Slide {slideIndex + 1} de {currentGuide.steps.length}

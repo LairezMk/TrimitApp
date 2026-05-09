@@ -15,6 +15,7 @@ export function PageTourOverlay() {
   const navigate = useNavigate();
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
+  const [targetMissing, setTargetMissing] = useState(false);
 
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const shouldOpen = params.get("tour") === "1";
@@ -30,16 +31,32 @@ export function PageTourOverlay() {
   useEffect(() => {
     if (!shouldOpen || !currentStep?.selector) {
       setRect(null);
+      setTargetMissing(false);
       return;
     }
 
-    const updateRect = () => {
+    const updateRect = (attempt = 0) => {
+      const maxAttempts = 6;
       const element = document.querySelector(currentStep.selector || "");
       if (!element) {
+        if (attempt < maxAttempts) {
+          window.setTimeout(() => updateRect(attempt + 1), 140);
+          return;
+        }
         setRect(null);
+        setTargetMissing(true);
         return;
       }
+      setTargetMissing(false);
       const bounding = element.getBoundingClientRect();
+      const isOffscreen =
+        bounding.top < 8 || bounding.bottom > window.innerHeight - 8;
+
+      if (isOffscreen && attempt < maxAttempts) {
+        element.scrollIntoView({ behavior: attempt === 0 ? "smooth" : "auto", block: "center" });
+        window.setTimeout(() => updateRect(attempt + 1), 180);
+        return;
+      }
       setRect({
         top: Math.max(8, bounding.top - 8),
         left: Math.max(8, bounding.left - 8),
@@ -49,11 +66,12 @@ export function PageTourOverlay() {
     };
 
     updateRect();
-    window.addEventListener("resize", updateRect);
-    window.addEventListener("scroll", updateRect, true);
+    const handleUpdate = () => updateRect(0);
+    window.addEventListener("resize", handleUpdate);
+    window.addEventListener("scroll", handleUpdate, true);
     return () => {
-      window.removeEventListener("resize", updateRect);
-      window.removeEventListener("scroll", updateRect, true);
+      window.removeEventListener("resize", handleUpdate);
+      window.removeEventListener("scroll", handleUpdate, true);
     };
   }, [shouldOpen, currentStep]);
 
@@ -115,6 +133,11 @@ export function PageTourOverlay() {
         <div className="rounded-lg border border-white/15 bg-white/5 p-3 mb-4">
           <p className="text-sm font-medium">{currentStep?.title}</p>
           <p className="text-xs text-slate-300 mt-1">{currentStep?.description}</p>
+          {targetMissing && (
+            <p className="text-[11px] text-amber-200 mt-2">
+              Este elemento no esta visible en pantalla. Ajusta el scroll o continua.
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between text-xs text-slate-300 mb-4">

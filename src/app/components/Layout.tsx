@@ -210,15 +210,15 @@ export default function Layout() {
           {/* Logo */}
           <button
             type="button"
-            className="mb-3 mx-auto inline-flex w-fit items-center justify-center cursor-pointer border-0 bg-transparent p-0 leading-none transform transition-all duration-300 hover:scale-105"
+            className="mb-4 flex w-full items-center justify-center cursor-pointer border-0 bg-transparent p-0 leading-none transform transition-all duration-300 hover:scale-105"
             onClick={() => navigate("/")}
             aria-label="Ir al inicio"
           >
-              <img 
-                src={logoImage} 
-                alt="Trimit" 
-                className="trimit-sidebar-logo block h-20 w-auto select-none" 
-              />
+            <img
+              src={logoImage}
+              alt="Trimit"
+              className="trimit-sidebar-logo block h-20 w-auto select-none scale-125 origin-center"
+            />
           </button>
 
           <button
