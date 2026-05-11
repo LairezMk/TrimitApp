@@ -40,6 +40,11 @@ npm run build
 3. Abre `http://localhost:5173` en tu navegador
 4. Configura Firebase siguiendo `guidelines/FirebaseSetup.md` y abre `/auth`
 
+### Recordatorios por correo (días configurables)
+
+La app ahora encola correos en la colección `mail` cuando faltan los días definidos en Configuración (1 a 15) y está habilitado el recordatorio por correo.
+Para envío real por email, activa la extensión de Firebase **Trigger Email** apuntando a la colección `mail`.
+
 ## 📝 Estructura del Proyecto
 
 ```

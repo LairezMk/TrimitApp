@@ -17,5 +17,9 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
     }
+
+    match /mail/{mailId} {
+      allow create, read, update, delete: if false;
+    }
   }
 }

@@ -9,6 +9,7 @@ import {
   Palette,
   RotateCcw,
   Save,
+  ShieldCheck,
   SlidersHorizontal,
 } from "lucide-react";
 import {
@@ -26,9 +27,23 @@ interface AppPreferences {
   hideAmounts: boolean;
   pushEnabled: boolean;
   emailEnabled: boolean;
+  paymentReminderEmail5d: boolean;
   monthlySummary: boolean;
   autoGmailScan: boolean;
   visualTheme: VisualThemeId;
+  paymentReminderEmailUnsubscribed?: boolean;
+  paymentReminderEmailConsent?: {
+    acceptedAt?: string;
+    revokedAt?: string;
+    source?: string;
+  };
+}
+
+function clampReminderDays(value: number) {
+  if (!Number.isFinite(value)) {
+    return 3;
+  }
+  return Math.min(15, Math.max(1, Math.round(value)));
 }
 
 export default function Settings() {
@@ -44,6 +59,7 @@ export default function Settings() {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [userTimezone, setUserTimezone] = useState("America/Bogota");
   const [preferences, setPreferences] = useState<AppPreferences>({
     language: "es",
     currency: "COP",
@@ -51,6 +67,7 @@ export default function Settings() {
     hideAmounts: false,
     pushEnabled: true,
     emailEnabled: true,
+    paymentReminderEmail5d: false,
     monthlySummary: true,
     autoGmailScan: true,
     visualTheme,
@@ -65,7 +82,12 @@ export default function Settings() {
       const snap = await getDoc(doc(db, "users", user.uid));
       const data = snap.data() as Record<string, unknown> | undefined;
       const pref = (data?.preferences || {}) as Partial<AppPreferences>;
-      setPreferences((prev) => ({ ...prev, ...pref }));
+      setPreferences((prev) => ({
+        ...prev,
+        ...pref,
+        reminderDays: clampReminderDays(Number(pref.reminderDays ?? prev.reminderDays)),
+      }));
+      setUserTimezone(typeof data?.timezone === "string" ? data.timezone : "America/Bogota");
       if (pref.visualTheme) {
         setVisualTheme(pref.visualTheme);
       }
@@ -87,14 +109,36 @@ export default function Settings() {
     setMessage(null);
 
     try {
+      const nowIso = new Date().toISOString();
+      const currentConsent = preferences.paymentReminderEmailConsent || {};
+      const updatedConsent = preferences.paymentReminderEmail5d
+        ? {
+            acceptedAt: currentConsent.acceptedAt || nowIso,
+            source: currentConsent.source || "settings_toggle",
+          }
+        : {
+            ...currentConsent,
+            revokedAt: nowIso,
+            source: "settings_toggle",
+          };
+      const nextPreferences: AppPreferences = {
+        ...preferences,
+        paymentReminderEmailUnsubscribed: preferences.paymentReminderEmail5d
+          ? false
+          : Boolean(preferences.paymentReminderEmailUnsubscribed),
+        paymentReminderEmailConsent: updatedConsent,
+      };
+
       await setDoc(
         doc(db, "users", user.uid),
         {
-          preferences,
+          preferences: nextPreferences,
+          timezone: userTimezone,
           updatedAt: serverTimestamp(),
         },
         { merge: true },
       );
+      setPreferences(nextPreferences);
       setMessage("Configuración guardada correctamente.");
     } catch (error) {
       const text = error instanceof Error ? error.message : "No se pudo guardar.";
@@ -153,6 +197,24 @@ export default function Settings() {
                 setPreferences((prev) => ({ ...prev, emailEnabled: value }))
               }
             />
+            <ToggleRow
+              title="Recordatorio por correo de pago"
+              description="Usa los días del recordatorio por defecto para enviar email automático"
+              checked={preferences.paymentReminderEmail5d}
+              onChange={(value) =>
+                setPreferences((prev) => ({
+                  ...prev,
+                  paymentReminderEmail5d: value,
+                  paymentReminderEmailUnsubscribed: value ? false : prev.paymentReminderEmailUnsubscribed,
+                }))
+              }
+            />
+            <div className="px-6 pb-6 -mt-2 flex items-start gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <ShieldCheck className="w-4 h-4 mt-0.5 text-emerald-500" />
+              <p>
+                Al activar este recordatorio aceptas recibir emails transaccionales de pago. Cada correo incluye enlace de baja inmediata y trazabilidad de consentimiento.
+              </p>
+            </div>
             <ToggleRow
               title="Resumen mensual"
               description="Enviar consolidado mensual de gastos"
@@ -300,22 +362,34 @@ export default function Settings() {
               ]}
             />
             <SelectRow
+              icon={<Globe className="w-5 h-5 text-gray-400" />}
+              title="Zona horaria"
+              description="Se usa para calcular recordatorios sin desfases"
+              value={userTimezone}
+              onChange={(value) => setUserTimezone(value)}
+              options={[
+                { value: "America/Bogota", label: "America/Bogota (UTC-5)" },
+                { value: "America/Mexico_City", label: "America/Mexico_City (UTC-6)" },
+                { value: "America/Lima", label: "America/Lima (UTC-5)" },
+                { value: "America/Santiago", label: "America/Santiago" },
+                { value: "America/Buenos_Aires", label: "America/Buenos_Aires (UTC-3)" },
+                { value: "America/New_York", label: "America/New_York" },
+                { value: "Europe/Madrid", label: "Europe/Madrid" },
+              ]}
+            />
+            <SliderRow
               icon={<SlidersHorizontal className="w-5 h-5 text-gray-400" />}
               title="Recordatorio por defecto"
-              description="Días antes del cobro para alertar"
-              value={String(preferences.reminderDays)}
+              description="Días antes del cobro para alertar (1 a 15 días)"
+              value={preferences.reminderDays}
+              min={1}
+              max={15}
               onChange={(value) =>
                 setPreferences((prev) => ({
                   ...prev,
-                  reminderDays: Number(value),
+                  reminderDays: clampReminderDays(value),
                 }))
               }
-              options={[
-                { value: "1", label: "1 día antes" },
-                { value: "3", label: "3 días antes" },
-                { value: "7", label: "7 días antes" },
-                { value: "14", label: "14 días antes" },
-              ]}
             />
             <ToggleRow
               title="Escaneo automático de Gmail"
@@ -423,6 +497,51 @@ function SelectRow({
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+function SliderRow({
+  icon,
+  title,
+  description,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <div className="p-6">
+      <div className="flex items-center gap-3 mb-3">
+        {icon}
+        <div>
+          <p className="font-medium dark:text-white">{title}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        </div>
+      </div>
+
+      <div className="ml-8 max-w-md">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={1}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="w-full accent-emerald-500"
+        />
+        <div className="mt-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+          {value} {value === 1 ? "día antes" : "días antes"}
+        </div>
+      </div>
     </div>
   );
 }

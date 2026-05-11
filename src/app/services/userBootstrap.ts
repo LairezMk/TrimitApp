@@ -22,6 +22,12 @@ export async function bootstrapUserWorkspace({ uid, email, displayName }: Bootst
       status: "active",
       currency: "COP",
       timezone: "America/Bogota",
+      preferences: {
+        emailEnabled: true,
+        paymentReminderEmail5d: false,
+        paymentReminderEmailUnsubscribed: false,
+        reminderDays: 3,
+      },
       createdAt: now,
       updatedAt: now,
       lastLoginAt: now,

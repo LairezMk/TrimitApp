@@ -5,7 +5,10 @@ import {
   AlertCircle,
   Bell,
   CheckCircle,
+  Clock3,
   Info,
+  MailCheck,
+  MailWarning,
   RefreshCw,
   Trash2,
   Filter,
@@ -25,6 +28,12 @@ import {
   updateUserNotification,
   type UserNotification,
 } from "../services/notifications";
+import {
+  clearUserEmailReminderEventsByState,
+  deleteUserEmailReminderEvent,
+  subscribeToUserEmailReminderEvents,
+  type EmailReminderEvent,
+} from "../services/emailReminderEvents";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
 type FilterMode = "all" | "unread" | "warning" | "success" | "info" | "payment";
@@ -65,6 +74,7 @@ export default function Notifications() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [reminders, setReminders] = useState<UserReminder[]>([]);
+  const [emailReminderEvents, setEmailReminderEvents] = useState<EmailReminderEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -76,6 +86,7 @@ export default function Notifications() {
       setSubscriptions([]);
       setPayments([]);
       setReminders([]);
+      setEmailReminderEvents([]);
       setLoading(false);
       return;
     }
@@ -104,12 +115,18 @@ export default function Notifications() {
     const unsubReminders = subscribeToUserReminders(user.uid, setReminders, (err) =>
       setError(err.message),
     );
+    const unsubEmailReminderEvents = subscribeToUserEmailReminderEvents(
+      user.uid,
+      setEmailReminderEvents,
+      (err) => setError(err.message),
+    );
 
     return () => {
       unsubNotifications();
       unsubSubscriptions();
       unsubPayments();
       unsubReminders();
+      unsubEmailReminderEvents();
     };
   }, [user]);
 
@@ -292,6 +309,30 @@ export default function Notifications() {
     }
   };
 
+  const reminderQueued = emailReminderEvents.filter((item) => item.state === "queued").length;
+  const reminderSent = emailReminderEvents.filter((item) => item.state === "sent").length;
+  const reminderRetried = emailReminderEvents.filter((item) => item.state === "retried").length;
+  const reminderFailed = emailReminderEvents.filter((item) => item.state === "failed").length;
+
+  const handleClearCompletedEmailEvents = async () => {
+    if (!user) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await clearUserEmailReminderEventsByState(user.uid, ["sent", "failed"]);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No se pudo limpiar el historial de correos.";
+      setError(message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-4 md:p-6 lg:p-8">
@@ -361,6 +402,13 @@ export default function Notifications() {
         />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6">
+        <StatCard icon={Clock3} label="Correos en cola" value={String(reminderQueued)} />
+        <StatCard icon={MailCheck} label="Correos enviados" value={String(reminderSent)} />
+        <StatCard icon={RefreshCw} label="Correos reintentados" value={String(reminderRetried)} />
+        <StatCard icon={MailWarning} label="Correos fallidos" value={String(reminderFailed)} />
+      </div>
+
       <div className="mb-4 flex items-center gap-2">
         <Filter className="w-4 h-4 text-gray-500" />
         <select
@@ -395,6 +443,59 @@ export default function Notifications() {
           ))}
         </div>
       )}
+
+      <div className="mt-8">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl dark:text-white">Estado de recordatorios por correo</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Pipeline real del backend: queued, sent, retried y failed.
+            </p>
+          </div>
+          <button
+            onClick={handleClearCompletedEmailEvents}
+            disabled={busy || emailReminderEvents.length === 0}
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          >
+            Limpiar enviados/fallidos
+          </button>
+        </div>
+
+        {emailReminderEvents.length === 0 ? (
+          <EmptyState
+            title="Sin eventos de correo todavía"
+            description="Cuando el backend programe recordatorios, aquí verás su estado."
+          />
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
+            {emailReminderEvents.slice(0, 30).map((event) => (
+              <div key={event.id} className="p-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                <div className="flex-1">
+                  <p className="font-medium dark:text-white">{event.subscriptionName}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Estado:{" "}
+                    <span className="uppercase tracking-wide">{event.state}</span>{" "}
+                    • Intentos: {event.attempts}
+                  </p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                    Programado:{" "}
+                    {format(event.scheduledFor, "d 'de' MMMM 'de' yyyy", { locale: es })}
+                    {event.lastError ? ` • Error: ${event.lastError}` : ""}
+                  </p>
+                </div>
+                <button
+                  onClick={() => user && deleteUserEmailReminderEvent(user.uid, event.id)}
+                  disabled={busy}
+                  className="text-gray-400 hover:text-red-500 disabled:opacity-50"
+                  title="Borrar evento"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
