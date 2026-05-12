@@ -57,6 +57,15 @@ export function subscriptionColorStyle(color?: string) {
   return { backgroundColor: resolveSubscriptionColor(color) };
 }
 
+export function subscriptionTextColorStyle(color?: string) {
+  const hex = resolveSubscriptionColor(color).replace("#", "");
+  const red = Number.parseInt(hex.slice(0, 2), 16);
+  const green = Number.parseInt(hex.slice(2, 4), 16);
+  const blue = Number.parseInt(hex.slice(4, 6), 16);
+  const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
+  return { color: luminance > 0.62 ? "#111827" : "#ffffff" };
+}
+
 export function isHexColor(value: string) {
   return /^#([0-9a-fA-F]{6})$/.test(value);
 }

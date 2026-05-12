@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserPayments, type UserPayment } from "../services/payments";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import type { Subscription } from "../types/subscription";
@@ -40,6 +41,7 @@ function createCsvContent(payments: UserPayment[]) {
 
 export default function Reports() {
   const { user } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export default function Reports() {
       const key = monthKey(payment.paymentDate);
       const target = byKey.get(key);
       if (target) {
-        target.actual += payment.amount;
+        target.actual += convertMoney(payment.amount, payment.currency);
       }
     }
 
@@ -103,12 +105,15 @@ export default function Reports() {
   const quarterTotal = monthlyComparison.slice(-3).reduce((sum, item) => sum + item.actual, 0);
   const yearlyPaid = payments
     .filter((p) => p.status === "paid")
-    .reduce((sum, payment) => sum + payment.amount, 0);
+    .reduce((sum, payment) => sum + convertMoney(payment.amount, payment.currency), 0);
 
   const categoryBreakdown = useMemo(() => {
     const totals = new Map<string, number>();
     for (const payment of payments.filter((entry) => entry.status === "paid")) {
-      totals.set(payment.category, (totals.get(payment.category) || 0) + payment.amount);
+      totals.set(
+        payment.category,
+        (totals.get(payment.category) || 0) + convertMoney(payment.amount, payment.currency),
+      );
     }
     const total = Array.from(totals.values()).reduce((sum, amount) => sum + amount, 0);
     const colors = ["bg-red-500", "bg-blue-500", "bg-orange-500", "bg-green-500", "bg-gray-500", "bg-purple-500"];
@@ -125,7 +130,7 @@ export default function Reports() {
 
   const projectedMonthly = subscriptions
     .filter((sub) => sub.status === "active")
-    .reduce((sum, sub) => sum + sub.amount, 0);
+    .reduce((sum, sub) => sum + convertMoney(sub.amount, sub.currency), 0);
 
   const handleExportCsv = () => {
     const csv = createCsvContent(payments);
@@ -185,7 +190,7 @@ export default function Reports() {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            ${totalCurrentMonth.toFixed(2)}
+            {formatMoney(totalCurrentMonth, "COP")}
           </p>
           <p
             className={`text-sm flex items-center gap-1 ${
@@ -213,7 +218,7 @@ export default function Reports() {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            ${quarterTotal.toFixed(2)}
+            {formatMoney(quarterTotal, "COP")}
           </p>
           <p className="text-sm text-blue-600">Gasto real trimestral</p>
         </div>
@@ -229,7 +234,7 @@ export default function Reports() {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            ${projectedMonthly.toFixed(2)}
+            {formatMoney(projectedMonthly, "COP")}
           </p>
           <p className="text-sm text-purple-600">Pagos recurrentes estimados</p>
         </div>
@@ -265,7 +270,7 @@ export default function Reports() {
                     <span className="font-medium dark:text-white">{category.name}</span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold dark:text-white">${category.amount.toFixed(2)}</span>
+                    <span className="font-bold dark:text-white">{formatMoney(category.amount, "COP")}</span>
                     <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
                       {category.percentage.toFixed(1)}%
                     </span>
@@ -286,7 +291,7 @@ export default function Reports() {
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 dark:border-slate-600 dark:bg-slate-800">
         <h3 className="font-semibold text-emerald-900 dark:text-emerald-200 mb-2">Resumen anual real</h3>
         <p className="text-sm text-emerald-800 dark:text-emerald-100">
-          Has registrado <strong>${yearlyPaid.toFixed(2)}</strong> en pagos completados.
+          Has registrado <strong>{formatMoney(yearlyPaid, "COP")}</strong> en pagos completados.
         </p>
       </div>
     </div>

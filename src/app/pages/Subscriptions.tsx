@@ -9,10 +9,12 @@ import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 import { detectSubscriptionsFromGmail, saveDetectedSubscriptionsDrafts } from "../services/gmailDetection";
 import { detectSubscriptionsFromBankStatement } from "../services/bankStatementDetection";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
   const { user, requestGmailAccessToken } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -105,12 +107,12 @@ export default function Subscriptions() {
 
     try {
       const detected = await detectSubscriptionsFromBankStatement(file);
-      if (!detected.length) {
-        setError(
-          "No encontramos suscripciones en el extracto. Prueba con un archivo más detallado o con mejor formato.",
-        );
-        return;
-      }
+        if (!detected.length) {
+          setError(
+            "No encontramos suscripciones en el extracto. Prueba con un archivo más detallado o con mejor formato.",
+          );
+          return;
+        }
       saveDetectedSubscriptionsDrafts(detected);
       navigate("/subscriptions/gmail-confirmation");
     } catch (err) {
@@ -139,7 +141,7 @@ export default function Subscriptions() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8" data-tour="subscriptions-stats">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Gasto mensual total</p>
-          <p className="text-3xl text-emerald-600">${totalMonthly.toFixed(2)}</p>
+          <p className="text-3xl text-emerald-600">{formatMoney(totalMonthly, "COP")}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Suscripciones activas</p>

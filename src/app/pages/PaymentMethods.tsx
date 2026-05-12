@@ -1,4 +1,5 @@
 import { CreditCard, PlusCircle, Trash2, Shield, CheckCircle } from "lucide-react";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 const paymentMethods = [
   {
@@ -28,6 +29,8 @@ const paymentMethods = [
 ];
 
 export default function PaymentMethods() {
+  const { formatMoney } = useCurrencyDisplay();
+
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -133,7 +136,7 @@ export default function PaymentMethods() {
           <p className="text-sm text-gray-500">Suscripciones totales</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 text-center">
-          <p className="text-3xl font-bold text-purple-600 mb-1">$172.93</p>
+          <p className="text-3xl font-bold text-purple-600 mb-1">{formatMoney(172.93, "USD")}</p>
           <p className="text-sm text-gray-500">Cargo mensual</p>
         </div>
       </div>

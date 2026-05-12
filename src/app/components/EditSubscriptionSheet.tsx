@@ -21,6 +21,7 @@ import {
   X,
   Save,
 } from "lucide-react";
+import { subscriptionColorStyle, subscriptionTextColorStyle } from "../utils/subscriptionColor";
 
 interface EditSubscriptionSheetProps {
   subscription: Subscription;
@@ -77,7 +78,11 @@ export function EditSubscriptionSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 ${editedSubscription.color} rounded-lg flex items-center justify-center text-white`}
+              className="w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{
+                ...subscriptionColorStyle(editedSubscription.color),
+                ...subscriptionTextColorStyle(editedSubscription.color),
+              }}
             >
               {editedSubscription.icon}
             </div>

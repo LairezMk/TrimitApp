@@ -2,16 +2,18 @@ import { useNavigate } from "react-router";
 import { ArrowLeft, Edit2, Trash2, Calendar, DollarSign, RefreshCw, Bell, TrendingDown, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 export default function SubscriptionDetail() {
   const navigate = useNavigate();
+  const { formatMoney } = useCurrencyDisplay();
 
   // Mock data
   const subscription = {
     name: "Netflix",
     category: "Entretenimiento",
     amount: 19.61,
-    currency: "$",
+    currency: "COP",
     billingCycle: "Mensual",
     nextPaymentDate: new Date("2026-02-28"),
     startDate: new Date("2023-06-15"),
@@ -75,8 +77,7 @@ export default function SubscriptionDetail() {
             <div>
               <p className="text-gray-400 text-sm mb-1">Costo</p>
               <p className="text-2xl font-bold">
-                {subscription.currency}
-                {subscription.amount} / mes
+                {formatMoney(subscription.amount, subscription.currency)} / mes
               </p>
             </div>
             <div>
@@ -95,7 +96,7 @@ export default function SubscriptionDetail() {
               <TrendingDown className="w-5 h-5 text-red-500" />
               <p className="text-gray-500 text-sm">Total Pagado</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">${totalPaid.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-gray-900">{formatMoney(totalPaid, subscription.currency)}</p>
             <p className="text-gray-500 text-xs mt-1">{paymentHistory.length} pagos realizados</p>
           </div>
 
@@ -113,7 +114,7 @@ export default function SubscriptionDetail() {
               <DollarSign className="w-5 h-5 text-emerald-500" />
               <p className="text-gray-500 text-sm">Promedio Mensual</p>
             </div>
-            <p className="text-3xl font-bold text-gray-900">${subscription.amount}</p>
+            <p className="text-3xl font-bold text-gray-900">{formatMoney(subscription.amount, subscription.currency)}</p>
             <p className="text-gray-500 text-xs mt-1">sin cambios</p>
           </div>
         </div>
@@ -183,7 +184,7 @@ export default function SubscriptionDetail() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-gray-900">
-                        ${payment.amount.toFixed(2)}
+                        {formatMoney(payment.amount, subscription.currency)}
                       </p>
                     </div>
                   </div>

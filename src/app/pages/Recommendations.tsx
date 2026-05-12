@@ -11,6 +11,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { findBestMarketOffer, getMarketOffers, type MarketOffer } from "../services/marketOffers";
 import type { Subscription } from "../types/subscription";
@@ -31,10 +32,12 @@ interface RecommendationItem {
   color: "emerald" | "blue" | "red" | "purple";
   subscriptionId?: string;
   offer?: MarketOffer;
+  currency: string;
 }
 
 export default function Recommendations() {
   const { user } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [statusByRecommendationId, setStatusByRecommendationId] = useState<
@@ -68,10 +71,9 @@ export default function Recommendations() {
         items.push({
           id: `opt-${sub.id}`,
           title: `Revisa plan de ${sub.name}`,
-          description: `Tu plan actual es alto (${sub.amount.toFixed(
-            2,
-          )}/mes). Evalúa un plan anual o básico.`,
+          description: `Tu plan actual es alto (${formatMoney(sub.amount, sub.currency)}/mes). Evalúa un plan anual o básico.`,
           savings: Number((sub.amount * 0.15 * 12).toFixed(2)),
+          currency: sub.currency,
           effort: "Fácil",
           impact: "Medio",
           category: "Optimización",
@@ -88,6 +90,7 @@ export default function Recommendations() {
           description:
             "Si lo compartes con familia o amigos, el costo por persona suele bajar notablemente.",
           savings: Number((sub.amount * 0.35 * 12).toFixed(2)),
+          currency: sub.currency,
           effort: "Medio",
           impact: "Alto",
           category: "Compartir",
@@ -105,6 +108,7 @@ export default function Recommendations() {
           description:
             "La suscripción aparece olvidada o con cobro vencido. Revisa si aún la necesitas.",
           savings: Number((sub.amount * 12).toFixed(2)),
+          currency: sub.currency,
           effort: "Fácil",
           impact: "Alto",
           category: "Cancelación",
@@ -119,10 +123,9 @@ export default function Recommendations() {
         items.push({
           id: `market-${sub.id}-${bestOffer.id}`,
           title: `Oferta detectada para ${sub.name}`,
-          description: `En el mercado existe ${bestOffer.provider} ${bestOffer.planName} por ${bestOffer.monthlyPrice.toFixed(
-            2,
-          )}/${bestOffer.billingCycle === "monthly" ? "mes" : "año"}.`,
+          description: `En el mercado existe ${bestOffer.provider} ${bestOffer.planName} por ${formatMoney(bestOffer.monthlyPrice, bestOffer.currency)}/${bestOffer.billingCycle === "monthly" ? "mes" : "año"}.`,
           savings: Number(((sub.amount - bestOffer.monthlyPrice) * 12).toFixed(2)),
+          currency: sub.currency,
           effort: "Medio",
           impact: "Alto",
           category: "Oferta mercado",
@@ -142,12 +145,15 @@ export default function Recommendations() {
     }
 
     return Array.from(dedup.values()).sort((a, b) => b.savings - a.savings);
-  }, [subscriptions]);
+  }, [subscriptions, formatMoney]);
 
   const visibleRecommendations = recommendations.filter(
     (item) => statusByRecommendationId[item.id] !== "dismissed",
   );
-  const totalPotentialSavings = visibleRecommendations.reduce((sum, rec) => sum + rec.savings, 0);
+  const totalPotentialSavings = visibleRecommendations.reduce(
+    (sum, rec) => sum + convertMoney(rec.savings, rec.currency),
+    0,
+  );
   const marketOffers = getMarketOffers();
 
   const markStatus = (id: string, status: RecommendationStatus) => {
@@ -191,7 +197,7 @@ export default function Recommendations() {
               Basado en tus suscripciones actuales y comparación de mercado
             </p>
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">${totalPotentialSavings.toFixed(0)}</span>
+              <span className="text-5xl font-bold">{formatMoney(totalPotentialSavings, "COP", 0)}</span>
               <span className="text-emerald-100">/año</span>
             </div>
             <p className="text-emerald-100 text-xs mt-2">
@@ -300,7 +306,9 @@ export default function Recommendations() {
 
                       <div className="text-right ml-4">
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Ahorro anual</p>
-                        <p className={`text-3xl font-bold ${colorClasses.text}`}>${rec.savings.toFixed(2)}</p>
+                         <p className={`text-3xl font-bold ${colorClasses.text}`}>
+                           {formatMoney(rec.savings, rec.currency)}
+                         </p>
                       </div>
                     </div>
 
@@ -354,7 +362,7 @@ export default function Recommendations() {
                   {offer.provider} - {offer.planName}
                 </p>
                 <p className="text-sm text-emerald-600 font-medium">
-                  {offer.monthlyPrice.toFixed(2)} {offer.currency} /{" "}
+                  {formatMoney(offer.monthlyPrice, offer.currency)} /{" "}
                   {offer.billingCycle === "monthly" ? "mes" : "año"}
                 </p>
               </div>

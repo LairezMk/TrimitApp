@@ -11,27 +11,12 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { subscribeToUserPayments } from "../services/payments";
 import type { Subscription } from "../types/subscription";
 import type { UserPayment } from "../services/payments";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
-
-function toCurrencyCode(currency: string) {
-  if (currency === "USD" || currency === "EUR" || currency === "COP") {
-    return currency;
-  }
-  return "COP";
-}
-
-function formatCurrency(value: number, currency: string) {
-  const code = toCurrencyCode(currency);
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: code,
-    maximumFractionDigits: code === "COP" ? 0 : 2,
-  }).format(value);
-}
 
 function projectWithInflation(baseAnnual: number, years: number, inflationRate: number) {
   if (years <= 0) {
@@ -91,6 +76,7 @@ const SIMULATION_PRESETS: SimulationPreset[] = [
 
 export default function Calculator() {
   const { user } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -347,7 +333,7 @@ export default function Calculator() {
               onClick={() => addPresetSimulation(preset)}
               className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-900 dark:text-gray-200"
             >
-              + {preset.name} ({formatCurrency(preset.amount, preset.currency)})
+              + {preset.name} ({formatMoney(preset.amount, preset.currency)})
             </button>
           ))}
         </div>
@@ -361,7 +347,7 @@ export default function Calculator() {
               >
                 <span className="text-sm dark:text-gray-200">
                   {subscription.name} · {subscription.category} ·{" "}
-                  {formatCurrency(subscription.amount, subscription.currency)}
+                  {formatMoney(subscription.amount, subscription.currency)}
                 </span>
                 <button
                   onClick={() => removeSimulatedSubscription(subscription.id)}
@@ -380,23 +366,23 @@ export default function Calculator() {
         <StatCard
           icon={CircleDollarSign}
           label="Gasto mensual actual"
-          value={formatCurrency(monthlyBaseline, dominantCurrency)}
+          value={formatMoney(monthlyBaseline, dominantCurrency)}
           gradient
         />
         <StatCard
           icon={ChartSpline}
           label={`Proyección ${yearsHorizon} años`}
-          value={formatCurrency(projectedBaseline, dominantCurrency)}
+          value={formatMoney(projectedBaseline, dominantCurrency)}
         />
         <StatCard
           icon={TrendingDown}
           label="Ahorro potencial (cancelación)"
-          value={formatCurrency(projectedCancellationSavings, dominantCurrency)}
+          value={formatMoney(projectedCancellationSavings, dominantCurrency)}
         />
         <StatCard
           icon={PiggyBank}
           label="Costo de oportunidad"
-          value={formatCurrency(opportunityCost, dominantCurrency)}
+          value={formatMoney(opportunityCost, dominantCurrency)}
         />
       </div>
 
@@ -450,17 +436,17 @@ export default function Calculator() {
           <div className="space-y-4">
             <ResultRow
               label="Gasto restante proyectado"
-              value={formatCurrency(projectedRemaining, dominantCurrency)}
+              value={formatMoney(projectedRemaining, dominantCurrency)}
               tone="neutral"
             />
             <ResultRow
               label="Ahorro mensual si compartes todo"
-              value={formatCurrency(projectedBySharing, dominantCurrency)}
+              value={formatMoney(projectedBySharing, dominantCurrency)}
               tone="positive"
             />
             <ResultRow
               label="Meta fondo de emergencia (6 meses)"
-              value={formatCurrency(emergencyFundTarget, dominantCurrency)}
+              value={formatMoney(emergencyFundTarget, dominantCurrency)}
               tone="neutral"
             />
             <ResultRow
@@ -519,7 +505,7 @@ export default function Calculator() {
                   </div>
                 </div>
                 <span className="font-semibold text-gray-900 dark:text-white">
-                  {formatCurrency(subscription.amount, subscription.currency)}
+                  {formatMoney(subscription.amount, subscription.currency)}
                 </span>
               </label>
             ))}
@@ -529,8 +515,8 @@ export default function Calculator() {
         <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 dark:border-emerald-700 p-4">
           <p className="text-sm text-emerald-800 dark:text-emerald-300">
             Cancelando lo seleccionado, ahorrarías{" "}
-            <strong>{formatCurrency(monthlyCancellation, dominantCurrency)}</strong> al mes y{" "}
-            <strong>{formatCurrency(projectedCancellationSavings, dominantCurrency)}</strong> en{" "}
+            <strong>{formatMoney(monthlyCancellation, dominantCurrency)}</strong> al mes y{" "}
+            <strong>{formatMoney(projectedCancellationSavings, dominantCurrency)}</strong> en{" "}
             {yearsHorizon} años (considerando inflación del {inflationPercent}%).
           </p>
         </div>

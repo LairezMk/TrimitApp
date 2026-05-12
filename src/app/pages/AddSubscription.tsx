@@ -5,34 +5,36 @@ import { useAuth } from "../contexts/AuthContext";
 import { createUserSubscription } from "../services/subscriptions";
 import { subscribeToUserCategories, type UserCategory } from "../services/categories";
 import { SubscriptionColorPicker } from "../components/SubscriptionColorPicker";
-import { applyColorIntensity, normalizeHexColor } from "../utils/subscriptionColor";
+import { applyColorIntensity, normalizeHexColor, subscriptionTextColorStyle } from "../utils/subscriptionColor";
+import {
+  convertFromUsdPrice,
+  formatAmountInput,
+  formatCurrencyAmount,
+  normalizeCurrencyCode,
+  parseAmountInput,
+} from "../utils/currency";
 
-const QUICK_TEMPLATES = {
-  Netflix: {
-    category: "Entretenimiento",
-    amount: "19.99",
-    icon: "N",
-    color: "#ef4444",
-  },
-  Spotify: {
-    category: "Música",
-    amount: "9.99",
-    icon: "S",
-    color: "#10b981",
-  },
-  "Disney+": {
-    category: "Entretenimiento",
-    amount: "13.99",
-    icon: "D",
-    color: "#3b82f6",
-  },
-  "YouTube Premium": {
-    category: "Entretenimiento",
-    amount: "11.99",
-    icon: "Y",
-    color: "#ef4444",
-  },
-} as const;
+type QuickTemplate = {
+  category: string;
+  baseUsd: number;
+  icon: string;
+  color: string;
+};
+
+const QUICK_TEMPLATES: Record<string, QuickTemplate> = {
+  Netflix: { category: "Entretenimiento", baseUsd: 15.49, icon: "N", color: "#ef4444" },
+  Spotify: { category: "Música", baseUsd: 10.99, icon: "S", color: "#10b981" },
+  "Disney+": { category: "Entretenimiento", baseUsd: 13.99, icon: "D", color: "#3b82f6" },
+  "YouTube Premium": { category: "Entretenimiento", baseUsd: 13.99, icon: "Y", color: "#ef4444" },
+  "Amazon Prime": { category: "Entretenimiento", baseUsd: 8.99, icon: "A", color: "#06b6d4" },
+  "HBO Max": { category: "Entretenimiento", baseUsd: 9.99, icon: "H", color: "#6366f1" },
+  "Apple Music": { category: "Música", baseUsd: 10.99, icon: "A", color: "#111827" },
+  "Microsoft 365": { category: "Productividad", baseUsd: 9.99, icon: "M", color: "#2563eb" },
+  "Adobe Creative Cloud": { category: "Productividad", baseUsd: 20.99, icon: "A", color: "#dc2626" },
+  "Google One": { category: "Productividad", baseUsd: 2.99, icon: "G", color: "#0ea5e9" },
+  Notion: { category: "Productividad", baseUsd: 10, icon: "N", color: "#111827" },
+  Canva: { category: "Productividad", baseUsd: 14.99, icon: "C", color: "#06b6d4" },
+};
 
 export default function AddSubscription() {
   const navigate = useNavigate();
@@ -42,7 +44,7 @@ export default function AddSubscription() {
     name: "",
     category: "",
     amount: "",
-    currency: "$",
+    currency: "USD",
     status: "active",
     billingCycle: "monthly",
     nextPaymentDate: "",
@@ -75,6 +77,8 @@ export default function AddSubscription() {
     [formData.color, colorShade],
   );
 
+  const parsedAmount = parseAmountInput(formData.amount);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -88,6 +92,11 @@ export default function AddSubscription() {
       return;
     }
 
+    if (!parsedAmount || parsedAmount <= 0) {
+      setError("Ingresa un monto válido mayor a cero.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -95,8 +104,8 @@ export default function AddSubscription() {
       await createUserSubscription(user.uid, {
         name: formData.name.trim(),
         category: formData.category,
-        amount: Number(formData.amount),
-        currency: formData.currency,
+        amount: parsedAmount,
+        currency: normalizeCurrencyCode(formData.currency),
         status: formData.status as "active" | "suspended" | "forgotten",
         isRecurring: formData.isRecurring,
         nextPaymentDate: new Date(formData.nextPaymentDate),
@@ -116,11 +125,13 @@ export default function AddSubscription() {
 
   const handleApplyTemplate = (service: keyof typeof QUICK_TEMPLATES) => {
     const template = QUICK_TEMPLATES[service];
+    const normalizedCurrency = normalizeCurrencyCode(formData.currency);
+    const converted = convertFromUsdPrice(template.baseUsd, normalizedCurrency);
     setFormData((prev) => ({
       ...prev,
       name: service,
       category: template.category,
-      amount: template.amount,
+      amount: formatAmountInput(converted, normalizedCurrency),
       icon: template.icon,
       color: normalizeHexColor(template.color),
     }));
@@ -190,11 +201,18 @@ export default function AddSubscription() {
                   Monto *
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0"
                   value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  onChange={(e) => {
+                    const parsed = parseAmountInput(e.target.value);
+                    setFormData((prev) => ({
+                      ...prev,
+                      amount:
+                        parsed === null ? e.target.value.replace(/[^\d,.\s]/g, "") : formatAmountInput(parsed, prev.currency),
+                    }));
+                  }}
                   className={fieldClassName}
                 />
               </div>
@@ -202,10 +220,35 @@ export default function AddSubscription() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Moneda</label>
                 <select
                   value={formData.currency}
-                  onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                  onChange={(e) =>
+                    setFormData((prev) => {
+                      const nextCurrency = e.target.value;
+                      const matchedTemplate = QUICK_TEMPLATES[prev.name];
+                      if (matchedTemplate) {
+                        const nextAmount = convertFromUsdPrice(
+                          matchedTemplate.baseUsd,
+                          nextCurrency,
+                        );
+                        return {
+                          ...prev,
+                          currency: nextCurrency,
+                          amount: formatAmountInput(nextAmount, nextCurrency),
+                        };
+                      }
+                      const parsed = parseAmountInput(prev.amount);
+                      return {
+                        ...prev,
+                        currency: nextCurrency,
+                        amount:
+                          parsed === null
+                            ? prev.amount
+                            : formatAmountInput(parsed, nextCurrency),
+                      };
+                    })
+                  }
                   className={fieldClassName}
                 >
-                  <option value="$">$ - Dólar</option>
+                  <option value="USD">USD - Dólar estadounidense</option>
                   <option value="COP">COP - Peso Colombiano</option>
                   <option value="EUR">EUR - Euro</option>
                 </select>
@@ -386,7 +429,7 @@ export default function AddSubscription() {
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg"
-                  style={{ backgroundColor: finalCardColor }}
+                  style={{ backgroundColor: finalCardColor, ...subscriptionTextColorStyle(finalCardColor) }}
                 >
                   {(formData.icon.trim() || formData.name.trim().charAt(0) || "S")
                     .charAt(0)
@@ -402,8 +445,7 @@ export default function AddSubscription() {
                 </div>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                {formData.currency}
-                {Number(formData.amount || 0).toFixed(2)} / ciclo
+                {formatCurrencyAmount(parsedAmount || 0, formData.currency)} / ciclo
               </p>
             </div>
           </div>

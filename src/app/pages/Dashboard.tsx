@@ -15,10 +15,13 @@ import { useAuth } from "../contexts/AuthContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import type { Subscription } from "../types/subscription";
 import { EmptyState, LoadingState } from "../components/PageStates";
+import { subscriptionColorStyle, subscriptionTextColorStyle } from "../utils/subscriptionColor";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +68,7 @@ export default function Dashboard() {
   const stats = [
     {
       title: "Gasto mensual total",
-      value: `$${totalMonthly.toFixed(2)}`,
+      value: formatMoney(totalMonthly, "COP"),
       icon: DollarSign,
       color: "bg-emerald-500",
       change: loading ? "Cargando..." : `${subscriptions.length} suscripciones registradas`,
@@ -179,7 +182,10 @@ export default function Dashboard() {
                 onClick={() => navigate("/subscriptions")}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`${sub.color} w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg"
+                    style={{ ...subscriptionColorStyle(sub.color), ...subscriptionTextColorStyle(sub.color) }}
+                  >
                     {sub.icon}
                   </div>
                   <div>
@@ -193,7 +199,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-gray-900 dark:text-white">
-                    ${sub.amount.toFixed(2)}
+                    {formatMoney(sub.amount, sub.currency)}
                   </p>
                   <p className={`text-xs ${
                     sub.status === 'active' ? 'text-emerald-600' : 'text-amber-600'

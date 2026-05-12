@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Archive, RotateCcw, Search, Trash2 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import {
   deleteUserSubscription,
   subscribeToUserSubscriptions,
@@ -9,24 +10,9 @@ import {
 import type { Subscription } from "../types/subscription";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
-function toCurrencyCode(currency: string) {
-  if (currency === "USD" || currency === "EUR" || currency === "COP") {
-    return currency;
-  }
-  return "COP";
-}
-
-function formatCurrency(value: number, currency: string) {
-  const code = toCurrencyCode(currency);
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: code,
-    maximumFractionDigits: code === "COP" ? 0 : 2,
-  }).format(value);
-}
-
 export default function Archived() {
   const { user } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -148,12 +134,12 @@ export default function Archived() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6">
         <div className="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
           <p className="text-emerald-100 text-sm mb-1">Ahorro mensual actual</p>
-          <p className="text-3xl font-bold">{formatCurrency(totalSavedMonthly, "COP")}</p>
+          <p className="text-3xl font-bold">{formatMoney(totalSavedMonthly, "COP")}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Ahorro anual estimado</p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {formatCurrency(totalSavedYearly, "COP")}
+            {formatMoney(totalSavedYearly, "COP")}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -227,7 +213,7 @@ export default function Archived() {
 
               <div className="flex items-center gap-3">
                 <p className="text-sm md:text-base font-semibold text-emerald-600">
-                  Ahorras {formatCurrency(subscription.amount, subscription.currency)}
+                  Ahorras {formatMoney(subscription.amount, subscription.currency)}
                 </p>
                 <button
                   onClick={() => handleRestore(subscription)}

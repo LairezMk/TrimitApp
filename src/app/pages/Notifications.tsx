@@ -35,24 +35,9 @@ import {
   type EmailReminderEvent,
 } from "../services/emailReminderEvents";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 type FilterMode = "all" | "unread" | "warning" | "success" | "info" | "payment";
-
-function toCurrencyCode(currency: string) {
-  if (currency === "USD" || currency === "EUR" || currency === "COP") {
-    return currency;
-  }
-  return "COP";
-}
-
-function formatCurrency(value: number, currency: string) {
-  const code = toCurrencyCode(currency);
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: code,
-    maximumFractionDigits: code === "COP" ? 0 : 2,
-  }).format(value);
-}
 
 function daysBetween(baseDate: Date, targetDate: Date) {
   const base = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate()).getTime();
@@ -70,6 +55,7 @@ function buildFingerprint(input: string) {
 
 export default function Notifications() {
   const { user } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
@@ -168,7 +154,7 @@ export default function Notifications() {
               queue.push({
                 type: "warning",
                 title: `Pago próximo: ${subscription.name}`,
-                message: `Tu suscripción se renovará en ${days} día(s) por ${formatCurrency(subscription.amount, subscription.currency)}.`,
+                message: `Tu suscripción se renovará en ${days} día(s) por ${formatMoney(subscription.amount, subscription.currency)}.`,
                 fingerprint,
                 relatedSubscriptionId: subscription.id,
               });
@@ -189,7 +175,7 @@ export default function Notifications() {
             queue.push({
               type: "warning",
               title: `Pago fallido: ${payment.subscriptionName}`,
-              message: `Se detectó un pago fallido por ${formatCurrency(payment.amount, payment.currency)}.`,
+              message: `Se detectó un pago fallido por ${formatMoney(payment.amount, payment.currency)}.`,
               fingerprint,
               relatedPaymentId: payment.id,
               relatedSubscriptionId: payment.subscriptionId,

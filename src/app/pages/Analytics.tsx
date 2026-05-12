@@ -22,6 +22,7 @@ import {
   Legend,
 } from "recharts";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { subscribeToUserPayments, type UserPayment } from "../services/payments";
 import type { Subscription } from "../types/subscription";
@@ -39,6 +40,7 @@ function monthLabel(date: Date) {
 
 export default function Analytics() {
   const { user } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +190,7 @@ export default function Analytics() {
             <TrendingUp className="w-5 h-5" />
           </div>
           <p className="text-emerald-100 text-sm">Gasto mensual proyectado</p>
-          <p className="text-3xl font-bold">${monthlyProjectedSpend.toFixed(2)}</p>
+          <p className="text-3xl font-bold">{formatMoney(monthlyProjectedSpend, "COP")}</p>
           <p className="text-emerald-100 text-xs mt-2">
             {activeSubscriptions.length} suscripciones activas
           </p>
@@ -199,7 +201,7 @@ export default function Analytics() {
             <Calendar className="w-8 h-8 text-blue-600" />
           </div>
           <p className="text-gray-500 text-sm">Promedio mensual pagado</p>
-          <p className="text-3xl font-bold text-gray-900">${avgMonthlyPaid.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-gray-900">{formatMoney(avgMonthlyPaid, "COP")}</p>
           <p className="text-gray-500 text-xs mt-2">Últimos 6 meses</p>
         </div>
 
@@ -209,7 +211,7 @@ export default function Analytics() {
           </div>
           <p className="text-gray-500 text-sm">Pagos registrados</p>
           <p className="text-3xl font-bold text-gray-900">{payments.length}</p>
-          <p className="text-gray-500 text-xs mt-2">Total pagado: ${paidTotal.toFixed(2)}</p>
+          <p className="text-gray-500 text-xs mt-2">Total pagado: {formatMoney(paidTotal, "COP")}</p>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -218,7 +220,7 @@ export default function Analytics() {
           </div>
           <p className="text-gray-500 text-sm">Mayor categoría</p>
           <p className="text-2xl font-bold text-gray-900">
-            ${highestCategory?.value.toFixed(2) || "0.00"}
+            {formatMoney(highestCategory?.value || 0, "COP")}
           </p>
           <p className="text-gray-500 text-xs mt-2">{highestCategory?.name || "Sin datos"}</p>
         </div>

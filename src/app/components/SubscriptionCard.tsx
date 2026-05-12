@@ -2,7 +2,8 @@ import type { Subscription } from "../types/subscription";
 import { Calendar, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { subscriptionColorStyle } from "../utils/subscriptionColor";
+import { subscriptionColorStyle, subscriptionTextColorStyle } from "../utils/subscriptionColor";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -13,6 +14,7 @@ export function SubscriptionCard({
   subscription,
   onClick,
 }: SubscriptionCardProps) {
+  const { formatMoney } = useCurrencyDisplay();
   const statusConfig = {
     active: {
       label: "Activa",
@@ -39,7 +41,7 @@ export function SubscriptionCard({
         <div className="flex items-center gap-3">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg"
-            style={subscriptionColorStyle(subscription.color)}
+            style={{ ...subscriptionColorStyle(subscription.color), ...subscriptionTextColorStyle(subscription.color) }}
           >
             {subscription.icon}
           </div>
@@ -59,8 +61,7 @@ export function SubscriptionCard({
         <div className="flex items-center justify-between">
           <span className="text-gray-500 text-sm">Monto mensual</span>
           <span className="text-xl">
-            {subscription.currency}
-            {subscription.amount.toFixed(2)}
+            {formatMoney(subscription.amount, subscription.currency)}
           </span>
         </div>
 

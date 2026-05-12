@@ -17,7 +17,8 @@ import {
 } from "../services/subscriptions";
 import { subscribeToUserCategories, type UserCategory } from "../services/categories";
 import { SubscriptionColorPicker } from "../components/SubscriptionColorPicker";
-import { applyColorIntensity, normalizeHexColor } from "../utils/subscriptionColor";
+import { applyColorIntensity, normalizeHexColor, subscriptionTextColorStyle } from "../utils/subscriptionColor";
+import { formatAmountInput, formatCurrencyAmount, normalizeCurrencyCode, parseAmountInput } from "../utils/currency";
 
 type FormData = {
   name: string;
@@ -82,8 +83,8 @@ export default function EditSubscription() {
         setFormData({
           name: subscription.name,
           category: subscription.category,
-          amount: subscription.amount.toString(),
-          currency: subscription.currency,
+          amount: formatAmountInput(subscription.amount, subscription.currency),
+          currency: normalizeCurrencyCode(subscription.currency),
           status: subscription.status,
           nextPaymentDate: subscription.nextPaymentDate.toISOString().split("T")[0],
           isRecurring: subscription.isRecurring,
@@ -120,6 +121,8 @@ export default function EditSubscription() {
     [formData?.color, colorShade],
   );
 
+  const parsedAmount = parseAmountInput(formData?.amount || "");
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -138,6 +141,11 @@ export default function EditSubscription() {
       return;
     }
 
+    if (!parsedAmount || parsedAmount <= 0) {
+      setError("Ingresa un monto válido mayor a cero.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -145,8 +153,8 @@ export default function EditSubscription() {
       await updateUserSubscription(user.uid, id, {
         name: formData.name.trim(),
         category: formData.category,
-        amount: Number(formData.amount),
-        currency: formData.currency,
+        amount: parsedAmount,
+        currency: normalizeCurrencyCode(formData.currency),
         status: formData.status,
         isRecurring: formData.isRecurring,
         nextPaymentDate: new Date(formData.nextPaymentDate),
@@ -275,11 +283,20 @@ export default function EditSubscription() {
                 <select
                   value={formData.currency}
                   onChange={(e) =>
-                    setFormData({ ...formData, currency: e.target.value })
+                    setFormData((prev) => {
+                      const nextCurrency = e.target.value;
+                      const parsed = parseAmountInput(prev.amount);
+                      return {
+                        ...prev,
+                        currency: nextCurrency,
+                        amount:
+                          parsed === null ? prev.amount : formatAmountInput(parsed, nextCurrency),
+                      };
+                    })
                   }
                   className={fieldClassName}
                 >
-                  <option value="$">$ - Dólar</option>
+                  <option value="USD">USD - Dólar estadounidense</option>
                   <option value="COP">COP - Peso Colombiano</option>
                   <option value="EUR">EUR - Euro</option>
                 </select>
@@ -291,14 +308,21 @@ export default function EditSubscription() {
                   Monto mensual *
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={formData.amount}
                   onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
+                    setFormData((prev) => {
+                      const parsed = parseAmountInput(e.target.value);
+                      return {
+                        ...prev,
+                        amount:
+                          parsed === null ? e.target.value.replace(/[^\d,.\s]/g, "") : formatAmountInput(parsed, prev.currency),
+                      };
+                    })
                   }
                   className={fieldClassName}
-                  placeholder="0.00"
+                  placeholder="0"
                 />
               </div>
 
@@ -443,7 +467,7 @@ export default function EditSubscription() {
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg"
-                  style={{ backgroundColor: finalCardColor }}
+                  style={{ backgroundColor: finalCardColor, ...subscriptionTextColorStyle(finalCardColor) }}
                 >
                   {previewIcon}
                 </div>
@@ -459,8 +483,7 @@ export default function EditSubscription() {
               <div className="space-y-2 text-sm">
                 <p className="text-gray-600 dark:text-gray-300">
                   <span className="text-gray-500 dark:text-gray-400">Monto:</span>{" "}
-                  {formData.currency}
-                  {Number(formData.amount || 0).toFixed(2)}
+                  {formatCurrencyAmount(parsedAmount || 0, formData.currency)}
                 </p>
                 <p className="text-gray-600 dark:text-gray-300">
                   <span className="text-gray-500 dark:text-gray-400">Estado:</span>{" "}

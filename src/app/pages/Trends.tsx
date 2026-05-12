@@ -19,6 +19,7 @@ import {
   YAxis,
 } from "recharts";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { subscribeToUserPayments, type UserPayment } from "../services/payments";
 import type { Subscription } from "../types/subscription";
@@ -34,6 +35,7 @@ function monthLabel(date: Date) {
 
 export default function Trends() {
   const { user } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +81,7 @@ export default function Trends() {
       const key = monthKey(payment.paymentDate);
       const target = lookup.get(key);
       if (target) {
-        target.gasto += payment.amount;
+        target.gasto += convertMoney(payment.amount, payment.currency);
       }
     }
 
@@ -101,7 +103,7 @@ export default function Trends() {
       : 0;
   const monthlyProjectedSpend = subscriptions
     .filter((sub) => sub.status === "active")
-    .reduce((sum, sub) => sum + sub.amount, 0);
+    .reduce((sum, sub) => sum + convertMoney(sub.amount, sub.currency), 0);
 
   const minSpendPoint =
     trendData.length > 0 ? trendData.slice().sort((a, b) => a.gasto - b.gasto)[0] : null;
@@ -112,7 +114,10 @@ export default function Trends() {
     const active = subscriptions.filter((sub) => sub.status === "active");
     const byCategory = new Map<string, number>();
     for (const sub of active) {
-      byCategory.set(sub.category, (byCategory.get(sub.category) || 0) + sub.amount);
+      byCategory.set(
+        sub.category,
+        (byCategory.get(sub.category) || 0) + convertMoney(sub.amount, sub.currency),
+      );
     }
     const topCategory = Array.from(byCategory.entries()).sort((a, b) => b[1] - a[1])[0];
 
@@ -124,7 +129,7 @@ export default function Trends() {
         type: trendType,
         title: percentageChange >= 0 ? "Incremento mensual" : "Disminución mensual",
         description: `Comparado al mes anterior, el gasto cambió ${percentageChange.toFixed(1)}%.`,
-        impact: `${percentageChange >= 0 ? "+" : "-"}$${changeAmount.toFixed(2)}`,
+        impact: `${percentageChange >= 0 ? "+" : "-"}${formatMoney(changeAmount, "COP")}`,
       },
       {
         type: "neutral",
@@ -132,13 +137,16 @@ export default function Trends() {
         description: topCategory
           ? `La categoría con mayor gasto es ${topCategory[0]}.`
           : "Aún no hay categorías con gasto.",
-        impact: topCategory ? `$${topCategory[1].toFixed(2)}` : "$0.00",
+        impact: topCategory ? formatMoney(topCategory[1], "COP") : formatMoney(0, "COP"),
       },
       {
         type: "neutral",
         title: "Pagos registrados",
         description: `Se han registrado ${payments.length} pagos en total.`,
-        impact: `$${payments.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}`,
+        impact: formatMoney(
+          payments.reduce((sum, item) => sum + convertMoney(item.amount, item.currency), 0),
+          "COP",
+        ),
       },
     ] as const;
   }, [subscriptions, payments, percentageChange, currentMonth, previousMonth]);
@@ -173,7 +181,7 @@ export default function Trends() {
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <Activity className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Gasto este mes</p>
-          <p className="text-3xl font-bold">${currentMonth.toFixed(2)}</p>
+          <p className="text-3xl font-bold">{formatMoney(currentMonth, "COP")}</p>
           <div className="flex items-center gap-1 text-emerald-100 text-sm mt-1">
             {percentageChange >= 0 ? (
               <ArrowUpRight className="w-4 h-4" />
@@ -188,7 +196,7 @@ export default function Trends() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Promedio 8 meses</p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            ${averageSpend.toFixed(2)}
+            {formatMoney(averageSpend, "COP")}
           </p>
           <p className="text-gray-400 text-xs mt-1">por mes</p>
         </div>
@@ -196,7 +204,7 @@ export default function Trends() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Mes más bajo</p>
           <p className="text-3xl font-bold text-emerald-600">
-            ${minSpendPoint?.gasto.toFixed(2) || "0.00"}
+            {formatMoney(minSpendPoint?.gasto || 0, "COP")}
           </p>
           <p className="text-gray-400 text-xs mt-1">{minSpendPoint?.month || "--"}</p>
         </div>
@@ -204,7 +212,7 @@ export default function Trends() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Mes más alto</p>
           <p className="text-3xl font-bold text-red-600">
-            ${maxSpendPoint?.gasto.toFixed(2) || "0.00"}
+            {formatMoney(maxSpendPoint?.gasto || 0, "COP")}
           </p>
           <p className="text-gray-400 text-xs mt-1">{maxSpendPoint?.month || "--"}</p>
         </div>
@@ -294,7 +302,7 @@ export default function Trends() {
             <p className="text-purple-800 dark:text-purple-100 text-sm">
               Según tus pagos recientes y suscripciones activas, el gasto estimado para el
               siguiente mes es de{" "}
-              <span className="font-bold">${(averageSpend + monthlyProjectedSpend * 0.15).toFixed(2)}</span>.
+              <span className="font-bold">{formatMoney(averageSpend + monthlyProjectedSpend * 0.15, "COP")}</span>.
             </p>
           </div>
         </div>

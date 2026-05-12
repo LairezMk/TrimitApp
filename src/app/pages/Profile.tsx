@@ -7,6 +7,7 @@ import { es } from "date-fns/locale";
 import { useNavigate } from "react-router";
 import { db } from "../lib/firebase";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 
 interface ProfileForm {
@@ -19,6 +20,7 @@ interface ProfileForm {
 export default function Profile() {
   const navigate = useNavigate();
   const { user, changePassword } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [form, setForm] = useState<ProfileForm>({
     displayName: "",
     phone: "",
@@ -78,11 +80,11 @@ export default function Profile() {
       (subscriptions) => {
         const active = subscriptions.filter((sub) => sub.status === "active");
         setActiveCount(active.length);
-        setMonthlyTotal(active.reduce((sum, sub) => sum + sub.amount, 0));
+        setMonthlyTotal(active.reduce((sum, sub) => sum + convertMoney(sub.amount, sub.currency), 0));
       },
       () => undefined,
     );
-  }, [user]);
+  }, [user, convertMoney]);
 
   const avatarFallback = useMemo(() => {
     const name = form.displayName.trim() || user?.displayName || "Usuario";
@@ -364,7 +366,7 @@ export default function Profile() {
                   Gasto mensual
                 </span>
                 <span className="font-semibold">
-                  {monthlyTotal.toFixed(2)}
+                  {formatMoney(monthlyTotal, "COP")}
                 </span>
               </div>
               <div className="flex items-center justify-between">

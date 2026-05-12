@@ -10,6 +10,7 @@ import {
   CircleCheckBig,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import type { Subscription } from "../types/subscription";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import {
@@ -21,22 +22,6 @@ import {
 } from "../services/sharing";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
-function normalizeCurrency(currency: string) {
-  if (currency === "USD" || currency === "EUR" || currency === "COP") {
-    return currency;
-  }
-  return "COP";
-}
-
-function formatCurrency(value: number, currency: string) {
-  const code = normalizeCurrency(currency);
-  return new Intl.NumberFormat("es-CO", {
-    style: "currency",
-    currency: code,
-    maximumFractionDigits: code === "COP" ? 0 : 2,
-  }).format(value);
-}
-
 function parseMemberNames(raw: string) {
   return raw
     .split(/[\n,]/)
@@ -46,6 +31,7 @@ function parseMemberNames(raw: string) {
 
 export default function Sharing() {
   const { user } = useAuth();
+  const { formatMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [groups, setGroups] = useState<SharedSubscriptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -230,7 +216,7 @@ export default function Sharing() {
   const handleReminder = (subscriptionName: string, amount: number, currency: string) => {
     const subject = encodeURIComponent(`Recordatorio de pago - ${subscriptionName}`);
     const body = encodeURIComponent(
-      `Hola, este es un recordatorio del pago compartido de ${subscriptionName}. Tu parte corresponde a ${formatCurrency(amount, currency)}.`,
+      `Hola, este es un recordatorio del pago compartido de ${subscriptionName}. Tu parte corresponde a ${formatMoney(amount, currency)}.`,
     );
     window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
   };
@@ -259,7 +245,7 @@ export default function Sharing() {
         <div className="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
           <Wallet className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Ahorro mensual total</p>
-          <p className="text-3xl font-bold">{formatCurrency(totalSavings, "COP")}</p>
+          <p className="text-3xl font-bold">{formatMoney(totalSavings, "COP")}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Compartidas</p>
@@ -272,7 +258,7 @@ export default function Sharing() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Tu pago mensual</p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {formatCurrency(totalYourShare, "COP")}
+            {formatMoney(totalYourShare, "COP")}
           </p>
         </div>
       </div>
@@ -292,7 +278,7 @@ export default function Sharing() {
               {subscriptions.length === 0 && <option value="">No tienes activas</option>}
               {subscriptions.map((subscription) => (
                 <option key={subscription.id} value={subscription.id}>
-                  {subscription.name} · {formatCurrency(subscription.amount, subscription.currency)}
+                  {subscription.name} · {formatMoney(subscription.amount, subscription.currency)}
                 </option>
               ))}
             </select>
@@ -406,12 +392,12 @@ function SharedCard({
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {memberCount} participantes · Tu parte:{" "}
-              {formatCurrency(yourShare, subscription.currency)}
+              {formatMoney(yourShare, subscription.currency)}
             </p>
           </div>
         </div>
         <div className="text-sm text-emerald-600 font-semibold">
-          Ahorras {formatCurrency(savings, subscription.currency)}
+          Ahorras {formatMoney(savings, subscription.currency)}
         </div>
       </div>
 

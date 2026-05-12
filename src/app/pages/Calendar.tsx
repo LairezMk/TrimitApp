@@ -16,6 +16,7 @@ import {
 import { Button } from "../components/ui/button";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import {
   createUserPayment,
   subscribeToUserPayments,
@@ -33,13 +34,6 @@ type DisplayPayment = {
   source: "manual" | "projected" | "imported";
 };
 
-function toCurrencySymbol(currency: string) {
-  if (currency === "USD") return "$";
-  if (currency === "EUR") return "EUR ";
-  if (currency === "COP") return "COP ";
-  return `${currency} `;
-}
-
 function isSameDay(a: Date, b: Date) {
   return (
     a.getDate() === b.getDate() &&
@@ -50,6 +44,7 @@ function isSameDay(a: Date, b: Date) {
 
 export default function Calendar() {
   const { user } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,7 +200,7 @@ export default function Calendar() {
 
   const getTotalForDate = (date: Date) =>
     [...getUpcomingForDate(date), ...getPaidForDate(date)].reduce(
-      (sum, payment) => sum + payment.amount,
+      (sum, payment) => sum + convertMoney(payment.amount, payment.subscription.currency),
       0,
     );
 
@@ -222,7 +217,7 @@ export default function Calendar() {
   const selectedUpcoming = selectedDate ? getUpcomingForDate(selectedDate) : [];
   const selectedPaid = selectedDate ? getPaidForDate(selectedDate) : [];
   const selectedDayTotal = [...selectedUpcoming, ...selectedPaid].reduce(
-    (sum, payment) => sum + payment.amount,
+    (sum, payment) => sum + convertMoney(payment.amount, payment.subscription.currency),
     0,
   );
 
@@ -245,8 +240,14 @@ export default function Calendar() {
     [paidTimeline, currentDate],
   );
 
-  const totalPaid = paidTimeline.reduce((sum, payment) => sum + payment.amount, 0);
-  const totalUpcoming = upcomingProjected.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalPaid = paidTimeline.reduce(
+    (sum, payment) => sum + convertMoney(payment.amount, payment.subscription.currency),
+    0,
+  );
+  const totalUpcoming = upcomingProjected.reduce(
+    (sum, payment) => sum + convertMoney(payment.amount, payment.subscription.currency),
+    0,
+  );
   const nextUpcoming = upcomingProjected
     .slice()
     .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
@@ -390,7 +391,7 @@ export default function Calendar() {
                               )}
                             </div>
                             <span className={`text-[10px] ${isSelected ? "text-emerald-100" : "text-emerald-700"}`}>
-                              ${total.toFixed(0)}
+                              {formatMoney(total, "COP")}
                             </span>
                           </>
                         )}
@@ -455,8 +456,7 @@ export default function Calendar() {
                               <p className="text-xs text-gray-500 truncate">{payment.subscription.category}</p>
                             </div>
                             <p className="text-sm font-medium">
-                              {toCurrencySymbol(payment.subscription.currency)}
-                              {payment.amount.toFixed(2)}
+                              {formatMoney(payment.amount, payment.subscription.currency)}
                             </p>
                           </div>
                         ))}
@@ -478,8 +478,7 @@ export default function Calendar() {
                               <p className="text-xs text-gray-500 truncate">{payment.subscription.category}</p>
                             </div>
                             <p className="text-sm font-medium">
-                              {toCurrencySymbol(payment.subscription.currency)}
-                              {payment.amount.toFixed(2)}
+                              {formatMoney(payment.amount, payment.subscription.currency)}
                             </p>
                           </div>
                         ))}
@@ -489,7 +488,7 @@ export default function Calendar() {
 
                   <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
                     <span className="text-gray-600">Total del día</span>
-                    <span className="text-xl font-medium text-emerald-600">${selectedDayTotal.toFixed(2)}</span>
+                    <span className="text-xl font-medium text-emerald-600">{formatMoney(selectedDayTotal, "COP")}</span>
                   </div>
                 </>
               )
@@ -510,7 +509,13 @@ export default function Calendar() {
               <h3 className="font-medium">Resumen mensual</h3>
             </div>
             <p className="text-2xl mb-2">
-              ${monthlyUpcoming.reduce((sum, payment) => sum + payment.amount, 0).toFixed(2)}
+              {formatMoney(
+                monthlyUpcoming.reduce(
+                  (sum, payment) => sum + convertMoney(payment.amount, payment.subscription.currency),
+                  0,
+                ),
+                "COP",
+              )}
             </p>
             <p className="text-emerald-100 text-sm">
               {monthlyUpcoming.length} próximos • {monthlyPaid.length} pagados
@@ -523,14 +528,14 @@ export default function Calendar() {
                 <p className="text-gray-500 text-xs">Total pagado</p>
                 <TrendingDown className="w-4 h-4 text-red-500" />
               </div>
-              <p className="text-xl text-red-600">${totalPaid.toFixed(2)}</p>
+              <p className="text-xl text-red-600">{formatMoney(totalPaid, "COP")}</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-gray-500 text-xs">Próximos pagos</p>
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
               </div>
-              <p className="text-xl text-emerald-600">${totalUpcoming.toFixed(2)}</p>
+              <p className="text-xl text-emerald-600">{formatMoney(totalUpcoming, "COP")}</p>
               {nextUpcoming && (
                 <p className="text-xs text-gray-500 mt-1">
                   {nextUpcoming.subscription.name} • {getDaysUntilPayment(nextUpcoming.date)} días
@@ -672,8 +677,7 @@ export default function Calendar() {
 
                       <div className="text-right shrink-0 pl-3">
                         <p className="font-medium text-lg">
-                          {toCurrencySymbol(payment.subscription.currency)}
-                          {payment.amount.toFixed(2)}
+                          {formatMoney(payment.amount, payment.subscription.currency)}
                         </p>
                         <div className="flex items-center justify-end gap-2 text-sm text-gray-500">
                           <CalendarIcon className="w-4 h-4" />

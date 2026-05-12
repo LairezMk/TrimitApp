@@ -11,6 +11,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import {
   createUserPayment,
@@ -27,23 +28,12 @@ type DisplayPayment = {
   amount: number;
   status: "paid" | "upcoming";
   source: "manual" | "projected" | "imported";
+  currency: string;
 };
-
-function toCurrencySymbol(currency: string) {
-  if (currency === "USD") {
-    return "$";
-  }
-  if (currency === "EUR") {
-    return "EUR ";
-  }
-  if (currency === "COP") {
-    return "COP ";
-  }
-  return `${currency} `;
-}
 
 export default function Payments() {
   const { user } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [filter, setFilter] = useState<"all" | "paid" | "upcoming">("all");
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
@@ -118,6 +108,7 @@ export default function Payments() {
         subscription,
         date: newest ? subscription.nextPaymentDate : subscription.nextPaymentDate,
         amount: subscription.amount,
+        currency: subscription.currency,
         status: "upcoming",
         source: "projected",
       };
@@ -143,6 +134,7 @@ export default function Payments() {
           },
         date: payment.paymentDate,
         amount: payment.amount,
+        currency: payment.currency,
         status: "paid",
         source: payment.source,
       })),
@@ -160,8 +152,14 @@ export default function Payments() {
   const filteredPayments =
     filter === "all" ? allPayments : allPayments.filter((payment) => payment.status === filter);
 
-  const totalPaid = paidTimeline.reduce((sum, payment) => sum + payment.amount, 0);
-  const totalUpcoming = upcomingProjected.reduce((sum, payment) => sum + payment.amount, 0);
+  const totalPaid = paidTimeline.reduce(
+    (sum, payment) => sum + convertMoney(payment.amount, payment.currency),
+    0,
+  );
+  const totalUpcoming = upcomingProjected.reduce(
+    (sum, payment) => sum + convertMoney(payment.amount, payment.currency),
+    0,
+  );
 
   const nextUpcoming = upcomingProjected
     .slice()
@@ -280,7 +278,7 @@ export default function Payments() {
             <p className="text-gray-500 text-sm">Total pagado</p>
             <TrendingDown className="w-5 h-5 text-red-500" />
           </div>
-          <p className="text-3xl text-red-600">${totalPaid.toFixed(2)}</p>
+          <p className="text-3xl text-red-600">{formatMoney(totalPaid, "COP")}</p>
           <p className="text-xs text-gray-500 mt-1">{paidTimeline.length} pagos realizados</p>
         </div>
 
@@ -289,7 +287,7 @@ export default function Payments() {
             <p className="text-gray-500 text-sm">Próximos pagos</p>
             <TrendingUp className="w-5 h-5 text-emerald-500" />
           </div>
-          <p className="text-3xl text-emerald-600">${totalUpcoming.toFixed(2)}</p>
+          <p className="text-3xl text-emerald-600">{formatMoney(totalUpcoming, "COP")}</p>
           <p className="text-xs text-gray-500 mt-1">
             {upcomingProjected.length} pagos programados
           </p>
@@ -303,13 +301,11 @@ export default function Payments() {
           <p className="text-3xl">
             {nextUpcoming ? `${getDaysUntilPayment(nextUpcoming.date)} días` : "--"}
           </p>
-          <p className="text-xs text-emerald-100 mt-1">
-            {nextUpcoming
-              ? `${nextUpcoming.subscription.name} - ${toCurrencySymbol(
-                  nextUpcoming.subscription.currency,
-                )}${nextUpcoming.amount.toFixed(2)}`
-              : "Sin pagos próximos"}
-          </p>
+            <p className="text-xs text-emerald-100 mt-1">
+              {nextUpcoming
+                ? `${nextUpcoming.subscription.name} - ${formatMoney(nextUpcoming.amount, nextUpcoming.currency)}`
+                : "Sin pagos próximos"}
+            </p>
         </div>
       </div>
 
@@ -409,8 +405,7 @@ export default function Payments() {
 
                       <div className="text-right">
                         <p className="font-medium text-lg dark:text-white">
-                          {toCurrencySymbol(payment.subscription.currency)}
-                          {payment.amount.toFixed(2)}
+                          {formatMoney(payment.amount, payment.currency)}
                         </p>
                         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                           <Calendar className="w-4 h-4" />
