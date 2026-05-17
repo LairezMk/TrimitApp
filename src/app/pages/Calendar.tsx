@@ -642,7 +642,7 @@ export default function Calendar() {
               return (
                 <div
                   key={payment.id}
-                  className={`p-6 hover:bg-gray-50 transition-colors ${
+                  className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors ${
                     isUpcoming ? "bg-blue-50/30" : ""
                   }`}
                 >

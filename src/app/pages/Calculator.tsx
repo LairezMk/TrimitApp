@@ -17,6 +17,7 @@ import { subscribeToUserPayments } from "../services/payments";
 import type { Subscription } from "../types/subscription";
 import type { UserPayment } from "../services/payments";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
+import { normalizeCurrencyCode } from "../utils/currency";
 
 function projectWithInflation(baseAnnual: number, years: number, inflationRate: number) {
   if (years <= 0) {
@@ -150,7 +151,7 @@ export default function Calculator() {
       return "COP";
     }
     const countByCurrency = allSubscriptions.reduce<Record<string, number>>((acc, subscription) => {
-      const code = toCurrencyCode(subscription.currency);
+      const code = normalizeCurrencyCode(subscription.currency);
       acc[code] = (acc[code] || 0) + 1;
       return acc;
     }, {});

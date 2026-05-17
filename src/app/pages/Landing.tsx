@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
-import logoImage from "../../assets/0d23369e4a896d703eefe2aaa97e96c4234407d6.png";
+const logoImage = new URL(
+  "../../assets/0d23369e4a896d703eefe2aaa97e96c4234407d6.png",
+  import.meta.url,
+).href;
 import { useTheme } from "../contexts/ThemeContext";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import { features, steps } from "../constants/landing-data";
