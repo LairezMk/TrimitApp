@@ -100,19 +100,44 @@ export default function Profile() {
     setSaving(true);
     setMessage(null);
 
+    const trimmedForm = {
+      displayName: form.displayName.trim(),
+      phone: form.phone.trim(),
+      location: form.location.trim(),
+      photoURL: form.photoURL.trim(),
+    };
+
+    if (!trimmedForm.displayName) {
+      setMessage("El nombre no puede quedar vacio.");
+      setSaving(false);
+      return;
+    }
+
+    if (
+      trimmedForm.displayName !== form.displayName ||
+      trimmedForm.phone !== form.phone ||
+      trimmedForm.location !== form.location ||
+      trimmedForm.photoURL !== form.photoURL
+    ) {
+      setForm((prev) => ({ ...prev, ...trimmedForm }));
+      setMessage("No se permiten espacios al inicio o al final.");
+      setSaving(false);
+      return;
+    }
+
     try {
       await updateProfile(user, {
-        displayName: form.displayName.trim() || "Usuario",
-        photoURL: form.photoURL.trim() || null,
+        displayName: trimmedForm.displayName,
+        photoURL: trimmedForm.photoURL || null,
       });
 
       await setDoc(
         doc(db, "users", user.uid),
         {
-          displayName: form.displayName.trim() || "Usuario",
-          phone: form.phone.trim(),
-          location: form.location.trim(),
-          photoURL: form.photoURL.trim(),
+          displayName: trimmedForm.displayName,
+          phone: trimmedForm.phone,
+          location: trimmedForm.location,
+          photoURL: trimmedForm.photoURL,
           updatedAt: serverTimestamp(),
         },
         { merge: true },

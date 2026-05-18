@@ -33,6 +33,14 @@ export default function AuthPage() {
     const hasLower = /[a-z]/.test(password);
     const hasSpecial = /[^A-Za-z0-9]/.test(password);
     const hasComplex = hasUpper && hasLower && hasSpecial;
+    const criteriaMet = [
+      hasLength8,
+      hasLength16,
+      hasUpper,
+      hasLower,
+      hasSpecial,
+      hasComplex,
+    ].filter(Boolean).length;
 
     let score = 0;
     if (hasLength8) {
@@ -59,6 +67,7 @@ export default function AuthPage() {
       hasUpper,
       hasLower,
       hasSpecial,
+      criteriaMet,
       score,
       level: levelMap[score as 0 | 1 | 2 | 3],
     };
@@ -75,18 +84,46 @@ export default function AuthPage() {
     setMessageType("error");
 
     try {
+      const trimmedEmail = email.trim();
+      const trimmedDisplayName = displayName.trim();
+
+      if (!trimmedEmail) {
+        setMessage("El correo no puede estar vacio.");
+        return;
+      }
+
+      if (trimmedEmail !== email) {
+        setEmail(trimmedEmail);
+        setMessage("El correo no puede tener espacios al inicio o al final.");
+        return;
+      }
+
       if (mode === "register") {
-        if (passwordChecks.score < 2) {
-          setMessage("Tu contrasena es muy debil. Mejora los criterios antes de registrarte.");
+        if (!trimmedDisplayName) {
+          setMessage("El nombre no puede estar vacio.");
+          return;
+        }
+
+        if (trimmedDisplayName !== displayName) {
+          setDisplayName(trimmedDisplayName);
+          setMessage("El nombre no puede tener espacios al inicio o al final.");
+          return;
+        }
+
+        if (!passwordChecks.hasLength8 || passwordChecks.criteriaMet < 3) {
+          setMessage(
+            "Minimo debes cumplir 3 requisitos de seguridad, y uno de ellos es tener 8 caracteres.",
+          );
           setMessageType("error");
           return;
         }
-        await register({ email, password, displayName });
+
+        await register({ email: trimmedEmail, password, displayName: trimmedDisplayName });
         setMessageType("success");
         setMessage("Cuenta creada correctamente.");
         navigate("/dashboard");
       } else {
-        await login(email, password);
+        await login(trimmedEmail, password);
         setMessageType("success");
         setMessage("Sesion iniciada correctamente.");
         navigate("/dashboard");
@@ -247,6 +284,9 @@ export default function AuthPage() {
 
           {mode === "register" && (
             <div className="space-y-2 rounded-lg border border-white/15 bg-black/20 p-3">
+              <p className="text-xs text-amber-200">
+                Minimo 3 requisitos, incluyendo 8 caracteres.
+              </p>
               <div className="flex items-center justify-between">
                 <p className="text-xs text-slate-300">Fortaleza de contrasena</p>
                 <span className="text-xs font-medium text-white">{passwordChecks.level.label}</span>
@@ -256,10 +296,10 @@ export default function AuthPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
                 <p className={passwordChecks.hasLength8 ? "text-emerald-300" : "text-slate-400"}>
-                  • Minimo 8 caracteres (amarillo)
+                  • Minimo 8 caracteres 
                 </p>
                 <p className={passwordChecks.hasLength16 ? "text-emerald-300" : "text-slate-400"}>
-                  • 16+ caracteres (verde)
+                  • 16+ caracteres 
                 </p>
                 <p className={passwordChecks.hasUpper ? "text-emerald-300" : "text-slate-400"}>
                   • Una mayuscula

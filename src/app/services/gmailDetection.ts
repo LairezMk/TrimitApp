@@ -14,7 +14,7 @@ const PROVIDER_HINTS: ProviderHint[] = [
     category: "Entretenimiento",
     icon: "N",
     color: "bg-red-500",
-    patterns: [/netflix/i, /netflix\.com/i],
+    patterns: [/netflix/i, /netflix\.com/i, /netflix\s*,?\s*inc/i],
   },
   {
     name: "Spotify",
@@ -280,9 +280,10 @@ function extractAmount(text: string) {
     /(?:cop|col\$|pesos?|usd|eur|[$€])\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
     /([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})\s*(?:cop|col\$|pesos?|usd|eur)\b/gi,
     /(total\s*(?:a\s*pagar|pago)?|valor\s*(?:a\s*pagar)?|importe|monto|factura|vencimiento)\D{0,24}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /(plan|membres[ií]a|suscripci[oó]n|subscription)\D{0,24}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
   ];
   const scoringKeywords =
-    /total\s*a\s*pagar|valor\s*a\s*pagar|importe\s*a\s*pagar|saldo\s*a\s*pagar|monto|factura|recibo|vencimiento/i;
+    /total\s*a\s*pagar|valor\s*a\s*pagar|importe\s*a\s*pagar|saldo\s*a\s*pagar|monto|factura|recibo|vencimiento|plan|membres[ií]a|suscripci[oó]n/i;
   const candidates: AmountCandidate[] = [];
 
   for (const pattern of amountPatterns) {
@@ -463,6 +464,15 @@ function extractCadenceDays(text: string) {
     return 30;
   }
 
+  if (
+    /\banual\b/.test(normalized) ||
+    /\bcada\s*a[nñ]o\b/.test(normalized) ||
+    /\bannual\b/.test(normalized) ||
+    /\byearly\b/.test(normalized)
+  ) {
+    return 365;
+  }
+
   return null;
 }
 
@@ -474,10 +484,39 @@ function isLikelyRecurring(text: string) {
 
   const normalized = text.toLowerCase();
   return (
-    /\bplan\b/.test(normalized) &&
-    /\b(pago|cobro|factura|renov|recordatorio|vencimiento|estado de cuenta|recibo)\b/i.test(
+    /\b(plan|membres[ií]a|suscripci[oó]n|subscription)\b/i.test(normalized) ||
+    /\b(mensual|monthly|per\s*month|cada\s*mes)\b/i.test(normalized) ||
+    /\b(renovaci[oó]n|renovation|recurrente|recurring|d[eé]bito\s*autom[aá]tico)\b/i.test(
       normalized,
     )
+  );
+}
+
+function isLikelyReceipt(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(pago\s*realizado|pago\s*confirmado|pago\s*exitoso|pago\s*aprobado|pago\s*recibido|payment\s*(successful|confirmed|approved|received)|cobro\s*realizado|cargo\s*realizado|se\s*(cobro|cargo)|transacci[oó]n\s*aprobada|comprobante\s*de\s*pago|recibo\s*(de\s*pago)?|factura\s*(electr[oó]nica)?|tu\s*orden\s*ha\s*sido\s*pagada|order\s*paid|invoice\s*(paid|payment)|debitado|d[eé]bito\s*autom[aá]tico|se\s*debito|charged|charge\s*was\s*made)\b/i.test(
+    normalized,
+  );
+}
+
+function isLikelyPromotional(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|gratis|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|referid[oa]|te\s*aceptaron|bienvenido\s*a|welcome\s*gift|free|gift|eligible|3\s*meses\s*por\s*\$?0|meses\s*gratis)\b/i.test(
+    normalized,
+  );
+}
+
+function isLikelyPromotionalSender(from: string) {
+  const normalized = from.toLowerCase();
+  return /\b(temu|marketing|newsletter|news|promo|offers|deal|deals|noreply\.news|no-reply\.news)\b/.test(
+    normalized,
+  );
+}
+
+function hasPaymentContext(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(pago|pagado|pagaste|cobro|cargo|factura|recibo|transacci[oó]n|invoice|payment|charged|charge|debitado|d[eé]bito)\b/i.test(
+    normalized,
   );
 }
 
@@ -526,6 +565,23 @@ function fallbackCategory(text: string) {
   return "Otros";
 }
 
+function extractProviderName(text: string) {
+  const providerMatch = text.match(
+    /(proveedor\s+del\s+servicio|proveedor|merchant|servicio)\s*[:\-]?\s*([A-Za-z0-9&.,\-\s]{3,60})/i,
+  );
+
+  if (!providerMatch) {
+    return null;
+  }
+
+  const candidate = providerMatch[2].trim();
+  if (!candidate || candidate.length < 3) {
+    return null;
+  }
+
+  return candidate.replace(/\s{2,}/g, " ").slice(0, 60);
+}
+
 async function fetchGmailMessages(accessToken: string) {
   const since = new Date();
   since.setDate(since.getDate() - 90);
@@ -536,11 +592,11 @@ async function fetchGmailMessages(accessToken: string) {
 
   const query =
     `after:${sinceQuery} (` +
-    "subscription OR suscripción OR invoice OR factura OR facturación OR bill OR renewal OR renovación OR payment OR cobro OR recordatorio OR vencimiento OR recibo OR estado de cuenta" +
+    "subscription OR suscripción OR suscripcion OR suscribirte OR suscribi OR membresia OR membership OR plan OR invoice OR factura OR facturación OR bill OR renewal OR renovación OR payment OR pago OR cobro OR recordatorio OR vencimiento OR recibo OR estado de cuenta" +
     ")";
 
   const listUrl =
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=80&q=" +
+    "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=120&q=" +
     encodeURIComponent(query);
 
   const listResponse = await fetch(listUrl, {
@@ -559,7 +615,7 @@ async function fetchGmailMessages(accessToken: string) {
     return [];
   }
 
-  const picked = listData.messages.slice(0, 40);
+  const picked = listData.messages.slice(0, 60);
 
   const messages = await Promise.all(
     picked.map(async (message) => {
@@ -586,6 +642,17 @@ async function fetchGmailMessages(accessToken: string) {
 export async function detectSubscriptionsFromGmail(accessToken: string) {
   const messages = await fetchGmailMessages(accessToken);
   const byName = new Map<string, DetectedSubscriptionDraft>();
+  const providerOccurrences = new Map<string, number>();
+  const candidateMessages: Array<{
+    message: GmailMessageResponse;
+    haystack: string;
+    from: string;
+    subject: string;
+    provider: ProviderHint | null;
+    providerName: string | null;
+    amountData: ReturnType<typeof extractAmount>;
+    recurring: boolean;
+  }> = [];
 
   for (const message of messages) {
     const headers = message.payload?.headers || [];
@@ -596,12 +663,43 @@ export async function detectSubscriptionsFromGmail(accessToken: string) {
 
     const provider = findProvider(haystack);
     const recurring = isLikelyRecurring(haystack);
+    const amountData = extractAmount(haystack);
+    const receipt = isLikelyReceipt(haystack);
+    const promotional = isLikelyPromotional(haystack) || isLikelyPromotionalSender(from);
+    const paymentContext = hasPaymentContext(haystack);
+    const providerName = provider?.name || extractProviderName(haystack);
 
-    if (!provider && !recurring) {
+    if (!amountData || !receipt || promotional || !paymentContext) {
       continue;
     }
 
-    const amountData = extractAmount(haystack);
+    const normalizedProvider = (providerName || parseSenderName(from)).toLowerCase();
+    providerOccurrences.set(
+      normalizedProvider,
+      (providerOccurrences.get(normalizedProvider) || 0) + 1,
+    );
+
+    candidateMessages.push({
+      message,
+      haystack,
+      from,
+      subject,
+      provider,
+      providerName,
+      amountData,
+      recurring,
+    });
+  }
+
+  for (const candidate of candidateMessages) {
+    const { message, haystack, from, subject, provider, providerName, amountData, recurring } = candidate;
+    const normalizedProvider = (providerName || parseSenderName(from)).toLowerCase();
+    const occurrences = providerOccurrences.get(normalizedProvider) || 0;
+
+    if (!provider && !recurring && occurrences < 2) {
+      continue;
+    }
+
     const parsedDate = extractDate(haystack);
     const cadenceDays = extractCadenceDays(haystack) || 30;
     const messageDate = message.internalDate
@@ -609,7 +707,7 @@ export async function detectSubscriptionsFromGmail(accessToken: string) {
       : null;
     const inferredDate = parsedDate || messageDate || addDefaultNextPaymentByCadence(cadenceDays);
     const nextPayment = ensureFutureDate(inferredDate);
-    const inferredName = provider?.name || parseSenderName(from);
+    const inferredName = providerName || parseSenderName(from);
     const inferredCategory = provider?.category || fallbackCategory(haystack);
     const inferredIcon = provider?.icon || inferredName.charAt(0).toUpperCase() || "S";
     const inferredColor = provider?.color || "bg-emerald-500";
@@ -618,7 +716,9 @@ export async function detectSubscriptionsFromGmail(accessToken: string) {
       (provider ? 60 : 45) +
       (recurring ? 20 : 0) +
       (amountData ? 20 : 0) +
-      (parsedDate ? 10 : 0);
+      (providerName ? 10 : 0) +
+      (parsedDate ? 10 : 0) +
+      (occurrences >= 2 ? 10 : 0);
 
     const draft: DetectedSubscriptionDraft = {
       id: toBase64(`${inferredName}-${subject}`).slice(0, 48),
