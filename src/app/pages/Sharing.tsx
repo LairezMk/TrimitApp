@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import {
   Copy,
   Mail,
@@ -30,6 +31,7 @@ function parseMemberNames(raw: string) {
 }
 
 export default function Sharing() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { formatMoney, convertMoney, preferredCurrency } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -265,7 +267,17 @@ export default function Sharing() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4 dark:text-white">Crear compartida</h2>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold dark:text-white">Crear compartida</h2>
+          <button
+            type="button"
+            onClick={() => navigate("/subscriptions/add")}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-200 dark:hover:bg-emerald-900/20"
+          >
+            <Plus className="h-4 w-4" />
+            Nueva suscripción
+          </button>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div>
             <label className="text-sm text-gray-500 dark:text-gray-400 block mb-1">
@@ -376,6 +388,7 @@ function SharedCard({
   onAddMember: (name: string) => void;
   onRemoveMember: (name: string) => void;
 }) {
+  const { formatMoney } = useCurrencyDisplay();
   const [newMemberName, setNewMemberName] = useState("");
 
   return (

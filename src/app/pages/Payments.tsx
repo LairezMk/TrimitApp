@@ -20,6 +20,7 @@ import {
 } from "../services/payments";
 import type { Subscription } from "../types/subscription";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
+import { dateFromInputValue, dateToInputValue } from "../utils/date";
 
 type DisplayPayment = {
   id: string;
@@ -42,7 +43,7 @@ export default function Payments() {
 
   const [newSubscriptionId, setNewSubscriptionId] = useState("");
   const [newAmount, setNewAmount] = useState("");
-  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newDate, setNewDate] = useState(dateToInputValue(new Date()));
   const [addingPayment, setAddingPayment] = useState(false);
 
   useEffect(() => {
@@ -191,7 +192,7 @@ export default function Payments() {
         category: selected.category,
         amount: Number(newAmount),
         currency: selected.currency,
-        paymentDate: new Date(newDate),
+        paymentDate: dateFromInputValue(newDate),
         source: "manual",
         status: "paid",
       });

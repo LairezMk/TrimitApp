@@ -13,6 +13,7 @@ import {
   type UserReminder,
 } from "../services/reminders";
 import type { Subscription } from "../types/subscription";
+import { dateFromInputValue, dateToInputValue } from "../utils/date";
 
 type ReminderFormState = {
   subscriptionId: string;
@@ -87,7 +88,7 @@ export default function Reminders() {
       ...initialForm,
       subscriptionId: defaultSubscription?.id || "",
       date: defaultSubscription
-        ? defaultSubscription.nextPaymentDate.toISOString().split("T")[0]
+        ? dateToInputValue(defaultSubscription.nextPaymentDate)
         : "",
     });
     setIsModalOpen(true);
@@ -99,7 +100,7 @@ export default function Reminders() {
     setForm({
       subscriptionId: reminder.subscriptionId,
       type: reminder.type,
-      date: reminder.date.toISOString().split("T")[0],
+      date: dateToInputValue(reminder.date),
       daysBeforeReminder: String(reminder.daysBeforeReminder),
       enabled: reminder.enabled,
     });
@@ -151,7 +152,7 @@ export default function Reminders() {
         subscriptionId: selectedSubscription.id,
         subscriptionName: selectedSubscription.name,
         type: form.type,
-        date: new Date(form.date),
+        date: dateFromInputValue(form.date),
         daysBeforeReminder: Number(form.daysBeforeReminder || 0),
         enabled: form.enabled,
         icon: selectedSubscription.icon || selectedSubscription.name.charAt(0).toUpperCase(),

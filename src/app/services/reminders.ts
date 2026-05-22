@@ -10,6 +10,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { dateFromInputValue } from "../utils/date";
 
 export type ReminderType = "payment" | "renewal" | "trial_end";
 
@@ -48,6 +49,9 @@ function toDateValue(value: unknown): Date {
   }
 
   if (typeof value === "string" || typeof value === "number") {
+    if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return dateFromInputValue(value);
+    }
     const parsed = new Date(value);
     if (!Number.isNaN(parsed.getTime())) {
       return parsed;

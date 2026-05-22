@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -24,6 +25,7 @@ import {
 } from "../services/payments";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import type { Subscription } from "../types/subscription";
+import { dateFromInputValue, dateToInputValue } from "../utils/date";
 
 type DisplayPayment = {
   id: string;
@@ -43,6 +45,7 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function Calendar() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -55,7 +58,7 @@ export default function Calendar() {
 
   const [newSubscriptionId, setNewSubscriptionId] = useState("");
   const [newAmount, setNewAmount] = useState("");
-  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
+  const [newDate, setNewDate] = useState(dateToInputValue(new Date()));
   const [addingPayment, setAddingPayment] = useState(false);
 
   useEffect(() => {
@@ -274,7 +277,7 @@ export default function Calendar() {
         category: selected.category,
         amount: Number(newAmount),
         currency: selected.currency,
-        paymentDate: new Date(newDate),
+        paymentDate: dateFromInputValue(newDate),
         source: "manual",
         status: "paid",
       });
@@ -549,9 +552,19 @@ export default function Calendar() {
         className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mt-8 mb-6"
         data-tour="payments-register"
       >
-        <div className="flex items-center gap-3 mb-4">
-          <PlusCircle className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-lg">Registrar pago</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <PlusCircle className="w-5 h-5 text-emerald-600" />
+            <h2 className="text-lg">Registrar pago</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/subscriptions/add")}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Nueva suscripción
+          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <select

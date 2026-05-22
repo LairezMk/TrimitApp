@@ -57,7 +57,8 @@ export function formatAmountInput(value: number, currency: string) {
   }).format(value);
 }
 
-export function parseAmountInput(input: string) {
+export function parseAmountInput(input: string, currency = "COP") {
+  const code = normalizeCurrencyCode(currency);
   const clean = input.replace(/[^\d,.\-]/g, "").trim();
   if (!clean) {
     return null;
@@ -68,6 +69,21 @@ export function parseAmountInput(input: string) {
   if (!hasComma && !hasDot) {
     const value = Number(clean);
     return Number.isFinite(value) ? value : null;
+  }
+
+  const singleSeparator = hasComma !== hasDot ? (hasComma ? "," : ".") : null;
+  if (singleSeparator) {
+    const parts = clean.split(singleSeparator);
+    const lastPart = parts[parts.length - 1] || "";
+    const looksLikeThousands =
+      parts.length > 2 ||
+      lastPart.length === 3 ||
+      (code === "COP" && lastPart.length > 0 && lastPart.length !== 2);
+
+    if (looksLikeThousands) {
+      const value = Number(clean.replace(/[.,]/g, ""));
+      return Number.isFinite(value) ? value : null;
+    }
   }
 
   const normalized =

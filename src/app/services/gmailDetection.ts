@@ -1,3 +1,5 @@
+import { dateToInputValue } from "../utils/date";
+
 const SESSION_KEY = "trimit.gmail.detectedSubscriptions";
 
 interface ProviderHint {
@@ -417,11 +419,11 @@ function extractAmount(text: string) {
     while (match) {
       const rawAmount = (match[2] || match[1] || "").trim();
       const matchText = match[0] || "";
-      const currency = inferCurrency(matchText);
-      const amount = normalizeAmount(rawAmount, currency);
       const start = Math.max(0, (match.index || 0) - 80);
       const end = Math.min(text.length, (match.index || 0) + matchText.length + 80);
       const context = text.slice(start, end);
+      const currency = inferCurrency(`${matchText} ${context}`);
+      const amount = normalizeAmount(rawAmount, currency);
 
       if (amount && amount > 0) {
         let score = 40;
@@ -527,37 +529,17 @@ function extractDate(text: string) {
     }
   }
 
-  return null;
-}
-
-function ensureFutureDate(date: Date) {
-  const now = new Date();
-  const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  if (normalized >= new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
-    return normalized;
-  }
-
-  const bumped = new Date(normalized);
-  bumped.setMonth(bumped.getMonth() + 1);
-  return bumped;
-}
-
-function addDefaultNextPaymentDate() {
-  const next = new Date();
-  next.setMonth(next.getMonth() + 1);
-  return next;
-}
-
-function addDefaultNextPaymentByCadence(cadenceDays: number) {
-  const next = new Date();
-  next.setDate(next.getDate() + cadenceDays);
-  return next;
-}
-
-function findProvider(text: string) {
-  for (const hint of PROVIDER_HINTS) {
-    if (hint.patterns.some((pattern) => pattern.test(text))) {
-      return hint;
+  const spacedSpanishMatch = text.match(
+    /\b(\d{1,2})\s*\/\s*(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\s*\/\s*(20\d{2})\b/i,
+  );
+  if (spacedSpanishMatch) {
+    const parsed = parseSpanishDate(
+      spacedSpanishMatch[2],
+      Number(spacedSpanishMatch[1]),
+      Number(spacedSpanishMatch[3]),
+    );
+    if (parsed) {
+      return parsed;
     }
   }
 
@@ -598,6 +580,40 @@ function findProvider(text: string) {
     );
     if (!Number.isNaN(parsed.getTime())) {
       return parsed;
+    }
+  }
+
+  return null;
+}
+
+function ensureFutureDate(date: Date) {
+  const now = new Date();
+  const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  if (normalized >= new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+    return normalized;
+  }
+
+  const bumped = new Date(normalized);
+  bumped.setMonth(bumped.getMonth() + 1);
+  return bumped;
+}
+
+function addDefaultNextPaymentDate() {
+  const next = new Date();
+  next.setMonth(next.getMonth() + 1);
+  return next;
+}
+
+function addDefaultNextPaymentByCadence(cadenceDays: number) {
+  const next = new Date();
+  next.setDate(next.getDate() + cadenceDays);
+  return next;
+}
+
+function findProvider(text: string) {
+  for (const hint of PROVIDER_HINTS) {
+    if (hint.patterns.some((pattern) => pattern.test(text))) {
+      return hint;
     }
   }
   return null;
@@ -821,6 +837,12 @@ function extractProviderName(text: string) {
   }
 
   return candidate.replace(/\s{2,}/g, " ").slice(0, 60);
+}
+
+function isGenericProviderName(name: string) {
+  return /\b(servicio|internet|banda\s*ancha|telefon[ií]a|factura|recibo|plan|membres[ií]a|suscripci[oó]n)\b/i.test(
+    name,
+  );
 }
 
 function cleanMerchantCandidate(candidate: string) {
@@ -1067,7 +1089,10 @@ function detectSubscriptionsFromMessages(
     const messageDate = message.date || null;
     const inferredDate = parsedDate || messageDate || addDefaultNextPaymentByCadence(cadenceDays);
     const nextPayment = ensureFutureDate(inferredDate);
-    const inferredName = providerName || provider?.name || parseSenderName(from);
+    const inferredName =
+      providerName && !isGenericProviderName(providerName)
+        ? providerName
+        : provider?.name || parseSenderName(from);
     const finalProvider = findProvider(inferredName) || provider;
     const inferredCategory = finalProvider?.category || fallbackCategory(haystack);
     const inferredIcon = finalProvider?.icon || inferredName.charAt(0).toUpperCase() || "S";
@@ -1089,7 +1114,7 @@ function detectSubscriptionsFromMessages(
       category: inferredCategory,
       amount: amountData?.amount || 0,
       currency: amountData?.currency || "$",
-      nextPaymentDate: nextPayment.toISOString().split("T")[0],
+      nextPaymentDate: dateToInputValue(nextPayment),
       isRecurring: true,
       icon: inferredIcon,
       color: inferredColor,

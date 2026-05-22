@@ -22,6 +22,7 @@ import {
   Save,
 } from "lucide-react";
 import { subscriptionColorStyle, subscriptionTextColorStyle } from "../utils/subscriptionColor";
+import { dateFromInputValue, dateToInputValue } from "../utils/date";
 
 interface EditSubscriptionSheetProps {
   subscription: Subscription;
@@ -177,15 +178,11 @@ export function EditSubscriptionSheet({
               <Input
                 id="nextPayment"
                 type="date"
-                value={
-                  editedSubscription.nextPaymentDate
-                    .toISOString()
-                    .split("T")[0]
-                }
+                value={dateToInputValue(editedSubscription.nextPaymentDate)}
                 onChange={(e) =>
                   setEditedSubscription({
                     ...editedSubscription,
-                    nextPaymentDate: new Date(e.target.value),
+                    nextPaymentDate: dateFromInputValue(e.target.value),
                   })
                 }
                 className="pl-10"

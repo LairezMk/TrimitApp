@@ -10,6 +10,7 @@ import {
   readDetectedSubscriptionsDrafts,
   type DetectedSubscriptionDraft,
 } from "../services/gmailDetection";
+import { dateFromInputValue } from "../utils/date";
 
 export default function GmailSubscriptionConfirmation() {
   const navigate = useNavigate();
@@ -136,7 +137,7 @@ export default function GmailSubscriptionConfirmation() {
           currency: item.currency || "$",
           status: "active",
           isRecurring: item.isRecurring,
-          nextPaymentDate: new Date(item.nextPaymentDate),
+          nextPaymentDate: dateFromInputValue(item.nextPaymentDate),
           icon: (item.icon.trim() || item.name.charAt(0) || "S").toUpperCase(),
           color: item.color || "bg-emerald-500",
           notes: `Detectada desde ${sourceLabel}. Referencia: ${item.subject}`,

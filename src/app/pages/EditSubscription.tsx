@@ -19,6 +19,7 @@ import { subscribeToUserCategories, type UserCategory } from "../services/catego
 import { SubscriptionColorPicker } from "../components/SubscriptionColorPicker";
 import { applyColorIntensity, normalizeHexColor, subscriptionTextColorStyle } from "../utils/subscriptionColor";
 import { formatAmountInput, formatCurrencyAmount, normalizeCurrencyCode, parseAmountInput } from "../utils/currency";
+import { dateFromInputValue, dateToInputValue } from "../utils/date";
 
 type FormData = {
   name: string;
@@ -86,7 +87,7 @@ export default function EditSubscription() {
           amount: formatAmountInput(subscription.amount, subscription.currency),
           currency: normalizeCurrencyCode(subscription.currency),
           status: subscription.status,
-          nextPaymentDate: subscription.nextPaymentDate.toISOString().split("T")[0],
+          nextPaymentDate: dateToInputValue(subscription.nextPaymentDate),
           isRecurring: subscription.isRecurring,
           icon: subscription.icon,
           color: normalizeHexColor(subscription.color),
@@ -121,7 +122,7 @@ export default function EditSubscription() {
     [formData?.color, colorShade],
   );
 
-  const parsedAmount = parseAmountInput(formData?.amount || "");
+  const parsedAmount = parseAmountInput(formData?.amount || "", formData?.currency);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -157,7 +158,7 @@ export default function EditSubscription() {
         currency: normalizeCurrencyCode(formData.currency),
         status: formData.status,
         isRecurring: formData.isRecurring,
-        nextPaymentDate: new Date(formData.nextPaymentDate),
+        nextPaymentDate: dateFromInputValue(formData.nextPaymentDate),
         icon: previewIcon,
         color: finalCardColor,
         notes: formData.notes,
@@ -285,7 +286,7 @@ export default function EditSubscription() {
                   onChange={(e) =>
                     setFormData((prev) => {
                       const nextCurrency = e.target.value;
-                      const parsed = parseAmountInput(prev.amount);
+                      const parsed = parseAmountInput(prev.amount, prev.currency);
                       return {
                         ...prev,
                         currency: nextCurrency,
@@ -313,11 +314,19 @@ export default function EditSubscription() {
                   value={formData.amount}
                   onChange={(e) =>
                     setFormData((prev) => {
-                      const parsed = parseAmountInput(e.target.value);
+                      return {
+                        ...prev,
+                        amount: e.target.value.replace(/[^\d,.\s]/g, ""),
+                      };
+                    })
+                  }
+                  onBlur={() =>
+                    setFormData((prev) => {
+                      const parsed = parseAmountInput(prev.amount, prev.currency);
                       return {
                         ...prev,
                         amount:
-                          parsed === null ? e.target.value.replace(/[^\d,.\s]/g, "") : formatAmountInput(parsed, prev.currency),
+                          parsed === null ? prev.amount : formatAmountInput(parsed, prev.currency),
                       };
                     })
                   }

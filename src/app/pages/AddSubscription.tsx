@@ -13,6 +13,7 @@ import {
   normalizeCurrencyCode,
   parseAmountInput,
 } from "../utils/currency";
+import { dateFromInputValue } from "../utils/date";
 
 type QuickTemplate = {
   category: string;
@@ -77,7 +78,7 @@ export default function AddSubscription() {
     [formData.color, colorShade],
   );
 
-  const parsedAmount = parseAmountInput(formData.amount);
+  const parsedAmount = parseAmountInput(formData.amount, formData.currency);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -108,7 +109,7 @@ export default function AddSubscription() {
         currency: normalizeCurrencyCode(formData.currency),
         status: formData.status as "active" | "suspended" | "forgotten",
         isRecurring: formData.isRecurring,
-        nextPaymentDate: new Date(formData.nextPaymentDate),
+        nextPaymentDate: dateFromInputValue(formData.nextPaymentDate),
         icon: formData.icon.trim() ? formData.icon.trim().charAt(0).toUpperCase() : formData.name.trim().charAt(0).toUpperCase(),
         color: finalCardColor,
         notes: formData.notes,
@@ -205,14 +206,22 @@ export default function AddSubscription() {
                   inputMode="decimal"
                   placeholder="0"
                   value={formData.amount}
-                  onChange={(e) => {
-                    const parsed = parseAmountInput(e.target.value);
+                  onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      amount:
-                        parsed === null ? e.target.value.replace(/[^\d,.\s]/g, "") : formatAmountInput(parsed, prev.currency),
-                    }));
-                  }}
+                      amount: e.target.value.replace(/[^\d,.\s]/g, ""),
+                    }))
+                  }
+                  onBlur={() =>
+                    setFormData((prev) => {
+                      const parsed = parseAmountInput(prev.amount, prev.currency);
+                      return {
+                        ...prev,
+                        amount:
+                          parsed === null ? prev.amount : formatAmountInput(parsed, prev.currency),
+                      };
+                    })
+                  }
                   className={fieldClassName}
                 />
               </div>
@@ -235,7 +244,7 @@ export default function AddSubscription() {
                           amount: formatAmountInput(nextAmount, nextCurrency),
                         };
                       }
-                      const parsed = parseAmountInput(prev.amount);
+                      const parsed = parseAmountInput(prev.amount, prev.currency);
                       return {
                         ...prev,
                         currency: nextCurrency,

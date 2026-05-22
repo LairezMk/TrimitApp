@@ -313,8 +313,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     await sendPasswordResetEmail(auth, trimmedEmail, {
-      url: `${window.location.origin}/auth`,
-      handleCodeInApp: false,
+      url: `${window.location.origin}/auth/action`,
+      handleCodeInApp: true,
     });
   };
 

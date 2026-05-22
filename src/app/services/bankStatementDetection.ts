@@ -1,4 +1,5 @@
 import type { DetectedSubscriptionDraft } from "./gmailDetection";
+import { dateToInputValue } from "../utils/date";
 
 interface ProviderHint {
   name: string;
@@ -458,7 +459,7 @@ export async function detectSubscriptionsFromBankStatement(file: File) {
       category,
       amount: amountData?.amount || 0,
       currency: amountData?.currency || "COP",
-      nextPaymentDate: nextDate.toISOString().split("T")[0],
+      nextPaymentDate: dateToInputValue(nextDate),
       isRecurring: true,
       icon,
       color,
@@ -489,7 +490,7 @@ export async function detectSubscriptionsFromBankStatement(file: File) {
         category: hint.category,
         amount: fallbackAmount,
         currency: "COP",
-        nextPaymentDate: addDefaultNextPaymentDate().toISOString().split("T")[0],
+        nextPaymentDate: dateToInputValue(addDefaultNextPaymentDate()),
         isRecurring: true,
         icon: hint.icon,
         color: hint.color,

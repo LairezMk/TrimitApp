@@ -4,6 +4,8 @@ import Layout from "./components/Layout";
 import AuthPage from "./pages/Auth";
 import ForgotPasswordPage from "./pages/ForgotPassword";
 import AuthGuard from "./components/auth/AuthGuard";
+import AppErrorBoundary from "./components/AppErrorBoundary";
+import ResetPasswordAction from "./pages/ResetPasswordAction";
 import Dashboard from "./pages/Dashboard";
 import Subscriptions from "./pages/Subscriptions";
 import AddSubscription from "./pages/AddSubscription";
@@ -50,6 +52,11 @@ export const router = createBrowserRouter([
     Component: ForgotPasswordPage,
   },
   {
+    path: "/auth/action",
+    Component: ResetPasswordAction,
+    ErrorBoundary: AppErrorBoundary,
+  },
+  {
     path: "/features",
     Component: FeaturesPage,
   },
@@ -83,9 +90,11 @@ export const router = createBrowserRouter([
   },
   {
     Component: AuthGuard,
+    ErrorBoundary: AppErrorBoundary,
     children: [
       {
         Component: Layout,
+        ErrorBoundary: AppErrorBoundary,
         children: [
           {
             path: "/dashboard",
