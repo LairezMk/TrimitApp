@@ -30,7 +30,7 @@ const PROVIDER_HINTS: ProviderHint[] = [
     category: "Entretenimiento",
     icon: "D",
     color: "bg-blue-500",
-    patterns: [/disney\+/i, /disneyplus/i],
+    patterns: [/disney\+/i, /disneyplus/i, /disney\s*plus/i],
   },
   {
     name: "YouTube Premium",
@@ -44,7 +44,7 @@ const PROVIDER_HINTS: ProviderHint[] = [
     category: "Entretenimiento",
     icon: "A",
     color: "bg-cyan-500",
-    patterns: [/amazon prime/i, /prime video/i],
+    patterns: [/amazon prime/i, /prime video/i, /prime membership/i],
   },
   {
     name: "Max",
@@ -61,6 +61,13 @@ const PROVIDER_HINTS: ProviderHint[] = [
     patterns: [/apple\.com/i, /icloud/i, /apple\s+one/i],
   },
   {
+    name: "Apple Music",
+    category: "Música",
+    icon: "A",
+    color: "bg-gray-700",
+    patterns: [/apple\s*music/i, /itunes/i],
+  },
+  {
     name: "Google One",
     category: "Productividad",
     icon: "G",
@@ -73,6 +80,48 @@ const PROVIDER_HINTS: ProviderHint[] = [
     icon: "A",
     color: "bg-red-500",
     patterns: [/adobe/i, /creative cloud/i],
+  },
+  {
+    name: "Gemini Advanced",
+    category: "Productividad",
+    icon: "G",
+    color: "bg-blue-500",
+    patterns: [/gemini\s*advanced/i, /google\s*ai\s*premium/i],
+  },
+  {
+    name: "Claude",
+    category: "Productividad",
+    icon: "C",
+    color: "bg-orange-500",
+    patterns: [/claude/i, /anthropic/i],
+  },
+  {
+    name: "Cursor",
+    category: "Productividad",
+    icon: "C",
+    color: "bg-slate-800",
+    patterns: [/\bcursor\b/i, /cursor\.com/i],
+  },
+  {
+    name: "Replit",
+    category: "Productividad",
+    icon: "R",
+    color: "bg-orange-500",
+    patterns: [/replit/i],
+  },
+  {
+    name: "Vercel",
+    category: "Productividad",
+    icon: "V",
+    color: "bg-gray-900",
+    patterns: [/vercel/i],
+  },
+  {
+    name: "Notion AI",
+    category: "Productividad",
+    icon: "N",
+    color: "bg-gray-900",
+    patterns: [/notion\s*ai/i],
   },
   {
     name: "Canva",
@@ -124,6 +173,27 @@ const PROVIDER_HINTS: ProviderHint[] = [
     patterns: [/slack/i],
   },
   {
+    name: "Trello",
+    category: "Productividad",
+    icon: "T",
+    color: "bg-blue-500",
+    patterns: [/trello/i],
+  },
+  {
+    name: "Asana",
+    category: "Productividad",
+    icon: "A",
+    color: "bg-pink-500",
+    patterns: [/asana/i],
+  },
+  {
+    name: "Monday.com",
+    category: "Productividad",
+    icon: "M",
+    color: "bg-purple-500",
+    patterns: [/monday\.com/i, /\bmonday\b/i],
+  },
+  {
     name: "Zoom",
     category: "Productividad",
     icon: "Z",
@@ -145,6 +215,27 @@ const PROVIDER_HINTS: ProviderHint[] = [
     patterns: [/coursera/i],
   },
   {
+    name: "Platzi",
+    category: "Educación",
+    icon: "P",
+    color: "bg-green-500",
+    patterns: [/platzi/i],
+  },
+  {
+    name: "Udemy",
+    category: "Educación",
+    icon: "U",
+    color: "bg-purple-500",
+    patterns: [/udemy/i],
+  },
+  {
+    name: "LinkedIn Premium",
+    category: "Productividad",
+    icon: "L",
+    color: "bg-blue-700",
+    patterns: [/linkedin\s*premium/i, /linkedin\s*learning/i],
+  },
+  {
     name: "Uber One",
     category: "Transporte",
     icon: "U",
@@ -157,6 +248,20 @@ const PROVIDER_HINTS: ProviderHint[] = [
     icon: "R",
     color: "bg-orange-500",
     patterns: [/rappi\s*pro/i, /rappi\s*prime/i],
+  },
+  {
+    name: "Uber Pass",
+    category: "Transporte",
+    icon: "U",
+    color: "bg-gray-900",
+    patterns: [/uber\s*pass/i],
+  },
+  {
+    name: "Didi Club",
+    category: "Transporte",
+    icon: "D",
+    color: "bg-orange-500",
+    patterns: [/didi\s*club/i, /didi\s*pass/i],
   },
   {
     name: "iCloud+",
@@ -173,6 +278,27 @@ const PROVIDER_HINTS: ProviderHint[] = [
     patterns: [/microsoft 365/i, /office 365/i],
   },
   {
+    name: "Xbox Game Pass",
+    category: "Entretenimiento",
+    icon: "X",
+    color: "bg-green-600",
+    patterns: [/xbox\s*game\s*pass/i, /game\s*pass/i],
+  },
+  {
+    name: "PlayStation Plus",
+    category: "Entretenimiento",
+    icon: "P",
+    color: "bg-blue-700",
+    patterns: [/playstation\s*plus/i, /\bps\s*plus\b/i],
+  },
+  {
+    name: "Nintendo Switch Online",
+    category: "Entretenimiento",
+    icon: "N",
+    color: "bg-red-500",
+    patterns: [/nintendo\s*switch\s*online/i],
+  },
+  {
     name: "Movistar",
     category: "Telefonía",
     icon: "M",
@@ -185,6 +311,27 @@ const PROVIDER_HINTS: ProviderHint[] = [
     icon: "C",
     color: "bg-red-500",
     patterns: [/claro/i],
+  },
+  {
+    name: "ETB",
+    category: "Internet",
+    icon: "E",
+    color: "bg-blue-500",
+    patterns: [/\betb\b/i],
+  },
+  {
+    name: "DIRECTV",
+    category: "Entretenimiento",
+    icon: "D",
+    color: "bg-blue-600",
+    patterns: [/directv/i],
+  },
+  {
+    name: "Starlink",
+    category: "Internet",
+    icon: "S",
+    color: "bg-slate-700",
+    patterns: [/starlink/i],
   },
   {
     name: "Tigo",
@@ -206,6 +353,62 @@ const PROVIDER_HINTS: ProviderHint[] = [
     icon: "P",
     color: "bg-emerald-500",
     patterns: [/plan de datos/i, /\bdatos móviles\b/i, /\bpaquete de datos\b/i],
+  },
+  {
+    name: "NordVPN",
+    category: "Seguridad",
+    icon: "N",
+    color: "bg-blue-500",
+    patterns: [/nordvpn/i],
+  },
+  {
+    name: "ExpressVPN",
+    category: "Seguridad",
+    icon: "E",
+    color: "bg-red-500",
+    patterns: [/expressvpn/i],
+  },
+  {
+    name: "1Password",
+    category: "Seguridad",
+    icon: "1",
+    color: "bg-blue-600",
+    patterns: [/1password/i],
+  },
+  {
+    name: "LastPass",
+    category: "Seguridad",
+    icon: "L",
+    color: "bg-red-600",
+    patterns: [/lastpass/i],
+  },
+  {
+    name: "Strava",
+    category: "Salud",
+    icon: "S",
+    color: "bg-orange-500",
+    patterns: [/strava/i],
+  },
+  {
+    name: "Fitbit Premium",
+    category: "Salud",
+    icon: "F",
+    color: "bg-cyan-500",
+    patterns: [/fitbit\s*premium/i],
+  },
+  {
+    name: "The New York Times",
+    category: "Noticias",
+    icon: "N",
+    color: "bg-gray-900",
+    patterns: [/new\s*york\s*times/i, /\bnytimes\b/i],
+  },
+  {
+    name: "Medium",
+    category: "Noticias",
+    icon: "M",
+    color: "bg-gray-900",
+    patterns: [/\bmedium\b/i],
   },
 ];
 
@@ -284,6 +487,38 @@ function decodeBase64Url(input: string) {
   }
 
   return padded;
+}
+
+function decodeHtmlEntities(text: string) {
+  const entities: Record<string, string> = {
+    amp: "&",
+    lt: "<",
+    gt: ">",
+    quot: '"',
+    apos: "'",
+    nbsp: " ",
+  };
+
+  return text.replace(/&(#\d+|#x[\da-f]+|[a-z]+);/gi, (entity, raw: string) => {
+    const key = raw.toLowerCase();
+    if (key.startsWith("#x")) {
+      return String.fromCharCode(Number.parseInt(key.slice(2), 16));
+    }
+    if (key.startsWith("#")) {
+      return String.fromCharCode(Number.parseInt(key.slice(1), 10));
+    }
+    return entities[key] || entity;
+  });
+}
+
+function cleanEmailText(text: string) {
+  return decodeHtmlEntities(text)
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function collectBodyText(part?: GmailMessagePart): string[] {
@@ -407,8 +642,8 @@ function extractAmount(text: string) {
   const amountPatterns = [
     /(?:cop|col\$|co\$|us\$|pesos?|usd|eur|[$€])\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
     /([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})\s*(?:cop|col\$|co\$|us\$|pesos?|usd|eur)\b/gi,
-    /(total\s*(?:a\s*pagar|paid|due|pago)?|valor\s*(?:a\s*pagar)?|importe|monto|factura|invoice|amount\s*(?:paid|due)?|subtotal|charged|cargo|vencimiento|renovaci[oó]n)\D{0,34}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
-    /(plan|membres[ií]a|membership|suscripci[oó]n|subscription|mensualidad|renovaci[oó]n|renewal|billing\s*period)\D{0,34}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /(total\s*(?:a\s*pagar|paid|due|pago)?|valor\s*(?:a\s*pagar)?|saldo\s*(?:a\s*pagar|pendiente)?|importe|monto|factura|invoice|amount\s*(?:paid|due|charged)?|subtotal|charged|cargo|cobro|vencimiento|renovaci[oó]n|cuota|mensualidad)\D{0,44}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /(plan|membres[ií]a|membership|suscripci[oó]n|subscription|mensualidad|renovaci[oó]n|renewal|billing\s*period|pr[oó]ximo\s*pago|next\s*payment|autopay|pago\s*autom[aá]tico)\D{0,44}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
   ];
   const scoringKeywords =
     /total\s*a\s*pagar|total\s*paid|amount\s*paid|amount\s*due|valor\s*a\s*pagar|importe\s*a\s*pagar|saldo\s*a\s*pagar|monto|factura|invoice|recibo|receipt|vencimiento|plan|membres[ií]a|membership|suscripci[oó]n|subscription|renovaci[oó]n|renewal|mensualidad|billing\s*period/i;
@@ -689,6 +924,27 @@ function isLikelyRecurring(text: string) {
   );
 }
 
+function hasBillingLanguage(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(factura|facturaci[oó]n|invoice|bill|billing|recibo|receipt|estado\s*de\s*cuenta|statement|vencimiento|due\s*date|total\s*a\s*pagar|amount\s*due|saldo\s*a\s*pagar|pago\s*m[ií]nimo|renovaci[oó]n|renewal|membres[ií]a|membership|suscripci[oó]n|subscription|plan|autopago|pago\s*autom[aá]tico|d[eé]bito\s*autom[aá]tico|automatic\s*payment|recurring)\b/i.test(
+    normalized,
+  );
+}
+
+function hasServiceLanguage(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(servicio|internet|fibra|banda\s*ancha|m[oó]vil|telefon[ií]a|pospago|postpago|cloud|storage|hosting|dominio|domain|software|workspace|premium|plus|pro|family|individual|empresa|business|team|seat|license|licencia)\b/i.test(
+    normalized,
+  );
+}
+
+function hasNegativeBillingLanguage(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(cotizaci[oó]n|quote|presupuesto|estimate|proforma|simulaci[oó]n|preaprobado|pre-approved|solicitud|request|recordatorio\s*de\s*carrito|cart\s*reminder|no\s*reply\s*needed)\b/i.test(
+    normalized,
+  );
+}
+
 function isLikelyReceipt(text: string) {
   const normalized = text.toLowerCase();
   return /\b(pago\s*realizado|pago\s*confirmado|pago\s*exitoso|pago\s*aprobado|pago\s*recibido|payment\s*(successful|confirmed|approved|received)|paid\s*invoice|invoice\s*(paid|payment|summary)?|receipt|recibo\s*(de\s*pago)?|factura\s*(electr[oó]nica)?|comprobante\s*de\s*pago|cobro\s*realizado|cargo\s*realizado|se\s*(cobro|cargo)|transacci[oó]n\s*aprobada|tu\s*orden\s*ha\s*sido\s*pagada|order\s*paid|debitado|d[eé]bito\s*autom[aá]tico|se\s*debito|charged|charge\s*was\s*made|your\s*(subscription|membership)\s*(renewed|was\s*renewed)|renovaci[oó]n\s*(confirmada|realizada)|suscripci[oó]n\s*renovada)\b/i.test(
@@ -698,7 +954,7 @@ function isLikelyReceipt(text: string) {
 
 function isLikelyPromotional(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|gratis|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|referid[oa]|te\s*aceptaron|bienvenido\s+a|welcome\s*gift|free|gift|eligible|3\s*meses\s*por\s*\$?0|meses\s*gratis|black\s*friday|hot\s*sale|cyber\s*monday)\b/i.test(
+  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|gratis|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|referid[oa]|te\s*aceptaron|bienvenido\s+a|welcome\s*gift|free|gift|eligible|3\s*meses\s*por\s*\$?0|meses\s*gratis|black\s*friday|hot\s*sale|cyber\s*monday|sale|deal|deals|clearance)\b/i.test(
     normalized,
   );
 }
@@ -726,7 +982,7 @@ function isLikelyOneTimeCommerce(text: string) {
 
 function hasPaymentContext(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(pago|pagado|pagaste|cobro|cargo|factura|recibo|comprobante|transacci[oó]n|invoice|receipt|payment|paid|billing|charged|charge|debitado|d[eé]bito)\b/i.test(
+  return /\b(pago|pagado|pagaste|cobro|cargo|factura|recibo|comprobante|transacci[oó]n|invoice|receipt|payment|paid|billing|charged|charge|debitado|d[eé]bito|total\s*a\s*pagar|amount\s*due|saldo\s*a\s*pagar|vencimiento)\b/i.test(
     normalized,
   );
 }
@@ -795,7 +1051,16 @@ function parseSenderName(from: string) {
     return "PayPal";
   }
 
+  const domainProvider = findProvider(domain);
+  if (domainProvider) {
+    return domainProvider.name;
+  }
+
   const named = clean.split("<")[0].trim();
+  const namedProvider = findProvider(named);
+  if (namedProvider) {
+    return namedProvider.name;
+  }
   if (named && named.length > 2 && !named.includes("@")) {
     return named.slice(0, 40);
   }
@@ -908,32 +1173,43 @@ async function fetchGmailMessages(accessToken: string) {
     "0",
   )}/${String(since.getDate()).padStart(2, "0")}`;
 
-  const query =
-    `after:${sinceQuery} (` +
-    "subscription OR suscripción OR suscripcion OR membresia OR membership OR plan OR invoice OR paid invoice OR factura OR facturación OR bill OR billing OR receipt OR receipt from OR renewal OR renewed OR renovación OR renovada OR payment OR pago OR cobro OR cargo OR recordatorio OR vencimiento OR recibo OR comprobante OR estado de cuenta OR billing agreement OR automatic renewal" +
-    ")";
+  const queryGroups = [
+    "subscription OR suscripción OR suscripcion OR membresia OR membership OR plan OR recurring OR renewal OR renewed OR renovación OR renovada",
+    "invoice OR paid invoice OR factura OR facturación OR bill OR billing OR receipt OR recibo OR comprobante OR estado de cuenta",
+    "payment OR pago OR cobro OR cargo OR charged OR charge OR debitado OR débito OR vencimiento OR due date OR amount due OR total a pagar",
+    "autopay OR automatic payment OR automatic renewal OR pago automático OR débito automático OR cargo recurrente OR billing agreement",
+    "netflix OR spotify OR disney OR youtube premium OR max OR movistar OR claro OR tigo OR wom OR microsoft 365 OR apple OR google one OR adobe OR canva OR chatgpt",
+  ];
 
-  const listUrl =
-    "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=120&q=" +
-    encodeURIComponent(query);
+  const messageIds = new Map<string, { id: string }>();
+  for (const group of queryGroups) {
+    const query = `after:${sinceQuery} (${group})`;
+    const listUrl =
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=80&q=" +
+      encodeURIComponent(query);
 
-  const listResponse = await fetch(listUrl, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+    const listResponse = await fetch(listUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
-  if (!listResponse.ok) {
-    const detail = await listResponse.text();
-    throw new Error(`No se pudo consultar Gmail: ${detail || listResponse.status}`);
+    if (!listResponse.ok) {
+      const detail = await listResponse.text();
+      throw new Error(`No se pudo consultar Gmail: ${detail || listResponse.status}`);
+    }
+
+    const listData = (await listResponse.json()) as GmailMessageListResponse;
+    for (const message of listData.messages || []) {
+      messageIds.set(message.id, message);
+    }
   }
 
-  const listData = (await listResponse.json()) as GmailMessageListResponse;
-  if (!listData.messages?.length) {
+  if (!messageIds.size) {
     return [];
   }
 
-  const picked = listData.messages.slice(0, 60);
+  const picked = Array.from(messageIds.values()).slice(0, 140);
 
   const messages = await Promise.all(
     picked.map(async (message) => {
@@ -959,16 +1235,16 @@ async function fetchGmailMessages(accessToken: string) {
 
 function mapGmailMessage(message: GmailMessageResponse): EmailMessage {
   const headers = message.payload?.headers || [];
-  const from = extractHeader(headers, "From") || "Correo detectado";
-  const subject = extractHeader(headers, "Subject") || "Sin asunto";
-  const body = collectBodyText(message.payload).join(" ");
+  const from = cleanEmailText(extractHeader(headers, "From") || "Correo detectado");
+  const subject = cleanEmailText(extractHeader(headers, "Subject") || "Sin asunto");
+  const body = cleanEmailText(collectBodyText(message.payload).join(" "));
   const date = message.internalDate ? new Date(Number(message.internalDate)) : null;
 
   return {
     id: message.id,
     from,
     subject,
-    snippet: message.snippet || "",
+    snippet: cleanEmailText(message.snippet || ""),
     body,
     date,
   };
@@ -1001,6 +1277,13 @@ function detectSubscriptionsFromMessages(
     recurring: boolean;
     processorReceipt: boolean;
     namedByStore: boolean;
+    billingLanguage: boolean;
+    serviceLanguage: boolean;
+    receipt: boolean;
+    paymentContext: boolean;
+    promotional: boolean;
+    oneTimeCommerce: boolean;
+    signalScore: number;
   }> = [];
 
   for (const message of messages) {
@@ -1021,26 +1304,52 @@ function detectSubscriptionsFromMessages(
       findProvider(providerName || "") || findProviderForMessage(from, haystack);
     const recurring = isLikelyRecurring(haystack);
     const amountData = extractAmount(haystack);
-    const receipt = isLikelyReceipt(haystack);
+    const billingLanguage = hasBillingLanguage(haystack);
+    const serviceLanguage = hasServiceLanguage(haystack);
+    const receipt = isLikelyReceipt(haystack) || (billingLanguage && hasPaymentContext(haystack));
     const promotional = isLikelyPromotional(haystack) || isLikelyPromotionalSender(from);
     const blockedCommerce = isBlockedCommerceSender(from);
     const oneTimeCommerce = isLikelyOneTimeCommerce(haystack);
     const paymentContext = hasPaymentContext(haystack);
+    const negativeBilling = hasNegativeBillingLanguage(haystack);
+    const trustedContext = Boolean(provider || processorMerchant || processorReceipt);
+    const signalScore =
+      (provider ? 32 : 0) +
+      (processorReceipt ? 18 : 0) +
+      (providerName ? 14 : 0) +
+      (amountData ? 22 : 0) +
+      (receipt ? 16 : 0) +
+      (billingLanguage ? 14 : 0) +
+      (paymentContext ? 10 : 0) +
+      (recurring ? 18 : 0) +
+      (serviceLanguage ? 8 : 0) +
+      (promotional ? -24 : 0) +
+      (blockedCommerce ? -28 : 0) +
+      (oneTimeCommerce ? -18 : 0) +
+      (negativeBilling ? -16 : 0);
 
-    if (!amountData || !receipt || !paymentContext || isLikelyInvoiceScam(haystack)) {
+    if (!amountData || isLikelyInvoiceScam(haystack)) {
       continue;
     }
 
     if (
-      (promotional || blockedCommerce || oneTimeCommerce) &&
+      (promotional || blockedCommerce || oneTimeCommerce || negativeBilling) &&
       !recurring &&
-      !provider &&
-      !processorMerchant
+      !trustedContext &&
+      !billingLanguage
     ) {
       continue;
     }
 
-    if ((promotional || blockedCommerce) && oneTimeCommerce && !recurring) {
+    if ((promotional || blockedCommerce) && oneTimeCommerce && !recurring && !billingLanguage) {
+      continue;
+    }
+
+    if (!trustedContext && !billingLanguage && !recurring && !receipt) {
+      continue;
+    }
+
+    if (signalScore < 45) {
       continue;
     }
 
@@ -1061,6 +1370,13 @@ function detectSubscriptionsFromMessages(
       recurring,
       processorReceipt,
       namedByStore: Boolean(storeSubscriptionName),
+      billingLanguage,
+      serviceLanguage,
+      receipt,
+      paymentContext,
+      promotional,
+      oneTimeCommerce,
+      signalScore,
     });
   }
 
@@ -1076,11 +1392,18 @@ function detectSubscriptionsFromMessages(
       recurring,
       processorReceipt,
       namedByStore,
+      billingLanguage,
+      serviceLanguage,
+      receipt,
+      paymentContext,
+      promotional,
+      oneTimeCommerce,
+      signalScore,
     } = candidate;
     const normalizedProvider = normalizeDraftKey(providerName || parseSenderName(from));
     const occurrences = providerOccurrences.get(normalizedProvider) || 0;
 
-    if (!provider && !recurring && !processorReceipt && occurrences < 2) {
+    if (!provider && !recurring && !processorReceipt && !billingLanguage && occurrences < 2) {
       continue;
     }
 
@@ -1099,14 +1422,15 @@ function detectSubscriptionsFromMessages(
     const inferredColor = finalProvider?.color || "bg-emerald-500";
 
     const confidence =
-      (finalProvider ? 60 : 45) +
-      (recurring ? 20 : 0) +
-      (amountData ? 20 : 0) +
-      (providerName ? 10 : 0) +
-      (parsedDate ? 10 : 0) +
-      (occurrences >= 2 ? 10 : 0) +
-      (processorReceipt ? 8 : 0) +
-      (namedByStore ? 8 : 0);
+      signalScore +
+      (finalProvider ? 18 : 8) +
+      (parsedDate ? 8 : 0) +
+      (occurrences >= 2 ? 8 : 0) +
+      (namedByStore ? 8 : 0) +
+      (serviceLanguage ? 4 : 0) +
+      (receipt && paymentContext ? 6 : 0) -
+      (promotional && !billingLanguage ? 10 : 0) -
+      (oneTimeCommerce && !recurring ? 8 : 0);
 
     const draft: DetectedSubscriptionDraft = {
       id: toBase64(`${inferredName}-${subject}`).slice(0, 48),
@@ -1124,7 +1448,7 @@ function detectSubscriptionsFromMessages(
       subject,
     };
 
-    if (draft.confidence < 75) {
+    if (draft.confidence < 68) {
       continue;
     }
 
@@ -1160,7 +1484,7 @@ async function fetchOutlookMessages(accessToken: string) {
   since.setDate(since.getDate() - 90);
   const filterDate = since.toISOString();
   const params = new URLSearchParams({
-    "$top": "100",
+    "$top": "150",
     "$orderby": "receivedDateTime desc",
     "$select": "id,subject,from,receivedDateTime,bodyPreview,body",
     "$filter": `receivedDateTime ge ${filterDate}`,
@@ -1187,10 +1511,10 @@ async function fetchOutlookMessages(accessToken: string) {
 
     return {
       id: message.id,
-      from,
-      subject: message.subject || "Sin asunto",
-      snippet: message.bodyPreview || "",
-      body: message.body?.content || "",
+      from: cleanEmailText(from),
+      subject: cleanEmailText(message.subject || "Sin asunto"),
+      snippet: cleanEmailText(message.bodyPreview || ""),
+      body: cleanEmailText(message.body?.content || ""),
       date,
     };
   });
