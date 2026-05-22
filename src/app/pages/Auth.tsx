@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
-import { Eye, EyeOff, Lock, Mail, Sparkles, User } from "lucide-react";
+import { CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, User } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   detectSubscriptionsFromGmail,
@@ -54,8 +54,8 @@ export default function AuthPage() {
     }
 
     const levelMap = {
-      0: { label: "Muy debil", color: "bg-red-500", width: "w-1/4" },
-      1: { label: "Debil", color: "bg-orange-500", width: "w-2/4" },
+      0: { label: "Muy débil", color: "bg-red-500", width: "w-1/4" },
+      1: { label: "Débil", color: "bg-orange-500", width: "w-2/4" },
       2: { label: "Aceptable", color: "bg-yellow-500", width: "w-3/4" },
       3: { label: "Fuerte", color: "bg-emerald-500", width: "w-full" },
     } as const;
@@ -88,7 +88,7 @@ export default function AuthPage() {
       const trimmedDisplayName = displayName.trim();
 
       if (!trimmedEmail) {
-        setMessage("El correo no puede estar vacio.");
+        setMessage("El correo no puede estar vacío.");
         return;
       }
 
@@ -100,7 +100,7 @@ export default function AuthPage() {
 
       if (mode === "register") {
         if (!trimmedDisplayName) {
-          setMessage("El nombre no puede estar vacio.");
+          setMessage("El nombre no puede estar vacío.");
           return;
         }
 
@@ -112,7 +112,7 @@ export default function AuthPage() {
 
         if (!passwordChecks.hasLength8 || passwordChecks.criteriaMet < 3) {
           setMessage(
-            "Minimo debes cumplir 3 requisitos de seguridad, y uno de ellos es tener 8 caracteres.",
+            "Mínimo debes cumplir 3 requisitos de seguridad, incluyendo 8 caracteres.",
           );
           setMessageType("error");
           return;
@@ -125,7 +125,7 @@ export default function AuthPage() {
       } else {
         await login(trimmedEmail, password);
         setMessageType("success");
-        setMessage("Sesion iniciada correctamente.");
+        setMessage("Sesión iniciada correctamente.");
         navigate("/dashboard");
       }
     } catch (error) {
@@ -168,57 +168,43 @@ export default function AuthPage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-slate-950 grid place-items-center p-4">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl animate-pulse" />
-        <div className="absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-cyan-500/20 blur-3xl animate-pulse" />
-        <div className="absolute -bottom-20 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl animate-pulse" />
-        {Array.from({ length: 32 }).map((_, index) => (
-          <span
-            key={index}
-            className={`absolute rounded-full bg-white/30 ${
-              index % 3 === 0 ? "animate-pulse" : "animate-bounce"
-            }`}
-            style={{
-              width: `${(index % 4) + 2}px`,
-              height: `${(index % 4) + 2}px`,
-              left: `${(index * 17) % 100}%`,
-              top: `${(index * 29) % 100}%`,
-              animationDuration: `${2 + (index % 4)}s`,
-              animationDelay: `${(index % 5) * 0.2}s`,
-            }}
-          />
-        ))}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(16,185,129,.22),transparent_34%),radial-gradient(circle_at_80%_30%,rgba(6,182,212,.18),transparent_32%),linear-gradient(135deg,#020617_0%,#0f172a_52%,#042f2e_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
+        <div className="absolute left-1/2 top-1/2 h-[580px] w-[580px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+        <div className="absolute left-[12%] top-[18%] h-24 w-24 rounded-full border border-cyan-300/20" />
+        <div className="absolute bottom-[14%] right-[16%] h-32 w-32 rounded-full border border-emerald-300/20" />
       </div>
 
-      <div className="relative w-full max-w-xl rounded-2xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl p-6 md:p-8 space-y-5">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="h-10 w-10 rounded-xl bg-emerald-500/20 text-emerald-200 grid place-items-center">
+      <div className="relative w-full max-w-xl rounded-2xl border border-white/15 bg-white/[0.09] backdrop-blur-2xl shadow-2xl shadow-emerald-950/40 p-5 sm:p-6 md:p-8 space-y-5">
+        <div className="flex items-start gap-3 mb-1">
+          <div className="h-11 w-11 rounded-2xl bg-emerald-500/20 text-emerald-200 grid place-items-center border border-emerald-300/20 shrink-0">
             <Sparkles className="h-5 w-5" />
           </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-white">{title}</h1>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">{title}</h1>
             <p className="text-sm text-slate-300">
-              Gestiona tus suscripciones con una experiencia moderna.
+              Entra a Trimit para controlar pagos, alertas y suscripciones.
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 rounded-xl bg-white/10 p-1">
           <button
-            className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition ${
+            className={`rounded-lg py-2.5 text-sm font-semibold transition ${
               mode === "login"
                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                : "bg-white/10 text-slate-200 hover:bg-white/20"
+                : "text-slate-200 hover:bg-white/10"
             }`}
             onClick={() => setMode("login")}
             type="button"
           >
-            Login
+            Iniciar sesión
           </button>
           <button
-            className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition ${
+            className={`rounded-lg py-2.5 text-sm font-semibold transition ${
               mode === "register"
                 ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                : "bg-white/10 text-slate-200 hover:bg-white/20"
+                : "text-slate-200 hover:bg-white/10"
             }`}
             onClick={() => setMode("register")}
             type="button"
@@ -227,17 +213,17 @@ export default function AuthPage() {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           {mode === "register" && (
             <div>
-              <label className="block text-sm text-slate-200 mb-1.5">Nombre</label>
+              <label className="block text-sm font-medium text-slate-200 mb-1.5">Nombre</label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Tu nombre"
-                  className="w-full border border-white/20 rounded-lg pl-9 pr-3 py-2.5 bg-white/10 text-white placeholder:text-slate-400"
+                  className="w-full border border-white/15 rounded-xl pl-9 pr-3 py-3 bg-white/10 text-white placeholder:text-slate-400 outline-none focus:border-emerald-300/70 focus:ring-4 focus:ring-emerald-400/10 transition"
                   required
                 />
               </div>
@@ -245,7 +231,7 @@ export default function AuthPage() {
           )}
 
           <div>
-            <label className="block text-sm text-slate-200 mb-1.5">Correo</label>
+            <label className="block text-sm font-medium text-slate-200 mb-1.5">Correo</label>
             <div className="relative">
               <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -253,22 +239,22 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="correo@ejemplo.com"
-                className="w-full border border-white/20 rounded-lg pl-9 pr-3 py-2.5 bg-white/10 text-white placeholder:text-slate-400"
+                className="w-full border border-white/15 rounded-xl pl-9 pr-3 py-3 bg-white/10 text-white placeholder:text-slate-400 outline-none focus:border-emerald-300/70 focus:ring-4 focus:ring-emerald-400/10 transition"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm text-slate-200 mb-1.5">Contrasena</label>
+            <label className="block text-sm font-medium text-slate-200 mb-1.5">Contraseña</label>
             <div className="relative">
               <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === "register" ? "Crea una contrasena segura" : "Ingresa tu contrasena"}
-                className="w-full border border-white/20 rounded-lg pl-9 pr-10 py-2.5 bg-white/10 text-white placeholder:text-slate-400"
+                placeholder={mode === "register" ? "Crea una contraseña segura" : "Ingresa tu contraseña"}
+                className="w-full border border-white/15 rounded-xl pl-9 pr-10 py-3 bg-white/10 text-white placeholder:text-slate-400 outline-none focus:border-emerald-300/70 focus:ring-4 focus:ring-emerald-400/10 transition"
                 required
                 minLength={mode === "register" ? 8 : 6}
               />
@@ -283,42 +269,31 @@ export default function AuthPage() {
           </div>
 
           {mode === "register" && (
-            <div className="space-y-2 rounded-lg border border-white/15 bg-black/20 p-3">
-              <p className="text-xs text-amber-200">
-                Minimo 3 requisitos, incluyendo 8 caracteres.
-              </p>
+            <div className="space-y-3 rounded-xl border border-white/15 bg-slate-950/35 p-3.5">
+              <div className="flex items-start gap-2 text-xs text-amber-100">
+                <ShieldCheck className="w-4 h-4 shrink-0 text-amber-200" />
+                <p>Mínimo 3 requisitos, incluyendo 8 caracteres.</p>
+              </div>
               <div className="flex items-center justify-between">
-                <p className="text-xs text-slate-300">Fortaleza de contrasena</p>
+                <p className="text-xs text-slate-300">Fortaleza de contraseña</p>
                 <span className="text-xs font-medium text-white">{passwordChecks.level.label}</span>
               </div>
               <div className="h-2 w-full rounded-full bg-white/20 overflow-hidden">
                 <div className={`h-full ${passwordChecks.level.color} ${passwordChecks.level.width} transition-all`} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
-                <p className={passwordChecks.hasLength8 ? "text-emerald-300" : "text-slate-400"}>
-                  • Minimo 8 caracteres 
-                </p>
-                <p className={passwordChecks.hasLength16 ? "text-emerald-300" : "text-slate-400"}>
-                  • 16+ caracteres 
-                </p>
-                <p className={passwordChecks.hasUpper ? "text-emerald-300" : "text-slate-400"}>
-                  • Una mayuscula
-                </p>
-                <p className={passwordChecks.hasLower ? "text-emerald-300" : "text-slate-400"}>
-                  • Una minuscula
-                </p>
-                <p className={passwordChecks.hasSpecial ? "text-emerald-300" : "text-slate-400"}>
-                  • Un caracter especial
-                </p>
-                <p className={passwordChecks.hasComplex ? "text-emerald-300" : "text-slate-400"}>
-                  • Combinacion completa
-                </p>
+                <PasswordCheck active={passwordChecks.hasLength8} label="Mínimo 8 caracteres" />
+                <PasswordCheck active={passwordChecks.hasLength16} label="16+ caracteres" />
+                <PasswordCheck active={passwordChecks.hasUpper} label="Una mayúscula" />
+                <PasswordCheck active={passwordChecks.hasLower} label="Una minúscula" />
+                <PasswordCheck active={passwordChecks.hasSpecial} label="Un carácter especial" />
+                <PasswordCheck active={passwordChecks.hasComplex} label="Combinación completa" />
               </div>
             </div>
           )}
 
           <button
-            className="w-full bg-emerald-500 text-white rounded-lg py-2.5 font-medium hover:bg-emerald-600 disabled:opacity-50"
+            className="w-full bg-emerald-500 text-white rounded-xl py-3 font-semibold hover:bg-emerald-600 disabled:opacity-50 shadow-lg shadow-emerald-500/20 transition"
             disabled={submitting}
             type="submit"
           >
@@ -328,14 +303,14 @@ export default function AuthPage() {
           {mode === "login" && (
             <Link
               to="/auth/forgot-password"
-              className="w-full text-sm text-cyan-200 hover:text-cyan-100 underline underline-offset-2 disabled:opacity-50"
+              className="inline-flex text-sm text-cyan-200 hover:text-cyan-100 underline underline-offset-4"
             >
               Olvidé mi contraseña
             </Link>
           )}
 
           <button
-            className="w-full border border-white/25 text-white rounded-lg py-2.5 font-medium hover:bg-white/10 disabled:opacity-50"
+            className="w-full border border-white/20 text-white rounded-xl py-3 font-semibold hover:bg-white/10 disabled:opacity-50 transition"
             disabled={submitting}
             type="button"
             onClick={handleGoogleAuth}
@@ -357,5 +332,14 @@ export default function AuthPage() {
         )}
       </div>
     </div>
+  );
+}
+
+function PasswordCheck({ active, label }: { active: boolean; label: string }) {
+  return (
+    <p className={active ? "text-emerald-300" : "text-slate-400"}>
+      <CheckCircle2 className="mr-1 inline h-3.5 w-3.5 align-[-2px]" />
+      {label}
+    </p>
   );
 }

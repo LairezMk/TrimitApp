@@ -129,7 +129,7 @@ export default function Trends() {
         type: trendType,
         title: percentageChange >= 0 ? "Incremento mensual" : "Disminución mensual",
         description: `Comparado al mes anterior, el gasto cambió ${percentageChange.toFixed(1)}%.`,
-        impact: `${percentageChange >= 0 ? "+" : "-"}${formatMoney(changeAmount, "COP")}`,
+        impact: `${percentageChange >= 0 ? "+" : "-"}${formatMoney(changeAmount)}`,
       },
       {
         type: "neutral",
@@ -137,7 +137,7 @@ export default function Trends() {
         description: topCategory
           ? `La categoría con mayor gasto es ${topCategory[0]}.`
           : "Aún no hay categorías con gasto.",
-        impact: topCategory ? formatMoney(topCategory[1], "COP") : formatMoney(0, "COP"),
+        impact: topCategory ? formatMoney(topCategory[1]) : formatMoney(0),
       },
       {
         type: "neutral",
@@ -145,7 +145,6 @@ export default function Trends() {
         description: `Se han registrado ${payments.length} pagos en total.`,
         impact: formatMoney(
           payments.reduce((sum, item) => sum + convertMoney(item.amount, item.currency), 0),
-          "COP",
         ),
       },
     ] as const;
@@ -181,7 +180,7 @@ export default function Trends() {
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <Activity className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Gasto este mes</p>
-          <p className="text-3xl font-bold">{formatMoney(currentMonth, "COP")}</p>
+          <p className="text-3xl font-bold">{formatMoney(currentMonth)}</p>
           <div className="flex items-center gap-1 text-emerald-100 text-sm mt-1">
             {percentageChange >= 0 ? (
               <ArrowUpRight className="w-4 h-4" />
@@ -196,7 +195,7 @@ export default function Trends() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Promedio 8 meses</p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {formatMoney(averageSpend, "COP")}
+            {formatMoney(averageSpend)}
           </p>
           <p className="text-gray-400 text-xs mt-1">por mes</p>
         </div>
@@ -204,7 +203,7 @@ export default function Trends() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Mes más bajo</p>
           <p className="text-3xl font-bold text-emerald-600">
-            {formatMoney(minSpendPoint?.gasto || 0, "COP")}
+            {formatMoney(minSpendPoint?.gasto || 0)}
           </p>
           <p className="text-gray-400 text-xs mt-1">{minSpendPoint?.month || "--"}</p>
         </div>
@@ -212,7 +211,7 @@ export default function Trends() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Mes más alto</p>
           <p className="text-3xl font-bold text-red-600">
-            {formatMoney(maxSpendPoint?.gasto || 0, "COP")}
+            {formatMoney(maxSpendPoint?.gasto || 0)}
           </p>
           <p className="text-gray-400 text-xs mt-1">{maxSpendPoint?.month || "--"}</p>
         </div>
@@ -302,7 +301,7 @@ export default function Trends() {
             <p className="text-purple-800 dark:text-purple-100 text-sm">
               Según tus pagos recientes y suscripciones activas, el gasto estimado para el
               siguiente mes es de{" "}
-              <span className="font-bold">{formatMoney(averageSpend + monthlyProjectedSpend * 0.15, "COP")}</span>.
+              <span className="font-bold">{formatMoney(averageSpend + monthlyProjectedSpend * 0.15)}</span>.
             </p>
           </div>
         </div>

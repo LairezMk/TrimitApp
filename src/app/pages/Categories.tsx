@@ -48,7 +48,7 @@ const availableColors = [
 
 export default function Categories() {
   const { user } = useAuth();
-  const { formatMoney, preferredCurrency } = useCurrencyDisplay();
+  const { formatMoney, convertMoney, preferredCurrency } = useCurrencyDisplay();
   const [categories, setCategories] = useState<UserCategory[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -105,11 +105,11 @@ export default function Categories() {
       const current = aggregate.get(sub.category) || { subscriptions: 0, monthlySpend: 0 };
       aggregate.set(sub.category, {
         subscriptions: current.subscriptions + 1,
-        monthlySpend: current.monthlySpend + sub.amount,
+        monthlySpend: current.monthlySpend + convertMoney(sub.amount, sub.currency),
       });
     }
     return aggregate;
-  }, [subscriptions]);
+  }, [subscriptions, convertMoney]);
 
   const categoriesWithStats = useMemo(
     () =>
@@ -253,13 +253,13 @@ export default function Categories() {
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Gasto Total</p>
-          <p className="text-3xl font-bold text-emerald-600">{formatMoney(totalSpend, "COP")}</p>
+          <p className="text-3xl font-bold text-emerald-600">{formatMoney(totalSpend)}</p>
           <p className="text-gray-400 text-xs mt-1">por mes</p>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 text-sm mb-1">Presupuesto Total</p>
-          <p className="text-3xl font-bold text-blue-600">{formatMoney(totalBudget, "COP")}</p>
+          <p className="text-3xl font-bold text-blue-600">{formatMoney(totalBudget)}</p>
           <p className="text-gray-400 text-xs mt-1">asignado</p>
         </div>
       </div>
@@ -312,7 +312,7 @@ export default function Categories() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-sm text-gray-600 dark:text-gray-300">Gasto mensual</span>
                       <span className="font-bold text-gray-900 dark:text-white">
-                        {formatMoney(category.monthlySpend, "COP")}
+                        {formatMoney(category.monthlySpend)}
                       </span>
                     </div>
                     <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -328,7 +328,7 @@ export default function Categories() {
                         {percentage.toFixed(0)}% del presupuesto
                       </span>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatMoney(category.budget, "COP")}
+                        {formatMoney(category.budget)}
                       </span>
                     </div>
                   </div>
@@ -356,11 +356,11 @@ export default function Categories() {
             <>
               <p className="text-sm text-gray-700 dark:text-gray-200">
                 • Tu gasto mensual en categorías es de{" "}
-                <span className="font-semibold">{formatMoney(totalSpend, "COP")}</span>.
+                <span className="font-semibold">{formatMoney(totalSpend)}</span>.
               </p>
               <p className="text-sm text-gray-700 dark:text-gray-200">
                 • Presupuesto total configurado:{" "}
-                <span className="font-semibold">{formatMoney(totalBudget, "COP")}</span>.
+                <span className="font-semibold">{formatMoney(totalBudget)}</span>.
               </p>
             </>
           )}

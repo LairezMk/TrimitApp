@@ -45,11 +45,123 @@ const PROVIDER_HINTS: ProviderHint[] = [
     patterns: [/amazon prime/i, /prime video/i],
   },
   {
+    name: "Max",
+    category: "Entretenimiento",
+    icon: "M",
+    color: "bg-indigo-500",
+    patterns: [/hbomax/i, /hbo\s*max/i, /max\.com/i, /stream\s*max/i],
+  },
+  {
+    name: "Apple",
+    category: "Productividad",
+    icon: "A",
+    color: "bg-gray-700",
+    patterns: [/apple\.com/i, /icloud/i, /apple\s+one/i],
+  },
+  {
+    name: "Google One",
+    category: "Productividad",
+    icon: "G",
+    color: "bg-blue-500",
+    patterns: [/google\s+one/i, /google\s+storage/i, /google\s+play/i],
+  },
+  {
     name: "Adobe",
     category: "Productividad",
     icon: "A",
     color: "bg-red-500",
     patterns: [/adobe/i, /creative cloud/i],
+  },
+  {
+    name: "Canva",
+    category: "Productividad",
+    icon: "C",
+    color: "bg-purple-500",
+    patterns: [/canva/i],
+  },
+  {
+    name: "Dropbox",
+    category: "Productividad",
+    icon: "D",
+    color: "bg-blue-600",
+    patterns: [/dropbox/i],
+  },
+  {
+    name: "Notion",
+    category: "Productividad",
+    icon: "N",
+    color: "bg-gray-800",
+    patterns: [/notion/i],
+  },
+  {
+    name: "ChatGPT",
+    category: "Productividad",
+    icon: "C",
+    color: "bg-emerald-600",
+    patterns: [/chatgpt/i, /openai/i],
+  },
+  {
+    name: "GitHub",
+    category: "Productividad",
+    icon: "G",
+    color: "bg-gray-800",
+    patterns: [/github/i],
+  },
+  {
+    name: "Figma",
+    category: "Productividad",
+    icon: "F",
+    color: "bg-pink-500",
+    patterns: [/figma/i],
+  },
+  {
+    name: "Slack",
+    category: "Productividad",
+    icon: "S",
+    color: "bg-purple-500",
+    patterns: [/slack/i],
+  },
+  {
+    name: "Zoom",
+    category: "Productividad",
+    icon: "Z",
+    color: "bg-blue-500",
+    patterns: [/\bzoom\b/i, /zoom\.us/i],
+  },
+  {
+    name: "Duolingo",
+    category: "Educación",
+    icon: "D",
+    color: "bg-green-500",
+    patterns: [/duolingo/i],
+  },
+  {
+    name: "Coursera",
+    category: "Educación",
+    icon: "C",
+    color: "bg-blue-600",
+    patterns: [/coursera/i],
+  },
+  {
+    name: "Uber One",
+    category: "Transporte",
+    icon: "U",
+    color: "bg-gray-900",
+    patterns: [/uber\s+one/i],
+  },
+  {
+    name: "Rappi Pro",
+    category: "Compras",
+    icon: "R",
+    color: "bg-orange-500",
+    patterns: [/rappi\s*pro/i, /rappi\s*prime/i],
+  },
+  {
+    name: "iCloud+",
+    category: "Productividad",
+    icon: "I",
+    color: "bg-blue-400",
+    patterns: [/icloud\+/i, /icloud\s+storage/i],
   },
   {
     name: "Microsoft 365",
@@ -105,10 +217,19 @@ export interface DetectedSubscriptionDraft {
   isRecurring: boolean;
   icon: string;
   color: string;
-  source: "gmail-detected" | "bank-statement";
+  source: "gmail-detected" | "email-detected" | "bank-statement";
   confidence: number;
   from: string;
   subject: string;
+}
+
+interface EmailMessage {
+  id: string;
+  from: string;
+  subject: string;
+  snippet: string;
+  body: string;
+  date?: Date | null;
 }
 
 interface GmailMessageListResponse {
@@ -190,8 +311,10 @@ function inferCurrency(fragment: string) {
   if (
     normalized.includes("cop") ||
     normalized.includes("col$") ||
+    normalized.includes("co$") ||
     normalized.includes("pesos") ||
-    normalized.includes("colombia")
+    normalized.includes("colombia") ||
+    normalized.includes("pago pse")
   ) {
     return "COP";
   }
@@ -199,6 +322,9 @@ function inferCurrency(fragment: string) {
     return "EUR";
   }
   if (normalized.includes("usd")) {
+    return "USD";
+  }
+  if (normalized.includes("us$")) {
     return "USD";
   }
   return "$";
@@ -277,13 +403,13 @@ interface AmountCandidate {
 
 function extractAmount(text: string) {
   const amountPatterns = [
-    /(?:cop|col\$|pesos?|usd|eur|[$€])\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
-    /([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})\s*(?:cop|col\$|pesos?|usd|eur)\b/gi,
-    /(total\s*(?:a\s*pagar|pago)?|valor\s*(?:a\s*pagar)?|importe|monto|factura|vencimiento)\D{0,24}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
-    /(plan|membres[ií]a|suscripci[oó]n|subscription)\D{0,24}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /(?:cop|col\$|co\$|us\$|pesos?|usd|eur|[$€])\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})\s*(?:cop|col\$|co\$|us\$|pesos?|usd|eur)\b/gi,
+    /(total\s*(?:a\s*pagar|paid|due|pago)?|valor\s*(?:a\s*pagar)?|importe|monto|factura|invoice|amount\s*(?:paid|due)?|subtotal|charged|cargo|vencimiento|renovaci[oó]n)\D{0,34}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
+    /(plan|membres[ií]a|membership|suscripci[oó]n|subscription|mensualidad|renovaci[oó]n|renewal|billing\s*period)\D{0,34}([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{1,2})?|[0-9]{4,8})/gi,
   ];
   const scoringKeywords =
-    /total\s*a\s*pagar|valor\s*a\s*pagar|importe\s*a\s*pagar|saldo\s*a\s*pagar|monto|factura|recibo|vencimiento|plan|membres[ií]a|suscripci[oó]n/i;
+    /total\s*a\s*pagar|total\s*paid|amount\s*paid|amount\s*due|valor\s*a\s*pagar|importe\s*a\s*pagar|saldo\s*a\s*pagar|monto|factura|invoice|recibo|receipt|vencimiento|plan|membres[ií]a|membership|suscripci[oó]n|subscription|renovaci[oó]n|renewal|mensualidad|billing\s*period/i;
   const candidates: AmountCandidate[] = [];
 
   for (const pattern of amountPatterns) {
@@ -434,7 +560,56 @@ function findProvider(text: string) {
       return hint;
     }
   }
+
+  const namedEnMatch = text.match(
+    /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{1,2})(?:,)?\s+(20\d{2})\b/i,
+  );
+  if (namedEnMatch) {
+    const months: Record<string, number> = {
+      jan: 0,
+      january: 0,
+      feb: 1,
+      february: 1,
+      mar: 2,
+      march: 2,
+      apr: 3,
+      april: 3,
+      may: 4,
+      jun: 5,
+      june: 5,
+      jul: 6,
+      july: 6,
+      aug: 7,
+      august: 7,
+      sep: 8,
+      september: 8,
+      oct: 9,
+      october: 9,
+      nov: 10,
+      november: 10,
+      dec: 11,
+      december: 11,
+    };
+    const monthText = namedEnMatch[0].split(/\s+/)[0].toLowerCase().replace(",", "");
+    const parsed = new Date(
+      Number(namedEnMatch[2]),
+      months[monthText],
+      Number(namedEnMatch[1]),
+    );
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
   return null;
+}
+
+function findProviderForMessage(from: string, text: string) {
+  const senderProvider = findProvider(from);
+  if (senderProvider) {
+    return senderProvider;
+  }
+
+  return findProvider(text);
 }
 
 function extractHeader(headers: GmailHeader[] | undefined, name: string) {
@@ -456,8 +631,14 @@ function extractCadenceDays(text: string) {
   if (
     /\bcada\s*(30|treinta)\s*d[ií]as\b/.test(normalized) ||
     /\bmensual\b/.test(normalized) ||
+    /\bmensualidad\b/.test(normalized) ||
     /\bcada\s*mes\b/.test(normalized) ||
+    /\bmonthly\b/.test(normalized) ||
+    /\bper\s*month\b/.test(normalized) ||
+    /\bbilling\s*period\b/.test(normalized) ||
+    /\bnext\s*billing\s*date\b/.test(normalized) ||
     /\brenovaci[oó]n\s*autom[aá]tica\b/.test(normalized) ||
+    /\bauto(?:matic)?\s*renewal\b/.test(normalized) ||
     /\bd[eé]bito\s*autom[aá]tico\b/.test(normalized) ||
     /\bcargo\s*recurrente\b/.test(normalized)
   ) {
@@ -484,9 +665,9 @@ function isLikelyRecurring(text: string) {
 
   const normalized = text.toLowerCase();
   return (
-    /\b(plan|membres[ií]a|suscripci[oó]n|subscription)\b/i.test(normalized) ||
+    /\b(plan|membres[ií]a|membership|suscripci[oó]n|subscription)\b/i.test(normalized) ||
     /\b(mensual|monthly|per\s*month|cada\s*mes)\b/i.test(normalized) ||
-    /\b(renovaci[oó]n|renovation|recurrente|recurring|d[eé]bito\s*autom[aá]tico)\b/i.test(
+    /\b(renovaci[oó]n|renovada|renovado|renewal|renewed|renovation|recurrente|recurring|auto(?:matic)?\s*renewal|d[eé]bito\s*autom[aá]tico|billing\s*period|next\s*billing\s*date)\b/i.test(
       normalized,
     )
   );
@@ -494,36 +675,78 @@ function isLikelyRecurring(text: string) {
 
 function isLikelyReceipt(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(pago\s*realizado|pago\s*confirmado|pago\s*exitoso|pago\s*aprobado|pago\s*recibido|payment\s*(successful|confirmed|approved|received)|cobro\s*realizado|cargo\s*realizado|se\s*(cobro|cargo)|transacci[oó]n\s*aprobada|comprobante\s*de\s*pago|recibo\s*(de\s*pago)?|factura\s*(electr[oó]nica)?|tu\s*orden\s*ha\s*sido\s*pagada|order\s*paid|invoice\s*(paid|payment)|debitado|d[eé]bito\s*autom[aá]tico|se\s*debito|charged|charge\s*was\s*made)\b/i.test(
+  return /\b(pago\s*realizado|pago\s*confirmado|pago\s*exitoso|pago\s*aprobado|pago\s*recibido|payment\s*(successful|confirmed|approved|received)|paid\s*invoice|invoice\s*(paid|payment|summary)?|receipt|recibo\s*(de\s*pago)?|factura\s*(electr[oó]nica)?|comprobante\s*de\s*pago|cobro\s*realizado|cargo\s*realizado|se\s*(cobro|cargo)|transacci[oó]n\s*aprobada|tu\s*orden\s*ha\s*sido\s*pagada|order\s*paid|debitado|d[eé]bito\s*autom[aá]tico|se\s*debito|charged|charge\s*was\s*made|your\s*(subscription|membership)\s*(renewed|was\s*renewed)|renovaci[oó]n\s*(confirmada|realizada)|suscripci[oó]n\s*renovada)\b/i.test(
     normalized,
   );
 }
 
 function isLikelyPromotional(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|gratis|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|referid[oa]|te\s*aceptaron|bienvenido\s*a|welcome\s*gift|free|gift|eligible|3\s*meses\s*por\s*\$?0|meses\s*gratis)\b/i.test(
+  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|gratis|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|referid[oa]|te\s*aceptaron|bienvenido\s+a|welcome\s*gift|free|gift|eligible|3\s*meses\s*por\s*\$?0|meses\s*gratis|black\s*friday|hot\s*sale|cyber\s*monday)\b/i.test(
     normalized,
   );
 }
 
 function isLikelyPromotionalSender(from: string) {
   const normalized = from.toLowerCase();
-  return /\b(temu|marketing|newsletter|news|promo|offers|deal|deals|noreply\.news|no-reply\.news)\b/.test(
+  return /\b(temu|marketing|newsletter|news|promo|promos|offers|deal|deals|ofertas|noreply\.news|no-reply\.news)\b/.test(
+    normalized,
+  );
+}
+
+function isBlockedCommerceSender(from: string) {
+  const normalized = from.toLowerCase();
+  return /\b(temu|shein|aliexpress|mercadolibre|mercado\s*libre)\b/.test(
+    normalized,
+  );
+}
+
+function isLikelyOneTimeCommerce(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(pedido|orden|compra|carrito|env[ií]o|entrega|tracking|gu[ií]a|producto|seller|vendedor|order\s*(confirmation|shipped)|your\s*order|purchase|shipping|delivered)\b/i.test(
     normalized,
   );
 }
 
 function hasPaymentContext(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(pago|pagado|pagaste|cobro|cargo|factura|recibo|transacci[oó]n|invoice|payment|charged|charge|debitado|d[eé]bito)\b/i.test(
+  return /\b(pago|pagado|pagaste|cobro|cargo|factura|recibo|comprobante|transacci[oó]n|invoice|receipt|payment|paid|billing|charged|charge|debitado|d[eé]bito)\b/i.test(
     normalized,
+  );
+}
+
+function isLikelyInvoiceScam(text: string) {
+  const normalized = text.toLowerCase();
+  const hasPhone = /(?:\+?\d[\s().-]?){8,}/.test(normalized);
+  const scareLanguage =
+    /\b(if\s*you\s*did\s*not\s*authorize|si\s*no\s*reconoces|unauthorized|fraudulent|refund|reembolso|call\s*(us|now)|llama\s*(ahora|al)|customer\s*support\s*number|norton|mcafee|geek\s*squad)\b/i.test(
+      normalized,
+    );
+
+  return hasPhone && scareLanguage;
+}
+
+function extractEmailDomain(from: string) {
+  const emailMatch = from.match(/[A-Z0-9._%+-]+@([A-Z0-9.-]+\.[A-Z]{2,})/i);
+  return emailMatch?.[1]?.toLowerCase() || "";
+}
+
+function isPaymentProcessorSender(from: string) {
+  const domain = extractEmailDomain(from);
+  return (
+    domain.includes("stripe.com") ||
+    domain.includes("paypal.com") ||
+    domain.includes("paddle.com") ||
+    domain.includes("xsolla.com") ||
+    domain.includes("mercadopago") ||
+    domain.includes("wompi") ||
+    domain.includes("payu")
   );
 }
 
 function parseSenderName(from: string) {
   const clean = from.replace(/["<>]/g, " ").trim();
-  const emailMatch = clean.match(/[A-Z0-9._%+-]+@([A-Z0-9.-]+\.[A-Z]{2,})/i);
-  const domain = emailMatch?.[1]?.toLowerCase() || "";
+  const domain = extractEmailDomain(clean);
 
   if (domain.includes("movistar")) {
     return "Movistar";
@@ -536,6 +759,24 @@ function parseSenderName(from: string) {
   }
   if (domain.includes("wom")) {
     return "WOM";
+  }
+  if (domain.includes("netflix")) {
+    return "Netflix";
+  }
+  if (domain.includes("spotify")) {
+    return "Spotify";
+  }
+  if (domain.includes("microsoft")) {
+    return "Microsoft 365";
+  }
+  if (domain.includes("apple")) {
+    return "Apple";
+  }
+  if (domain.includes("stripe")) {
+    return "Stripe";
+  }
+  if (domain.includes("paypal")) {
+    return "PayPal";
   }
 
   const named = clean.split("<")[0].trim();
@@ -567,7 +808,7 @@ function fallbackCategory(text: string) {
 
 function extractProviderName(text: string) {
   const providerMatch = text.match(
-    /(proveedor\s+del\s+servicio|proveedor|merchant|servicio)\s*[:\-]?\s*([A-Za-z0-9&.,\-\s]{3,60})/i,
+    /(proveedor\s+del\s+servicio|proveedor|merchant|comercio|servicio|empresa|business|seller|paid\s*to|payment\s*to|receipt\s*from|invoice\s*from|factura\s*de|recibo\s*de)\s*[:\-]?\s*([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
   );
 
   if (!providerMatch) {
@@ -582,6 +823,61 @@ function extractProviderName(text: string) {
   return candidate.replace(/\s{2,}/g, " ").slice(0, 60);
 }
 
+function cleanMerchantCandidate(candidate: string) {
+  return candidate
+    .replace(/\s+/g, " ")
+    .replace(/\b(inc|llc|ltd|limited|corp|corporation|s\.a\.s|sas|s\.a|ltda)\b\.?/gi, "")
+    .replace(/\b(receipt|invoice|factura|recibo|payment|pago|paid|subscription|suscripci[oó]n)\b.*$/i, "")
+    .replace(/[|•#].*$/g, "")
+    .trim()
+    .slice(0, 60);
+}
+
+function extractStoreSubscriptionName(text: string) {
+  const patterns = [
+    /(subscription|membership|suscripci[oó]n|membres[ií]a|item|producto|description|descripci[oó]n)\s*[:\-]\s*([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
+    /(google\s*play|app\s*store|apple)\D{0,40}(youtube\s*premium|youtube\s*music|google\s*one|icloud\+?|duolingo|canva|spotify|netflix|disney\+|chatgpt|notion|dropbox|microsoft\s*365)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    const candidate = match?.[2]?.trim();
+    if (candidate) {
+      const cleaned = cleanMerchantCandidate(candidate);
+      if (cleaned.length >= 3) {
+        return cleaned;
+      }
+    }
+  }
+
+  return null;
+}
+
+function extractMerchantFromProcessorReceipt(text: string) {
+  const patterns = [
+    /(?:payment|paid|receipt|invoice)\s+(?:to|from|for)\s+([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
+    /(?:pago|pagaste|recibo|factura)\s+(?:a|de|para)\s+([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
+    /(?:merchant|comercio|seller|business|empresa)\s*[:\-]\s*([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
+    /(?:billing\s*agreement|acuerdo\s*de\s*pago)\D{0,40}([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    const candidate = match?.[1]?.trim();
+    if (candidate) {
+      const cleaned = cleanMerchantCandidate(candidate);
+      if (
+        cleaned.length >= 3 &&
+        !/^(paypal|stripe|invoice|receipt|factura|recibo|payment|pago)$/i.test(cleaned)
+      ) {
+        return cleaned;
+      }
+    }
+  }
+
+  return null;
+}
+
 async function fetchGmailMessages(accessToken: string) {
   const since = new Date();
   since.setDate(since.getDate() - 90);
@@ -592,7 +888,7 @@ async function fetchGmailMessages(accessToken: string) {
 
   const query =
     `after:${sinceQuery} (` +
-    "subscription OR suscripción OR suscripcion OR suscribirte OR suscribi OR membresia OR membership OR plan OR invoice OR factura OR facturación OR bill OR renewal OR renovación OR payment OR pago OR cobro OR recordatorio OR vencimiento OR recibo OR estado de cuenta" +
+    "subscription OR suscripción OR suscripcion OR membresia OR membership OR plan OR invoice OR paid invoice OR factura OR facturación OR bill OR billing OR receipt OR receipt from OR renewal OR renewed OR renovación OR renovada OR payment OR pago OR cobro OR cargo OR recordatorio OR vencimiento OR recibo OR comprobante OR estado de cuenta OR billing agreement OR automatic renewal" +
     ")";
 
   const listUrl =
@@ -639,12 +935,41 @@ async function fetchGmailMessages(accessToken: string) {
   return messages.filter((message): message is GmailMessageResponse => Boolean(message));
 }
 
-export async function detectSubscriptionsFromGmail(accessToken: string) {
-  const messages = await fetchGmailMessages(accessToken);
+function mapGmailMessage(message: GmailMessageResponse): EmailMessage {
+  const headers = message.payload?.headers || [];
+  const from = extractHeader(headers, "From") || "Correo detectado";
+  const subject = extractHeader(headers, "Subject") || "Sin asunto";
+  const body = collectBodyText(message.payload).join(" ");
+  const date = message.internalDate ? new Date(Number(message.internalDate)) : null;
+
+  return {
+    id: message.id,
+    from,
+    subject,
+    snippet: message.snippet || "",
+    body,
+    date,
+  };
+}
+
+function normalizeDraftKey(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\b(inc|llc|ltda|sas|s\.a\.s|s\.a|colombia|latam)\b/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function detectSubscriptionsFromMessages(
+  messages: EmailMessage[],
+  source: "gmail-detected" | "email-detected",
+) {
   const byName = new Map<string, DetectedSubscriptionDraft>();
   const providerOccurrences = new Map<string, number>();
   const candidateMessages: Array<{
-    message: GmailMessageResponse;
+    message: EmailMessage;
     haystack: string;
     from: string;
     subject: string;
@@ -652,28 +977,52 @@ export async function detectSubscriptionsFromGmail(accessToken: string) {
     providerName: string | null;
     amountData: ReturnType<typeof extractAmount>;
     recurring: boolean;
+    processorReceipt: boolean;
+    namedByStore: boolean;
   }> = [];
 
   for (const message of messages) {
-    const headers = message.payload?.headers || [];
-    const from = extractHeader(headers, "From") || "Correo detectado";
-    const subject = extractHeader(headers, "Subject") || "Sin asunto";
-    const body = collectBodyText(message.payload).join(" ");
-    const haystack = `${subject} ${from} ${message.snippet || ""} ${body}`;
+    const from = message.from || "Correo detectado";
+    const subject = message.subject || "Sin asunto";
+    const haystack = `${subject} ${from} ${message.snippet || ""} ${message.body || ""}`;
 
-    const provider = findProvider(haystack);
+    const storeSubscriptionName = extractStoreSubscriptionName(haystack);
+    const processorReceipt = isPaymentProcessorSender(from);
+    const processorMerchant = processorReceipt
+      ? extractMerchantFromProcessorReceipt(haystack)
+      : null;
+    const providerName =
+      storeSubscriptionName ||
+      processorMerchant ||
+      extractProviderName(haystack);
+    const provider =
+      findProvider(providerName || "") || findProviderForMessage(from, haystack);
     const recurring = isLikelyRecurring(haystack);
     const amountData = extractAmount(haystack);
     const receipt = isLikelyReceipt(haystack);
     const promotional = isLikelyPromotional(haystack) || isLikelyPromotionalSender(from);
+    const blockedCommerce = isBlockedCommerceSender(from);
+    const oneTimeCommerce = isLikelyOneTimeCommerce(haystack);
     const paymentContext = hasPaymentContext(haystack);
-    const providerName = provider?.name || extractProviderName(haystack);
 
-    if (!amountData || !receipt || promotional || !paymentContext) {
+    if (!amountData || !receipt || !paymentContext || isLikelyInvoiceScam(haystack)) {
       continue;
     }
 
-    const normalizedProvider = (providerName || parseSenderName(from)).toLowerCase();
+    if (
+      (promotional || blockedCommerce || oneTimeCommerce) &&
+      !recurring &&
+      !provider &&
+      !processorMerchant
+    ) {
+      continue;
+    }
+
+    if ((promotional || blockedCommerce) && oneTimeCommerce && !recurring) {
+      continue;
+    }
+
+    const normalizedProvider = normalizeDraftKey(providerName || parseSenderName(from));
     providerOccurrences.set(
       normalizedProvider,
       (providerOccurrences.get(normalizedProvider) || 0) + 1,
@@ -688,37 +1037,51 @@ export async function detectSubscriptionsFromGmail(accessToken: string) {
       providerName,
       amountData,
       recurring,
+      processorReceipt,
+      namedByStore: Boolean(storeSubscriptionName),
     });
   }
 
   for (const candidate of candidateMessages) {
-    const { message, haystack, from, subject, provider, providerName, amountData, recurring } = candidate;
-    const normalizedProvider = (providerName || parseSenderName(from)).toLowerCase();
+    const {
+      message,
+      haystack,
+      from,
+      subject,
+      provider,
+      providerName,
+      amountData,
+      recurring,
+      processorReceipt,
+      namedByStore,
+    } = candidate;
+    const normalizedProvider = normalizeDraftKey(providerName || parseSenderName(from));
     const occurrences = providerOccurrences.get(normalizedProvider) || 0;
 
-    if (!provider && !recurring && occurrences < 2) {
+    if (!provider && !recurring && !processorReceipt && occurrences < 2) {
       continue;
     }
 
     const parsedDate = extractDate(haystack);
     const cadenceDays = extractCadenceDays(haystack) || 30;
-    const messageDate = message.internalDate
-      ? new Date(Number(message.internalDate))
-      : null;
+    const messageDate = message.date || null;
     const inferredDate = parsedDate || messageDate || addDefaultNextPaymentByCadence(cadenceDays);
     const nextPayment = ensureFutureDate(inferredDate);
-    const inferredName = providerName || parseSenderName(from);
-    const inferredCategory = provider?.category || fallbackCategory(haystack);
-    const inferredIcon = provider?.icon || inferredName.charAt(0).toUpperCase() || "S";
-    const inferredColor = provider?.color || "bg-emerald-500";
+    const inferredName = providerName || provider?.name || parseSenderName(from);
+    const finalProvider = findProvider(inferredName) || provider;
+    const inferredCategory = finalProvider?.category || fallbackCategory(haystack);
+    const inferredIcon = finalProvider?.icon || inferredName.charAt(0).toUpperCase() || "S";
+    const inferredColor = finalProvider?.color || "bg-emerald-500";
 
     const confidence =
-      (provider ? 60 : 45) +
+      (finalProvider ? 60 : 45) +
       (recurring ? 20 : 0) +
       (amountData ? 20 : 0) +
       (providerName ? 10 : 0) +
       (parsedDate ? 10 : 0) +
-      (occurrences >= 2 ? 10 : 0);
+      (occurrences >= 2 ? 10 : 0) +
+      (processorReceipt ? 8 : 0) +
+      (namedByStore ? 8 : 0);
 
     const draft: DetectedSubscriptionDraft = {
       id: toBase64(`${inferredName}-${subject}`).slice(0, 48),
@@ -730,25 +1093,102 @@ export async function detectSubscriptionsFromGmail(accessToken: string) {
       isRecurring: true,
       icon: inferredIcon,
       color: inferredColor,
-      source: "gmail-detected",
+      source,
       confidence: Math.min(confidence, 99),
       from,
       subject,
     };
 
-    const existing = byName.get(inferredName.toLowerCase());
+    if (draft.confidence < 75) {
+      continue;
+    }
+
+    const existing = byName.get(normalizeDraftKey(inferredName));
     if (!existing || draft.confidence > existing.confidence) {
-      byName.set(inferredName.toLowerCase(), draft);
+      byName.set(normalizeDraftKey(inferredName), draft);
     }
   }
 
   return Array.from(byName.values()).sort((a, b) => b.confidence - a.confidence);
 }
 
+export async function detectSubscriptionsFromGmail(accessToken: string) {
+  const messages = await fetchGmailMessages(accessToken);
+  return detectSubscriptionsFromMessages(messages.map(mapGmailMessage), "gmail-detected");
+}
+
+interface OutlookMessageResponse {
+  id: string;
+  subject?: string;
+  receivedDateTime?: string;
+  from?: { emailAddress?: { name?: string; address?: string } };
+  bodyPreview?: string;
+  body?: { content?: string };
+}
+
+interface OutlookMessagesResponse {
+  value?: OutlookMessageResponse[];
+}
+
+async function fetchOutlookMessages(accessToken: string) {
+  const since = new Date();
+  since.setDate(since.getDate() - 90);
+  const filterDate = since.toISOString();
+  const params = new URLSearchParams({
+    "$top": "100",
+    "$orderby": "receivedDateTime desc",
+    "$select": "id,subject,from,receivedDateTime,bodyPreview,body",
+    "$filter": `receivedDateTime ge ${filterDate}`,
+  });
+
+  const response = await fetch(`https://graph.microsoft.com/v1.0/me/messages?${params}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Prefer: 'outlook.body-content-type="text"',
+    },
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`No se pudo consultar Outlook: ${detail || response.status}`);
+  }
+
+  const data = (await response.json()) as OutlookMessagesResponse;
+  return (data.value || []).map((message): EmailMessage => {
+    const senderName = message.from?.emailAddress?.name || "";
+    const senderAddress = message.from?.emailAddress?.address || "";
+    const from = senderName && senderAddress ? `${senderName} <${senderAddress}>` : senderAddress || senderName;
+    const date = message.receivedDateTime ? new Date(message.receivedDateTime) : null;
+
+    return {
+      id: message.id,
+      from,
+      subject: message.subject || "Sin asunto",
+      snippet: message.bodyPreview || "",
+      body: message.body?.content || "",
+      date,
+    };
+  });
+}
+
+export async function detectSubscriptionsFromOutlook(accessToken: string) {
+  const messages = await fetchOutlookMessages(accessToken);
+  return detectSubscriptionsFromMessages(messages, "email-detected");
+}
+
 export function saveDetectedSubscriptionsDrafts(
   drafts: DetectedSubscriptionDraft[],
 ) {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(drafts));
+  const deduped = new Map<string, DetectedSubscriptionDraft>();
+  for (const draft of drafts) {
+    const key = normalizeDraftKey(draft.name);
+    const existing = deduped.get(key);
+    if (!existing || draft.confidence > existing.confidence) {
+      deduped.set(key, draft);
+    }
+  }
+
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(Array.from(deduped.values())));
 }
 
 export function readDetectedSubscriptionsDrafts() {

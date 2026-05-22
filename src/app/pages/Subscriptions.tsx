@@ -7,14 +7,18 @@ import type { Subscription } from "../types/subscription";
 import { useAuth } from "../contexts/AuthContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
-import { detectSubscriptionsFromGmail, saveDetectedSubscriptionsDrafts } from "../services/gmailDetection";
+import {
+  detectSubscriptionsFromGmail,
+  detectSubscriptionsFromOutlook,
+  saveDetectedSubscriptionsDrafts,
+} from "../services/gmailDetection";
 import { detectSubscriptionsFromBankStatement } from "../services/bankStatementDetection";
 import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 
 export default function Subscriptions() {
   const navigate = useNavigate();
-  const { user, requestGmailAccessToken } = useAuth();
-  const { formatMoney } = useCurrencyDisplay();
+  const { user, requestGmailAccessToken, requestMicrosoftMailAccessToken } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -53,7 +57,7 @@ export default function Subscriptions() {
 
   const totalMonthly = subscriptions
     .filter((sub) => sub.status !== "suspended")
-    .reduce((sum, sub) => sum + sub.amount, 0);
+    .reduce((sum, sub) => sum + convertMoney(sub.amount, sub.currency), 0);
 
   const activeCount = subscriptions.filter(
     (sub) => sub.status === "active"
@@ -81,8 +85,19 @@ export default function Subscriptions() {
     setError(null);
 
     try {
-      const accessToken = await requestGmailAccessToken();
-      const detected = await detectSubscriptionsFromGmail(accessToken);
+      const domain = user.email?.split("@")[1]?.toLowerCase() || "";
+      const isMicrosoftMailbox = /^(outlook|hotmail|live|msn)\./.test(domain);
+      const isYahooMailbox = /^yahoo\./.test(domain) || domain === "ymail.com";
+
+      if (isYahooMailbox) {
+        throw new Error(
+          "Yahoo requiere un conector de correo en backend/IMAP para leer mensajes con seguridad. Por ahora puedes usar Gmail/Google Workspace, Outlook/Hotmail o subir un extracto.",
+        );
+      }
+
+      const detected = isMicrosoftMailbox
+        ? await detectSubscriptionsFromOutlook(await requestMicrosoftMailAccessToken())
+        : await detectSubscriptionsFromGmail(await requestGmailAccessToken());
       saveDetectedSubscriptionsDrafts(detected);
       navigate("/subscriptions/gmail-confirmation");
     } catch (err) {
@@ -141,7 +156,7 @@ export default function Subscriptions() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8" data-tour="subscriptions-stats">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Gasto mensual total</p>
-          <p className="text-3xl text-emerald-600">{formatMoney(totalMonthly, "COP")}</p>
+          <p className="text-3xl text-emerald-600">{formatMoney(totalMonthly)}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 motion-card-grow">
           <p className="text-gray-500 text-sm mb-2">Suscripciones activas</p>
@@ -191,6 +206,23 @@ export default function Subscriptions() {
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
+            <Button
+              onClick={handleDetectByEmail}
+              disabled={detectingByStatement || detectingByEmail}
+              className="order-first sm:order-none bg-gradient-to-r from-cyan-600 to-emerald-500 hover:from-cyan-700 hover:to-emerald-600 text-white w-full sm:w-auto min-h-12 lg:min-h-14 px-5 lg:px-6 text-sm lg:text-base font-semibold shadow-lg shadow-cyan-500/20"
+            >
+              {detectingByEmail ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Detectando...
+                </>
+              ) : (
+                <>
+                  <MailSearch className="w-5 h-5 mr-2" />
+                  Detectar por correo
+                </>
+              )}
+            </Button>
             <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setFilterStatus("all")}
@@ -233,7 +265,7 @@ export default function Subscriptions() {
             <Button
               onClick={() => statementInputRef.current?.click()}
               disabled={detectingByStatement || detectingByEmail}
-              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto min-h-11"
             >
               {detectingByStatement ? (
                 <>
@@ -248,25 +280,8 @@ export default function Subscriptions() {
               )}
             </Button>
             <Button
-              onClick={handleDetectByEmail}
-              disabled={detectingByStatement || detectingByEmail}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white w-full sm:w-auto"
-            >
-              {detectingByEmail ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Detectando...
-                </>
-              ) : (
-                <>
-                  <MailSearch className="w-4 h-4 mr-2" />
-                  Detectar por correo
-                </>
-              )}
-            </Button>
-            <Button
               onClick={() => navigate("/subscriptions/add")}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto"
+              className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto min-h-11"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nueva

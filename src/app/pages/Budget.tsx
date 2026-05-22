@@ -9,7 +9,7 @@ import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
 
 export default function Budget() {
   const { user } = useAuth();
-  const { formatMoney } = useCurrencyDisplay();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [totalBudget, setTotalBudget] = useState(0);
@@ -54,14 +54,17 @@ export default function Budget() {
   const categorySpent = useMemo(() => {
     const map = new Map<string, number>();
     for (const sub of subscriptions) {
-      map.set(sub.category, (map.get(sub.category) || 0) + sub.amount);
+      map.set(
+        sub.category,
+        (map.get(sub.category) || 0) + convertMoney(sub.amount, sub.currency),
+      );
     }
     return map;
-  }, [subscriptions]);
+  }, [subscriptions, convertMoney]);
 
   const totalSpent = useMemo(
-    () => subscriptions.reduce((sum, sub) => sum + sub.amount, 0),
-    [subscriptions],
+    () => subscriptions.reduce((sum, sub) => sum + convertMoney(sub.amount, sub.currency), 0),
+    [subscriptions, convertMoney],
   );
 
   const remaining = totalBudget - totalSpent;
@@ -151,7 +154,7 @@ export default function Budget() {
           </div>
           <div className="text-right">
             <p className="text-emerald-100 text-sm">Gastado actual</p>
-            <p className="text-3xl font-bold">{formatMoney(totalSpent, "COP")}</p>
+            <p className="text-3xl font-bold">{formatMoney(totalSpent)}</p>
           </div>
         </div>
 
@@ -165,11 +168,11 @@ export default function Budget() {
         <div className="flex justify-between">
           <div>
             <p className="text-emerald-100 text-sm">Gastado</p>
-            <p className="text-2xl font-bold">{formatMoney(totalSpent, "COP")}</p>
+            <p className="text-2xl font-bold">{formatMoney(totalSpent)}</p>
           </div>
           <div className="text-right">
             <p className="text-emerald-100 text-sm">Restante</p>
-            <p className="text-2xl font-bold">{formatMoney(remaining, "COP")}</p>
+            <p className="text-2xl font-bold">{formatMoney(remaining)}</p>
           </div>
         </div>
       </div>
@@ -233,7 +236,7 @@ export default function Budget() {
                     className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 w-28"
                   />
                   <div className="text-right">
-                    <span className="font-bold dark:text-white">{formatMoney(spent, "COP")}</span>
+                    <span className="font-bold dark:text-white">{formatMoney(spent)}</span>
                   </div>
                 </div>
 
@@ -263,7 +266,7 @@ export default function Budget() {
                     {percentage.toFixed(0)}% utilizado
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatMoney(category.limit - spent, "COP")} restante
+                    {formatMoney(category.limit - spent)} restante
                   </span>
                 </div>
               </div>
@@ -307,7 +310,7 @@ export default function Budget() {
               Consejos basados en tus datos
             </h3>
             <p className="text-blue-800 dark:text-blue-100 text-sm mb-2">
-              Total actual de suscripciones activas: <strong>{formatMoney(totalSpent, "COP")}</strong>.
+              Total actual de suscripciones activas: <strong>{formatMoney(totalSpent)}</strong>.
             </p>
             <p className="text-blue-800 dark:text-blue-100 text-sm">
               {remaining < 0

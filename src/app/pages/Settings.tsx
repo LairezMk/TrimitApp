@@ -156,9 +156,9 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="mb-8">
-        <h1 className="text-3xl mb-2 dark:text-white">Configuración</h1>
+    <div className="p-3 sm:p-4 md:p-6 lg:p-8 min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors overflow-x-hidden">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl mb-2 dark:text-white">Configuración</h1>
         <p className="text-gray-500 dark:text-gray-400">
           Personaliza tu experiencia en Trimit
         </p>
@@ -166,9 +166,9 @@ export default function Settings() {
 
       <div className="max-w-5xl space-y-4 md:space-y-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
-          <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center">
+          <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center shrink-0">
                 <Bell className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
@@ -209,7 +209,7 @@ export default function Settings() {
                 }))
               }
             />
-            <div className="px-6 pb-6 -mt-2 flex items-start gap-3 text-xs text-gray-500 dark:text-gray-400">
+            <div className="px-4 md:px-6 pb-5 md:pb-6 -mt-1 md:-mt-2 flex items-start gap-3 text-xs text-gray-500 dark:text-gray-400">
               <ShieldCheck className="w-4 h-4 mt-0.5 text-emerald-500" />
               <p>
                 Al activar este recordatorio aceptas recibir emails transaccionales de pago. Cada correo incluye enlace de baja inmediata y trazabilidad de consentimiento.
@@ -227,9 +227,9 @@ export default function Settings() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
-          <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+          <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center shrink-0">
                 <Moon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
@@ -248,12 +248,12 @@ export default function Settings() {
               checked={isDark}
               onChange={() => toggleTheme()}
             />
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <Palette className="w-5 h-5 text-gray-400" />
+                <Palette className="w-5 h-5 text-gray-400 shrink-0" />
                 <div>
                   <p className="font-medium dark:text-white">Visualización Trimit</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 break-words">
                     Cambia paleta, tipografía, efectos de cursor y transiciones globales.
                   </p>
                 </div>
@@ -313,9 +313,9 @@ export default function Settings() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
-          <div className="p-6 border-b border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+          <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center shrink-0">
                 <Globe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
@@ -403,18 +403,18 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-emerald-100 dark:border-emerald-800 flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
+        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-4 md:p-6 border border-emerald-100 dark:border-emerald-800 flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Trimit v1.0.0 • Tus preferencias se sincronizan con tu cuenta.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full md:w-auto">
             {message && (
               <span className="text-sm text-gray-600 dark:text-gray-300">{message}</span>
             )}
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm inline-flex items-center gap-2 disabled:opacity-60"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm inline-flex items-center justify-center gap-2 disabled:opacity-60"
             >
               <Save className="w-4 h-4" />
               {saving ? "Guardando..." : "Guardar configuración"}
@@ -440,15 +440,15 @@ function ToggleRow({
   icon?: ReactNode;
 }) {
   return (
-    <div className="p-6 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        {icon || <Bell className="w-5 h-5 text-gray-400" />}
-        <div>
+    <div className="p-4 md:p-6 flex items-start sm:items-center justify-between gap-4">
+      <div className="flex items-start sm:items-center gap-3 min-w-0">
+        <span className="shrink-0">{icon || <Bell className="w-5 h-5 text-gray-400" />}</span>
+        <div className="min-w-0">
           <p className="font-medium dark:text-white">{title}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 break-words">{description}</p>
         </div>
       </div>
-      <label className="relative inline-block w-12 h-6">
+      <label className="relative inline-block w-12 h-6 shrink-0 mt-0.5 sm:mt-0">
         <input
           type="checkbox"
           className="peer sr-only"
@@ -478,16 +478,16 @@ function SelectRow({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-3">
-        {icon}
-        <div>
+    <div className="p-4 md:p-6">
+      <div className="flex items-start sm:items-center gap-3 mb-3">
+        <span className="shrink-0">{icon}</span>
+        <div className="min-w-0">
           <p className="font-medium dark:text-white">{title}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 break-words">{description}</p>
         </div>
       </div>
       <select
-        className="ml-8 w-full max-w-xs px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        className="w-full sm:ml-8 sm:w-[min(24rem,calc(100%-2rem))] max-w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       >
@@ -519,16 +519,16 @@ function SliderRow({
   onChange: (value: number) => void;
 }) {
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-3 mb-3">
-        {icon}
-        <div>
+    <div className="p-4 md:p-6">
+      <div className="flex items-start sm:items-center gap-3 mb-3">
+        <span className="shrink-0">{icon}</span>
+        <div className="min-w-0">
           <p className="font-medium dark:text-white">{title}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 break-words">{description}</p>
         </div>
       </div>
 
-      <div className="ml-8 max-w-md">
+      <div className="w-full sm:ml-8 sm:max-w-md">
         <input
           type="range"
           min={min}

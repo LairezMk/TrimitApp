@@ -190,7 +190,7 @@ export default function Reports() {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {formatMoney(totalCurrentMonth, "COP")}
+            {formatMoney(totalCurrentMonth)}
           </p>
           <p
             className={`text-sm flex items-center gap-1 ${
@@ -218,7 +218,7 @@ export default function Reports() {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {formatMoney(quarterTotal, "COP")}
+            {formatMoney(quarterTotal)}
           </p>
           <p className="text-sm text-blue-600">Gasto real trimestral</p>
         </div>
@@ -234,7 +234,7 @@ export default function Reports() {
             </div>
           </div>
           <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            {formatMoney(projectedMonthly, "COP")}
+            {formatMoney(projectedMonthly)}
           </p>
           <p className="text-sm text-purple-600">Pagos recurrentes estimados</p>
         </div>
@@ -270,7 +270,7 @@ export default function Reports() {
                     <span className="font-medium dark:text-white">{category.name}</span>
                   </div>
                   <div className="text-right">
-                    <span className="font-bold dark:text-white">{formatMoney(category.amount, "COP")}</span>
+                    <span className="font-bold dark:text-white">{formatMoney(category.amount)}</span>
                     <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">
                       {category.percentage.toFixed(1)}%
                     </span>
@@ -291,7 +291,7 @@ export default function Reports() {
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 dark:border-slate-600 dark:bg-slate-800">
         <h3 className="font-semibold text-emerald-900 dark:text-emerald-200 mb-2">Resumen anual real</h3>
         <p className="text-sm text-emerald-800 dark:text-emerald-100">
-          Has registrado <strong>{formatMoney(yearlyPaid, "COP")}</strong> en pagos completados.
+          Has registrado <strong>{formatMoney(yearlyPaid)}</strong> en pagos completados.
         </p>
       </div>
     </div>

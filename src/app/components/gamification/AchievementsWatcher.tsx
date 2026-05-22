@@ -115,7 +115,10 @@ export function AchievementsWatcher() {
           (sub) => sub.status === "suspended" || sub.status === "forgotten",
         ).length;
         const detected = subscriptions.filter(
-          (sub) => sub.source === "gmail-detected" || sub.source === "bank-statement",
+          (sub) =>
+            sub.source === "gmail-detected" ||
+            sub.source === "email-detected" ||
+            sub.source === "bank-statement",
         ).length;
         setMetrics((prev) => ({
           ...prev,

@@ -391,7 +391,7 @@ export default function Calendar() {
                               )}
                             </div>
                             <span className={`text-[10px] ${isSelected ? "text-emerald-100" : "text-emerald-700"}`}>
-                              {formatMoney(total, "COP")}
+                              {formatMoney(total)}
                             </span>
                           </>
                         )}
@@ -488,7 +488,7 @@ export default function Calendar() {
 
                   <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
                     <span className="text-gray-600">Total del día</span>
-                    <span className="text-xl font-medium text-emerald-600">{formatMoney(selectedDayTotal, "COP")}</span>
+                    <span className="text-xl font-medium text-emerald-600">{formatMoney(selectedDayTotal)}</span>
                   </div>
                 </>
               )
@@ -514,7 +514,6 @@ export default function Calendar() {
                   (sum, payment) => sum + convertMoney(payment.amount, payment.subscription.currency),
                   0,
                 ),
-                "COP",
               )}
             </p>
             <p className="text-emerald-100 text-sm">
@@ -528,14 +527,14 @@ export default function Calendar() {
                 <p className="text-gray-500 text-xs">Total pagado</p>
                 <TrendingDown className="w-4 h-4 text-red-500" />
               </div>
-              <p className="text-xl text-red-600">{formatMoney(totalPaid, "COP")}</p>
+              <p className="text-xl text-red-600">{formatMoney(totalPaid)}</p>
             </div>
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-1">
                 <p className="text-gray-500 text-xs">Próximos pagos</p>
                 <TrendingUp className="w-4 h-4 text-emerald-500" />
               </div>
-              <p className="text-xl text-emerald-600">{formatMoney(totalUpcoming, "COP")}</p>
+              <p className="text-xl text-emerald-600">{formatMoney(totalUpcoming)}</p>
               {nextUpcoming && (
                 <p className="text-xs text-gray-500 mt-1">
                   {nextUpcoming.subscription.name} • {getDaysUntilPayment(nextUpcoming.date)} días

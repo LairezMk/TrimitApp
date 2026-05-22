@@ -1,17 +1,19 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { AlertCircle, ArrowLeft, CheckCircle2, Mail, Save } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Mail, MailPlus, Save } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { createUserSubscription } from "../services/subscriptions";
+import { createUserSubscriptionIfNotExists } from "../services/subscriptions";
 import {
   clearDetectedSubscriptionsDrafts,
+  detectSubscriptionsFromGmail,
+  saveDetectedSubscriptionsDrafts,
   readDetectedSubscriptionsDrafts,
   type DetectedSubscriptionDraft,
 } from "../services/gmailDetection";
 
 export default function GmailSubscriptionConfirmation() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, requestGmailAccessToken } = useAuth();
   const [drafts, setDrafts] = useState<DetectedSubscriptionDraft[]>(
     readDetectedSubscriptionsDrafts(),
   );
@@ -19,6 +21,7 @@ export default function GmailSubscriptionConfirmation() {
     Object.fromEntries(readDetectedSubscriptionsDrafts().map((item) => [item.id, true])),
   );
   const [saving, setSaving] = useState(false);
+  const [scanningAnother, setScanningAnother] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const hasBankSource = useMemo(
     () => drafts.some((item) => item.source === "bank-statement"),
@@ -49,6 +52,60 @@ export default function GmailSubscriptionConfirmation() {
     navigate("/dashboard");
   };
 
+  const mergeDetectedDrafts = (
+    current: DetectedSubscriptionDraft[],
+    incoming: DetectedSubscriptionDraft[],
+  ) => {
+    const byName = new Map<string, DetectedSubscriptionDraft>();
+    const normalize = (value: string) =>
+      value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+
+    for (const draft of [...current, ...incoming]) {
+      const key = normalize(draft.name);
+      const existing = byName.get(key);
+      if (!existing || draft.confidence > existing.confidence) {
+        byName.set(key, draft);
+      }
+    }
+
+    return Array.from(byName.values()).sort((a, b) => b.confidence - a.confidence);
+  };
+
+  const handleScanAnotherEmail = async () => {
+    if (!user) {
+      setError("Debes iniciar sesión para detectar suscripciones por correo.");
+      return;
+    }
+
+    setScanningAnother(true);
+    setError(null);
+
+    try {
+      const accessToken = await requestGmailAccessToken();
+      const detected = await detectSubscriptionsFromGmail(accessToken);
+      const merged = mergeDetectedDrafts(drafts, detected);
+      setDrafts(merged);
+      setSelected((prev) => ({
+        ...prev,
+        ...Object.fromEntries(merged.map((item) => [item.id, prev[item.id] ?? true])),
+      }));
+      saveDetectedSubscriptionsDrafts(merged);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No se pudieron detectar suscripciones desde el correo.";
+      setError(message);
+    } finally {
+      setScanningAnother(false);
+    }
+  };
+
   const handleImport = async () => {
     if (!user) {
       setError("Debes iniciar sesión para continuar.");
@@ -65,11 +122,14 @@ export default function GmailSubscriptionConfirmation() {
     setError(null);
 
     try {
+      let createdCount = 0;
+      let duplicateCount = 0;
+
       for (const item of toImport) {
         const sourceLabel =
-          item.source === "bank-statement" ? "extracto bancario" : "Gmail";
+          item.source === "bank-statement" ? "extracto bancario" : "correo";
 
-        await createUserSubscription(user.uid, {
+        const result = await createUserSubscriptionIfNotExists(user.uid, {
           name: item.name.trim(),
           category: item.category,
           amount: Number(item.amount || 0),
@@ -82,6 +142,17 @@ export default function GmailSubscriptionConfirmation() {
           notes: `Detectada desde ${sourceLabel}. Referencia: ${item.subject}`,
           source: item.source,
         });
+
+        if (result.created) {
+          createdCount += 1;
+        } else {
+          duplicateCount += 1;
+        }
+      }
+
+      if (!createdCount && duplicateCount) {
+        setError("Las suscripciones seleccionadas ya existen y no se duplicaron.");
+        return;
       }
 
       clearDetectedSubscriptionsDrafts();
@@ -119,6 +190,30 @@ export default function GmailSubscriptionConfirmation() {
           <strong>{hasBankSource ? "extracto bancario/correo" : "correo"}</strong>.
           Revisa montos y próxima renovación antes de importar.
         </div>
+      </div>
+
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        <button
+          type="button"
+          onClick={handleScanAnotherEmail}
+          disabled={scanningAnother || saving}
+          className="w-full sm:w-auto px-5 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg shadow-lg transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {scanningAnother ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Escaneando...
+            </>
+          ) : (
+            <>
+              <MailPlus className="w-4 h-4" />
+              Escanear otro correo
+            </>
+          )}
+        </button>
+        <p className="text-sm text-gray-500 dark:text-gray-400 sm:self-center">
+          Úsalo para autorizar otra cuenta Gmail y sumar sus resultados sin duplicados.
+        </p>
       </div>
 
       {drafts.length === 0 && (

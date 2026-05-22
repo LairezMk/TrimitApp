@@ -32,6 +32,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<{ isNewUser: boolean; accessToken: string | null }>;
   requestGmailAccessToken: () => Promise<string>;
+  requestMicrosoftMailAccessToken: () => Promise<string>;
   sendResetPasswordCode: (email: string) => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -119,18 +120,202 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Debes iniciar sesión para detectar suscripciones por correo.");
     }
 
+    const googleOAuthClientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID as
+      | string
+      | undefined;
+    if (googleOAuthClientId) {
+      const redirectUri = window.location.origin;
+      const state = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const params = new URLSearchParams({
+        client_id: googleOAuthClientId,
+        response_type: "token",
+        redirect_uri: redirectUri,
+        scope: "https://www.googleapis.com/auth/gmail.readonly email profile",
+        state,
+        prompt: "select_account consent",
+        include_granted_scopes: "true",
+      });
+      const popup = window.open(
+        `https://accounts.google.com/o/oauth2/v2/auth?${params}`,
+        "trimit-gmail-mail",
+        "width=520,height=720",
+      );
+
+      if (!popup) {
+        throw new Error("El navegador bloqueó la ventana de autorización de Gmail.");
+      }
+
+      return new Promise<string>((resolve, reject) => {
+        const timeout = window.setTimeout(() => {
+          popup.close();
+          reject(new Error("Se agotó el tiempo para autorizar Gmail."));
+        }, 120_000);
+
+        const interval = window.setInterval(() => {
+          if (popup.closed) {
+            window.clearInterval(interval);
+            window.clearTimeout(timeout);
+            reject(new Error("Autorización de Gmail cancelada."));
+            return;
+          }
+
+          try {
+            const hash = popup.location.hash;
+            if (!hash) {
+              return;
+            }
+
+            const responseParams = new URLSearchParams(hash.replace(/^#/, ""));
+            const error = responseParams.get("error_description") || responseParams.get("error");
+            const returnedState = responseParams.get("state");
+            const token = responseParams.get("access_token");
+
+            if (returnedState && returnedState !== state) {
+              throw new Error("La respuesta de Gmail no coincide con esta sesión.");
+            }
+
+            window.clearInterval(interval);
+            window.clearTimeout(timeout);
+            popup.close();
+
+            if (error) {
+              reject(new Error(error));
+              return;
+            }
+
+            if (!token) {
+              reject(new Error("Gmail no devolvió un token de acceso."));
+              return;
+            }
+
+            resolve(token);
+          } catch (err) {
+            if (err instanceof DOMException) {
+              return;
+            }
+
+            window.clearInterval(interval);
+            window.clearTimeout(timeout);
+            popup.close();
+            reject(err);
+          }
+        }, 500);
+      });
+    }
+
     const credential = await reauthenticateWithPopup(auth.currentUser, googleProvider);
     const additional = GoogleAuthProvider.credentialFromResult(credential);
 
     if (!additional?.accessToken) {
-      throw new Error("No se pudo obtener acceso a Gmail. Intenta de nuevo.");
+      throw new Error(
+        "No se pudo obtener acceso a Gmail. Para escanear correos distintos al usuario logueado, configura VITE_GOOGLE_OAUTH_CLIENT_ID.",
+      );
     }
 
     return additional.accessToken;
   };
 
+  const requestMicrosoftMailAccessToken = async () => {
+    if (!auth.currentUser) {
+      throw new Error("Debes iniciar sesión para detectar suscripciones por correo.");
+    }
+
+    const clientId = import.meta.env.VITE_MICROSOFT_CLIENT_ID as string | undefined;
+    if (!clientId) {
+      throw new Error(
+        "Para detectar Outlook/Hotmail configura VITE_MICROSOFT_CLIENT_ID en el entorno.",
+      );
+    }
+
+    const redirectUri = window.location.origin;
+    const state = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const params = new URLSearchParams({
+      client_id: clientId,
+      response_type: "token",
+      redirect_uri: redirectUri,
+      response_mode: "fragment",
+      scope: "Mail.Read User.Read",
+      state,
+      prompt: "select_account",
+    });
+    const popup = window.open(
+      `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`,
+      "trimit-outlook-mail",
+      "width=520,height=720",
+    );
+
+    if (!popup) {
+      throw new Error("El navegador bloqueó la ventana de autorización de Outlook.");
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        popup.close();
+        reject(new Error("Se agotó el tiempo para autorizar Outlook."));
+      }, 120_000);
+
+      const interval = window.setInterval(() => {
+        if (popup.closed) {
+          window.clearInterval(interval);
+          window.clearTimeout(timeout);
+          reject(new Error("Autorización de Outlook cancelada."));
+          return;
+        }
+
+        try {
+          const hash = popup.location.hash;
+          if (!hash) {
+            return;
+          }
+
+          const responseParams = new URLSearchParams(hash.replace(/^#/, ""));
+          const error = responseParams.get("error_description") || responseParams.get("error");
+          const returnedState = responseParams.get("state");
+          const token = responseParams.get("access_token");
+
+          if (returnedState && returnedState !== state) {
+            throw new Error("La respuesta de Outlook no coincide con esta sesión.");
+          }
+
+          window.clearInterval(interval);
+          window.clearTimeout(timeout);
+          popup.close();
+
+          if (error) {
+            reject(new Error(error));
+            return;
+          }
+
+          if (!token) {
+            reject(new Error("Outlook no devolvió un token de acceso."));
+            return;
+          }
+
+          resolve(token);
+        } catch (err) {
+          if (err instanceof DOMException) {
+            return;
+          }
+
+          window.clearInterval(interval);
+          window.clearTimeout(timeout);
+          popup.close();
+          reject(err);
+        }
+      }, 500);
+    });
+  };
+
   const sendResetPasswordCode = async (email: string) => {
-    await sendPasswordResetEmail(auth, email.trim());
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      throw new Error("Ingresa tu correo para recuperar la contraseña.");
+    }
+
+    await sendPasswordResetEmail(auth, trimmedEmail, {
+      url: `${window.location.origin}/auth`,
+      handleCodeInApp: false,
+    });
   };
 
   const changePassword = async (currentPassword: string, newPassword: string) => {
@@ -146,7 +331,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (hasPasswordProvider) {
       if (!trimmedCurrentPassword) {
-        throw new Error("Debes ingresar tu contrasena actual para cambiarla.");
+        throw new Error("Debes ingresar tu contraseña actual para cambiarla.");
       }
       if (!auth.currentUser.email) {
         throw new Error("No se encontro correo asociado a la cuenta.");
@@ -171,6 +356,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       loginWithGoogle,
       requestGmailAccessToken,
+      requestMicrosoftMailAccessToken,
       sendResetPasswordCode,
       changePassword,
       logout,

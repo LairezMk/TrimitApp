@@ -31,7 +31,7 @@ function parseMemberNames(raw: string) {
 
 export default function Sharing() {
   const { user } = useAuth();
-  const { formatMoney } = useCurrencyDisplay();
+  const { formatMoney, convertMoney, preferredCurrency } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [groups, setGroups] = useState<SharedSubscriptionGroup[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,12 +94,13 @@ export default function Sharing() {
           return null;
         }
         const memberCount = group.memberNames.length + 1;
-        const yourShare = subscription.amount / memberCount;
-        const savings = subscription.amount - yourShare;
+        const monthlyAmount = convertMoney(subscription.amount, subscription.currency);
+        const yourShare = monthlyAmount / memberCount;
+        const savings = monthlyAmount - yourShare;
         return { group, subscription, memberCount, yourShare, savings };
       })
       .filter((item): item is NonNullable<typeof item> => Boolean(item));
-  }, [groups, subscriptions]);
+  }, [groups, subscriptions, convertMoney]);
 
   const totalShared = groupCards.length;
   const totalMembers = groupCards.reduce((sum, item) => sum + item.memberCount, 0);
@@ -245,7 +246,7 @@ export default function Sharing() {
         <div className="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
           <Wallet className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Ahorro mensual total</p>
-          <p className="text-3xl font-bold">{formatMoney(totalSavings, "COP")}</p>
+          <p className="text-3xl font-bold">{formatMoney(totalSavings)}</p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Compartidas</p>
@@ -258,7 +259,7 @@ export default function Sharing() {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-1">Tu pago mensual</p>
           <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {formatMoney(totalYourShare, "COP")}
+            {formatMoney(totalYourShare)}
           </p>
         </div>
       </div>
@@ -340,7 +341,7 @@ export default function Sharing() {
             processing={processingGroupId === group.id}
             onDelete={() => handleDeleteGroup(group.id)}
             onCopy={() => handleCopyLink(group.id)}
-            onReminder={() => handleReminder(subscription.name, yourShare, subscription.currency)}
+            onReminder={() => handleReminder(subscription.name, yourShare, preferredCurrency)}
             onAddMember={(member) => handleAddMember(group, member)}
             onRemoveMember={(member) => handleRemoveMember(group, member)}
           />
@@ -392,12 +393,12 @@ function SharedCard({
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {memberCount} participantes · Tu parte:{" "}
-              {formatMoney(yourShare, subscription.currency)}
+              {formatMoney(yourShare)}
             </p>
           </div>
         </div>
         <div className="text-sm text-emerald-600 font-semibold">
-          Ahorras {formatMoney(savings, subscription.currency)}
+          Ahorras {formatMoney(savings)}
         </div>
       </div>
 

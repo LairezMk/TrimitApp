@@ -4,6 +4,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -25,6 +26,12 @@ interface UpsertSubscriptionInput {
   color: string;
   notes?: string;
   source?: Subscription["source"];
+}
+
+export interface CreateSubscriptionResult {
+  created: boolean;
+  id?: string;
+  duplicate?: Subscription;
 }
 
 function toDateValue(value: unknown): Date {
@@ -93,6 +100,67 @@ export async function createUserSubscription(uid: string, input: UpsertSubscript
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+}
+
+export function normalizeSubscriptionIdentity(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\b(inc|llc|ltda|sas|s\.a\.s|s\.a|colombia|latam)\b/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function isDuplicateSubscription(
+  existing: Subscription,
+  input: UpsertSubscriptionInput,
+) {
+  const existingKey = normalizeSubscriptionIdentity(existing.name);
+  const inputKey = normalizeSubscriptionIdentity(input.name);
+  if (!existingKey || !inputKey) {
+    return false;
+  }
+
+  if (existingKey === inputKey) {
+    return true;
+  }
+
+  const namesAreVerySimilar =
+    existingKey.includes(inputKey) || inputKey.includes(existingKey);
+  const amountsAreClose =
+    Number(existing.amount || 0) > 0 &&
+    Number(input.amount || 0) > 0 &&
+    Math.abs(Number(existing.amount) - Number(input.amount)) <=
+      Math.max(1000, Number(input.amount) * 0.03);
+
+  return namesAreVerySimilar && amountsAreClose;
+}
+
+export async function createUserSubscriptionIfNotExists(
+  uid: string,
+  input: UpsertSubscriptionInput,
+): Promise<CreateSubscriptionResult> {
+  const ref = collection(db, "users", uid, "subscriptions");
+  const snapshot = await getDocs(ref);
+  const existing = snapshot.docs
+    .filter((d) => d.id !== "_meta")
+    .map((d) => mapDocToSubscription(d.id, d.data() as Record<string, unknown>));
+  const duplicate = existing.find((subscription) =>
+    isDuplicateSubscription(subscription, input),
+  );
+
+  if (duplicate) {
+    return { created: false, duplicate };
+  }
+
+  const created = await addDoc(ref, {
+    ...input,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return { created: true, id: created.id };
 }
 
 export async function updateUserSubscription(

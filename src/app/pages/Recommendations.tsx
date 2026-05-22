@@ -37,7 +37,7 @@ interface RecommendationItem {
 
 export default function Recommendations() {
   const { user } = useAuth();
-  const { formatMoney, convertMoney } = useCurrencyDisplay();
+  const { formatMoney, convertMoney, preferredCurrency } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [statusByRecommendationId, setStatusByRecommendationId] = useState<
@@ -66,14 +66,15 @@ export default function Recommendations() {
 
     for (const sub of subscriptions) {
       const name = sub.name.toLowerCase();
+      const monthlyAmount = convertMoney(sub.amount, sub.currency);
 
-      if (sub.amount >= 18) {
+      if (monthlyAmount >= convertMoney(18, "USD")) {
         items.push({
           id: `opt-${sub.id}`,
           title: `Revisa plan de ${sub.name}`,
           description: `Tu plan actual es alto (${formatMoney(sub.amount, sub.currency)}/mes). Evalúa un plan anual o básico.`,
-          savings: Number((sub.amount * 0.15 * 12).toFixed(2)),
-          currency: sub.currency,
+          savings: Number((monthlyAmount * 0.15 * 12).toFixed(2)),
+          currency: preferredCurrency,
           effort: "Fácil",
           impact: "Medio",
           category: "Optimización",
@@ -89,8 +90,8 @@ export default function Recommendations() {
           title: `Comparte ${sub.name} con plan familiar`,
           description:
             "Si lo compartes con familia o amigos, el costo por persona suele bajar notablemente.",
-          savings: Number((sub.amount * 0.35 * 12).toFixed(2)),
-          currency: sub.currency,
+          savings: Number((monthlyAmount * 0.35 * 12).toFixed(2)),
+          currency: preferredCurrency,
           effort: "Medio",
           impact: "Alto",
           category: "Compartir",
@@ -107,8 +108,8 @@ export default function Recommendations() {
           title: `Cancela o pausa ${sub.name}`,
           description:
             "La suscripción aparece olvidada o con cobro vencido. Revisa si aún la necesitas.",
-          savings: Number((sub.amount * 12).toFixed(2)),
-          currency: sub.currency,
+          savings: Number((monthlyAmount * 12).toFixed(2)),
+          currency: preferredCurrency,
           effort: "Fácil",
           impact: "Alto",
           category: "Cancelación",
@@ -119,13 +120,16 @@ export default function Recommendations() {
       }
 
       const bestOffer = findBestMarketOffer(sub.name, sub.category);
-      if (bestOffer && bestOffer.monthlyPrice < sub.amount) {
+      const bestOfferMonthly = bestOffer
+        ? convertMoney(bestOffer.monthlyPrice, bestOffer.currency)
+        : 0;
+      if (bestOffer && bestOfferMonthly < monthlyAmount) {
         items.push({
           id: `market-${sub.id}-${bestOffer.id}`,
           title: `Oferta detectada para ${sub.name}`,
           description: `En el mercado existe ${bestOffer.provider} ${bestOffer.planName} por ${formatMoney(bestOffer.monthlyPrice, bestOffer.currency)}/${bestOffer.billingCycle === "monthly" ? "mes" : "año"}.`,
-          savings: Number(((sub.amount - bestOffer.monthlyPrice) * 12).toFixed(2)),
-          currency: sub.currency,
+          savings: Number(((monthlyAmount - bestOfferMonthly) * 12).toFixed(2)),
+          currency: preferredCurrency,
           effort: "Medio",
           impact: "Alto",
           category: "Oferta mercado",
@@ -145,7 +149,7 @@ export default function Recommendations() {
     }
 
     return Array.from(dedup.values()).sort((a, b) => b.savings - a.savings);
-  }, [subscriptions, formatMoney]);
+  }, [subscriptions, formatMoney, convertMoney, preferredCurrency]);
 
   const visibleRecommendations = recommendations.filter(
     (item) => statusByRecommendationId[item.id] !== "dismissed",
@@ -197,7 +201,7 @@ export default function Recommendations() {
               Basado en tus suscripciones actuales y comparación de mercado
             </p>
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold">{formatMoney(totalPotentialSavings, "COP", 0)}</span>
+              <span className="text-5xl font-bold">{formatMoney(totalPotentialSavings)}</span>
               <span className="text-emerald-100">/año</span>
             </div>
             <p className="text-emerald-100 text-xs mt-2">

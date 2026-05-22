@@ -95,7 +95,10 @@ export default function Achievements() {
             (sub) => sub.status === "suspended" || sub.status === "forgotten",
           ).length,
           detectedSubscriptionsTotal: subscriptions.filter(
-            (sub) => sub.source === "gmail-detected" || sub.source === "bank-statement",
+            (sub) =>
+              sub.source === "gmail-detected" ||
+              sub.source === "email-detected" ||
+              sub.source === "bank-statement",
           ).length,
           categoriesTotal: categories.size,
         }));

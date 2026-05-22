@@ -21,13 +21,14 @@ import { subscriptionColorStyle, subscriptionTextColorStyle } from "../utils/sub
 import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import {
   detectSubscriptionsFromGmail,
+  detectSubscriptionsFromOutlook,
   saveDetectedSubscriptionsDrafts,
 } from "../services/gmailDetection";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { user, requestGmailAccessToken } = useAuth();
-  const { formatMoney } = useCurrencyDisplay();
+  const { user, requestGmailAccessToken, requestMicrosoftMailAccessToken } = useAuth();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [detectingByEmail, setDetectingByEmail] = useState(false);
@@ -57,7 +58,7 @@ export default function Dashboard() {
 
   const totalMonthly = subscriptions
     .filter((s) => s.status !== "suspended")
-    .reduce((acc, s) => acc + s.amount, 0);
+    .reduce((acc, s) => acc + convertMoney(s.amount, s.currency), 0);
 
   const activeCount = subscriptions.filter((s) => s.status === "active").length;
   const forgottenCount = subscriptions.filter((s) => s.status === "forgotten").length;
@@ -76,7 +77,7 @@ export default function Dashboard() {
   const stats = [
     {
       title: "Gasto mensual total",
-      value: formatMoney(totalMonthly, "COP"),
+      value: formatMoney(totalMonthly),
       icon: DollarSign,
       color: "bg-emerald-500",
       change: loading ? "Cargando..." : `${subscriptions.length} suscripciones registradas`,
@@ -110,8 +111,11 @@ export default function Dashboard() {
     setDetectError(null);
 
     try {
-      const accessToken = await requestGmailAccessToken();
-      const detected = await detectSubscriptionsFromGmail(accessToken);
+      const domain = user.email?.split("@")[1]?.toLowerCase() || "";
+      const isMicrosoftMailbox = /^(outlook|hotmail|live|msn)\./.test(domain);
+      const detected = isMicrosoftMailbox
+        ? await detectSubscriptionsFromOutlook(await requestMicrosoftMailAccessToken())
+        : await detectSubscriptionsFromGmail(await requestGmailAccessToken());
       saveDetectedSubscriptionsDrafts(detected);
       navigate("/subscriptions/gmail-confirmation");
     } catch (err) {
@@ -140,11 +144,11 @@ export default function Dashboard() {
             Gestiona y controla todas tus suscripciones en un solo lugar
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <div className="grid grid-cols-1 sm:flex sm:flex-row gap-3 w-full sm:w-auto">
           <Button
             onClick={handleDetectByEmail}
             disabled={detectingByEmail}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:scale-105"
+            className="w-full sm:w-auto min-h-14 px-5 md:px-6 text-base font-semibold bg-gradient-to-r from-cyan-600 to-emerald-500 hover:from-cyan-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:scale-[1.02]"
           >
             {detectingByEmail ? (
               <>
@@ -160,7 +164,7 @@ export default function Dashboard() {
           </Button>
           <Button
             onClick={() => navigate("/subscriptions/add")}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:scale-105"
+            className="w-full sm:w-auto min-h-12 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:scale-[1.02]"
           >
             <Plus className="w-5 h-5 mr-2" />
             Nueva Suscripción

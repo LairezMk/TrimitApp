@@ -40,7 +40,7 @@ function monthLabel(date: Date) {
 
 export default function Analytics() {
   const { user } = useAuth();
-  const { formatMoney } = useCurrencyDisplay();
+  const { formatMoney, convertMoney } = useCurrencyDisplay();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [payments, setPayments] = useState<UserPayment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,22 +82,29 @@ export default function Analytics() {
   );
 
   const monthlyProjectedSpend = useMemo(
-    () => activeSubscriptions.reduce((sum, sub) => sum + sub.amount, 0),
-    [activeSubscriptions],
+    () =>
+      activeSubscriptions.reduce(
+        (sum, sub) => sum + convertMoney(sub.amount, sub.currency),
+        0,
+      ),
+    [activeSubscriptions, convertMoney],
   );
 
   const paidTotal = useMemo(
     () =>
       payments
         .filter((payment) => payment.status === "paid")
-        .reduce((sum, payment) => sum + payment.amount, 0),
-    [payments],
+        .reduce((sum, payment) => sum + convertMoney(payment.amount, payment.currency), 0),
+    [payments, convertMoney],
   );
 
   const categoryData = useMemo(() => {
     const grouped = new Map<string, number>();
     for (const sub of activeSubscriptions) {
-      grouped.set(sub.category, (grouped.get(sub.category) || 0) + sub.amount);
+      grouped.set(
+        sub.category,
+        (grouped.get(sub.category) || 0) + convertMoney(sub.amount, sub.currency),
+      );
     }
 
     return Array.from(grouped.entries()).map(([name, value], index) => ({
@@ -105,7 +112,7 @@ export default function Analytics() {
       value,
       color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
     }));
-  }, [activeSubscriptions]);
+  }, [activeSubscriptions, convertMoney]);
 
   const monthlyData = useMemo(() => {
     const now = new Date();
@@ -124,12 +131,12 @@ export default function Analytics() {
       const key = monthKey(payment.paymentDate);
       const target = map.get(key);
       if (target) {
-        target.gasto += payment.amount;
+        target.gasto += convertMoney(payment.amount, payment.currency);
       }
     }
 
     return months;
-  }, [payments]);
+  }, [payments, convertMoney]);
 
   const avgMonthlyPaid = useMemo(() => {
     if (!monthlyData.length) {
@@ -190,7 +197,7 @@ export default function Analytics() {
             <TrendingUp className="w-5 h-5" />
           </div>
           <p className="text-emerald-100 text-sm">Gasto mensual proyectado</p>
-          <p className="text-3xl font-bold">{formatMoney(monthlyProjectedSpend, "COP")}</p>
+          <p className="text-3xl font-bold">{formatMoney(monthlyProjectedSpend)}</p>
           <p className="text-emerald-100 text-xs mt-2">
             {activeSubscriptions.length} suscripciones activas
           </p>
@@ -201,7 +208,7 @@ export default function Analytics() {
             <Calendar className="w-8 h-8 text-blue-600" />
           </div>
           <p className="text-gray-500 text-sm">Promedio mensual pagado</p>
-          <p className="text-3xl font-bold text-gray-900">{formatMoney(avgMonthlyPaid, "COP")}</p>
+          <p className="text-3xl font-bold text-gray-900">{formatMoney(avgMonthlyPaid)}</p>
           <p className="text-gray-500 text-xs mt-2">Últimos 6 meses</p>
         </div>
 
@@ -211,7 +218,7 @@ export default function Analytics() {
           </div>
           <p className="text-gray-500 text-sm">Pagos registrados</p>
           <p className="text-3xl font-bold text-gray-900">{payments.length}</p>
-          <p className="text-gray-500 text-xs mt-2">Total pagado: {formatMoney(paidTotal, "COP")}</p>
+          <p className="text-gray-500 text-xs mt-2">Total pagado: {formatMoney(paidTotal)}</p>
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -220,7 +227,7 @@ export default function Analytics() {
           </div>
           <p className="text-gray-500 text-sm">Mayor categoría</p>
           <p className="text-2xl font-bold text-gray-900">
-            {formatMoney(highestCategory?.value || 0, "COP")}
+            {formatMoney(highestCategory?.value || 0)}
           </p>
           <p className="text-gray-500 text-xs mt-2">{highestCategory?.name || "Sin datos"}</p>
         </div>

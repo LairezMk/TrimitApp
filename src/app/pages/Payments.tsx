@@ -278,7 +278,7 @@ export default function Payments() {
             <p className="text-gray-500 text-sm">Total pagado</p>
             <TrendingDown className="w-5 h-5 text-red-500" />
           </div>
-          <p className="text-3xl text-red-600">{formatMoney(totalPaid, "COP")}</p>
+          <p className="text-3xl text-red-600">{formatMoney(totalPaid)}</p>
           <p className="text-xs text-gray-500 mt-1">{paidTimeline.length} pagos realizados</p>
         </div>
 
@@ -287,7 +287,7 @@ export default function Payments() {
             <p className="text-gray-500 text-sm">Próximos pagos</p>
             <TrendingUp className="w-5 h-5 text-emerald-500" />
           </div>
-          <p className="text-3xl text-emerald-600">{formatMoney(totalUpcoming, "COP")}</p>
+          <p className="text-3xl text-emerald-600">{formatMoney(totalUpcoming)}</p>
           <p className="text-xs text-gray-500 mt-1">
             {upcomingProjected.length} pagos programados
           </p>

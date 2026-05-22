@@ -391,7 +391,7 @@ export default function Profile() {
                   Gasto mensual
                 </span>
                 <span className="font-semibold">
-                  {formatMoney(monthlyTotal, "COP")}
+                  {formatMoney(monthlyTotal)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
