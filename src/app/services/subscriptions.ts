@@ -14,6 +14,7 @@ import {
 import { db } from "../lib/firebase";
 import type { Subscription } from "../types/subscription";
 import { dateFromInputValue } from "../utils/date";
+import { normalizeSubscriptionIdentity } from "../utils/subscriptionIdentity";
 
 interface UpsertSubscriptionInput {
   name: string;
@@ -106,15 +107,7 @@ export async function createUserSubscription(uid: string, input: UpsertSubscript
   });
 }
 
-export function normalizeSubscriptionIdentity(name: string) {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\b(inc|llc|ltda|sas|s\.a\.s|s\.a|colombia|latam)\b/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
+export { normalizeSubscriptionIdentity };
 
 function isDuplicateSubscription(
   existing: Subscription,

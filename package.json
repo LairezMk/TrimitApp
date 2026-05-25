@@ -6,6 +6,9 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "test": "npm run test:unit",
+    "test:unit": "node scripts/run-tests.mjs",
+    "test:all": "npm run test:unit && npm run build",
     "deploy:hosting": "npm run build && firebase deploy --only hosting:trimitapp",
     "deploy:preview": "npm run build && firebase hosting:channel:deploy preview --only trimitapp"
   },

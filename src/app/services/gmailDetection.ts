@@ -521,6 +521,10 @@ function cleanEmailText(text: string) {
     .trim();
 }
 
+function cleanEmailHeader(text: string) {
+  return decodeHtmlEntities(text).replace(/\s+/g, " ").trim();
+}
+
 function collectBodyText(part?: GmailMessagePart): string[] {
   if (!part) {
     return [];
@@ -657,7 +661,7 @@ function extractAmount(text: string) {
       const start = Math.max(0, (match.index || 0) - 80);
       const end = Math.min(text.length, (match.index || 0) + matchText.length + 80);
       const context = text.slice(start, end);
-      const currency = inferCurrency(`${matchText} ${context}`);
+      const currency = inferCurrency(`${matchText} ${context} ${text.slice(0, 320)}`);
       const amount = normalizeAmount(rawAmount, currency);
 
       if (amount && amount > 0) {
@@ -846,21 +850,14 @@ function addDefaultNextPaymentByCadence(cadenceDays: number) {
 }
 
 function findProvider(text: string) {
-  for (const hint of PROVIDER_HINTS) {
-    if (hint.patterns.some((pattern) => pattern.test(text))) {
-      return hint;
-    }
-  }
-  return null;
+  const matches = PROVIDER_HINTS.filter((hint) =>
+    hint.patterns.some((pattern) => pattern.test(text)),
+  );
+  return matches.sort((a, b) => b.name.length - a.name.length)[0] || null;
 }
 
 function findProviderForMessage(from: string, text: string) {
-  const senderProvider = findProvider(from);
-  if (senderProvider) {
-    return senderProvider;
-  }
-
-  return findProvider(text);
+  return findProvider(`${from} ${text}`);
 }
 
 function extractHeader(headers: GmailHeader[] | undefined, name: string) {
@@ -1101,7 +1098,14 @@ function extractProviderName(text: string) {
     return null;
   }
 
-  return candidate.replace(/\s{2,}/g, " ").slice(0, 60);
+  return candidate
+    .replace(/\s+/g, " ")
+    .replace(/<.*$/g, "")
+    .replace(/\b(billing|facturaci[oó]n|support|soporte|noreply|no-reply)\b.*$/i, "")
+    .replace(/\b(monthly|annual|yearly|mensual|anual|subscription|suscripci[oó]n|membership|membres[ií]a|plan|amount|total|invoice|factura|receipt|recibo|payment|pago)\b.*$/i, "")
+    .replace(/[|•#;].*$/g, "")
+    .trim()
+    .slice(0, 60);
 }
 
 function isGenericProviderName(name: string) {
@@ -1142,6 +1146,8 @@ function extractStoreSubscriptionName(text: string) {
 
 function extractMerchantFromProcessorReceipt(text: string) {
   const patterns = [
+    /(?:payment|paid|charge|charged)\s+to\s+([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
+    /(?:pago|pagaste|cobro|cargo)\s+(?:a|para)\s+([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
     /(?:payment|paid|receipt|invoice)\s+(?:to|from|for)\s+([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
     /(?:pago|pagaste|recibo|factura)\s+(?:a|de|para)\s+([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
     /(?:merchant|comercio|seller|business|empresa)\s*[:\-]\s*([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
@@ -1155,7 +1161,7 @@ function extractMerchantFromProcessorReceipt(text: string) {
       const cleaned = cleanMerchantCandidate(candidate);
       if (
         cleaned.length >= 3 &&
-        !/^(paypal|stripe|invoice|receipt|factura|recibo|payment|pago)$/i.test(cleaned)
+        !/\b(paypal|stripe|paddle|xsolla|wompi|payu|mercadopago|invoice|receipt|factura|recibo|payment|pago)\b/i.test(cleaned)
       ) {
         return cleaned;
       }
@@ -1235,7 +1241,7 @@ async function fetchGmailMessages(accessToken: string) {
 
 function mapGmailMessage(message: GmailMessageResponse): EmailMessage {
   const headers = message.payload?.headers || [];
-  const from = cleanEmailText(extractHeader(headers, "From") || "Correo detectado");
+  const from = cleanEmailHeader(extractHeader(headers, "From") || "Correo detectado");
   const subject = cleanEmailText(extractHeader(headers, "Subject") || "Sin asunto");
   const body = cleanEmailText(collectBodyText(message.payload).join(" "));
   const date = message.internalDate ? new Date(Number(message.internalDate)) : null;
@@ -1412,8 +1418,11 @@ function detectSubscriptionsFromMessages(
     const messageDate = message.date || null;
     const inferredDate = parsedDate || messageDate || addDefaultNextPaymentByCadence(cadenceDays);
     const nextPayment = ensureFutureDate(inferredDate);
+    const providerNameLooksAmbiguous =
+      Boolean(provider && providerName) &&
+      providerName!.toLowerCase().includes(provider!.name.split(" ")[0].toLowerCase());
     const inferredName =
-      providerName && !isGenericProviderName(providerName)
+      providerName && !isGenericProviderName(providerName) && !providerNameLooksAmbiguous
         ? providerName
         : provider?.name || parseSenderName(from);
     const finalProvider = findProvider(inferredName) || provider;
@@ -1511,7 +1520,7 @@ async function fetchOutlookMessages(accessToken: string) {
 
     return {
       id: message.id,
-      from: cleanEmailText(from),
+      from: cleanEmailHeader(from),
       subject: cleanEmailText(message.subject || "Sin asunto"),
       snippet: cleanEmailText(message.bodyPreview || ""),
       body: cleanEmailText(message.body?.content || ""),
@@ -1557,3 +1566,11 @@ export function readDetectedSubscriptionsDrafts() {
 export function clearDetectedSubscriptionsDrafts() {
   sessionStorage.removeItem(SESSION_KEY);
 }
+
+export const __gmailDetectionTestUtils = {
+  detectSubscriptionsFromMessages,
+  extractAmount,
+  extractDate,
+  hasBillingLanguage,
+  isLikelyPromotional,
+};
