@@ -8,15 +8,15 @@ import {
   onAuthStateChanged,
   reauthenticateWithCredential,
   reauthenticateWithPopup,
-  sendPasswordResetEmail,
   signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
   updateProfile,
 } from "firebase/auth";
+import { httpsCallable } from "firebase/functions";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { auth, db, googleProvider } from "../lib/firebase";
+import { auth, db, functions, googleProvider } from "../lib/firebase";
 import { bootstrapUserWorkspace } from "../services/userBootstrap";
 
 interface RegisterPayload {
@@ -312,10 +312,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Ingresa tu correo para recuperar la contraseña.");
     }
 
-    await sendPasswordResetEmail(auth, trimmedEmail, {
-      url: `${window.location.origin}/auth/action`,
-      handleCodeInApp: true,
-    });
+    const sendCustomReset = httpsCallable(functions, "sendTrimitPasswordResetEmail");
+    await sendCustomReset({ email: trimmedEmail });
   };
 
   const changePassword = async (currentPassword: string, newPassword: string) => {

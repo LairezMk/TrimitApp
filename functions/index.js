@@ -2,9 +2,10 @@ const crypto = require("node:crypto");
 const admin = require("firebase-admin");
 const logger = require("firebase-functions/logger");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onRequest } = require("firebase-functions/v2/https");
+const { HttpsError, onCall, onRequest } = require("firebase-functions/v2/https");
 const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
-const { defineString } = require("firebase-functions/params");
+const { defineSecret, defineString } = require("firebase-functions/params");
+const nodemailer = require("nodemailer");
 const {
   buildReminderEventId,
   clampReminderDays,
@@ -24,6 +25,28 @@ const MAX_RETRY_ATTEMPTS = 3;
 const TRIMIT_UNSUBSCRIBE_BASE_URL = defineString("TRIMIT_UNSUBSCRIBE_BASE_URL", {
   default: "https://southamerica-east1-trimitapp.cloudfunctions.net/unsubscribePaymentReminders",
 });
+const TRIMIT_APP_URL = defineString("TRIMIT_APP_URL", {
+  default: "https://trimitapp.web.app",
+});
+const TRIMIT_EMAIL_FROM = defineString("TRIMIT_EMAIL_FROM", {
+  default: "",
+});
+const TRIMIT_EMAIL_REPLY_TO = defineString("TRIMIT_EMAIL_REPLY_TO", {
+  default: "",
+});
+const TRIMIT_SMTP_HOST = defineString("TRIMIT_SMTP_HOST", {
+  default: "",
+});
+const TRIMIT_SMTP_PORT = defineString("TRIMIT_SMTP_PORT", {
+  default: "587",
+});
+const TRIMIT_SMTP_SECURE = defineString("TRIMIT_SMTP_SECURE", {
+  default: "false",
+});
+const TRIMIT_SMTP_USER = defineString("TRIMIT_SMTP_USER", {
+  default: "",
+});
+const TRIMIT_SMTP_PASS = defineSecret("TRIMIT_SMTP_PASS");
 
 function toCurrencyCode(currency) {
   if (currency === "USD" || currency === "EUR" || currency === "COP") {
@@ -124,6 +147,192 @@ function buildReminderTemplate({
 </html>`.trim();
 
   return { subject, text, html };
+}
+
+function buildTransactionalMessageOptions() {
+  const options = {
+    headers: {
+      "X-Auto-Response-Suppress": "All",
+      "X-Trimit-Message-Type": "password-reset",
+    },
+  };
+  const from = TRIMIT_EMAIL_FROM.value().trim();
+  const replyTo = TRIMIT_EMAIL_REPLY_TO.value().trim();
+  if (from) {
+    options.from = from;
+  }
+  if (replyTo) {
+    options.replyTo = replyTo;
+  }
+  return options;
+}
+
+function getSmtpConfig() {
+  const host = TRIMIT_SMTP_HOST.value().trim();
+  const user = TRIMIT_SMTP_USER.value().trim();
+  let pass = "";
+  try {
+    pass = TRIMIT_SMTP_PASS.value().trim();
+  } catch {
+    pass = "";
+  }
+
+  if (!host || !user || !pass) {
+    return null;
+  }
+
+  const port = Number(TRIMIT_SMTP_PORT.value() || 587);
+  const secure = TRIMIT_SMTP_SECURE.value().toLowerCase() === "true" || port === 465;
+  return {
+    host,
+    port: Number.isFinite(port) ? port : 587,
+    secure,
+    auth: { user, pass },
+  };
+}
+
+async function sendTransactionalEmail({ to, template, meta }) {
+  const messageOptions = buildTransactionalMessageOptions();
+  const from = messageOptions.from || TRIMIT_SMTP_USER.value().trim();
+  const smtpConfig = getSmtpConfig();
+
+  if (smtpConfig && from) {
+    const transporter = nodemailer.createTransport(smtpConfig);
+    const info = await transporter.sendMail({
+      from,
+      to,
+      replyTo: messageOptions.replyTo,
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+      headers: messageOptions.headers,
+    });
+    logger.info("Transactional email sent via Nodemailer", {
+      type: meta.type,
+      providerMessageId: info.messageId,
+    });
+    return { provider: "nodemailer", messageId: info.messageId };
+  }
+
+  await db.collection("mail").add({
+    to: [to],
+    message: {
+      ...messageOptions,
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+    },
+    meta: {
+      ...meta,
+      source: `${meta.source || "trimit"}_mail_collection_fallback`,
+    },
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  logger.warn("SMTP is not configured. Queued transactional email in mail collection.", {
+    type: meta.type,
+  });
+  return { provider: "mail_collection" };
+}
+
+function buildPasswordResetTemplate({ resetUrl }) {
+  const subject = "Restablece tu acceso a Trimit";
+  const text = [
+    "Hola,",
+    "",
+    "Recibimos una solicitud para restablecer el acceso a tu cuenta de Trimit.",
+    "Para crear una contraseña nueva, abre este enlace seguro:",
+    resetUrl,
+    "",
+    "Por seguridad, el enlace tiene una vigencia limitada.",
+    "Si no solicitaste este cambio, ignora este mensaje. Tu cuenta seguirá protegida.",
+    "",
+    "Equipo Trimit",
+  ].join("\n");
+
+  const html = `
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Restablece tu acceso a Trimit</title>
+  </head>
+  <body style="margin:0;background:#eefaf5;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      Crea una contraseña nueva para volver a entrar a Trimit.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#eefaf5;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #bdebd8;border-radius:18px;overflow:hidden;box-shadow:0 18px 45px rgba(15,23,42,.08);">
+            <tr>
+              <td style="padding:26px 28px;background:#052e2b;color:#ffffff;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td>
+                      <div style="font-size:24px;font-weight:800;letter-spacing:.2px;">Trimit</div>
+                      <div style="margin-top:6px;font-size:13px;color:#a7f3d0;">Gestión segura de tus suscripciones</div>
+                    </td>
+                    <td align="right" style="font-size:12px;color:#99f6e4;">Recuperación de cuenta</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:30px 28px 10px 28px;">
+                <h1 style="margin:0 0 10px 0;font-size:26px;line-height:1.25;color:#0f172a;">Restablece tu contraseña</h1>
+                <p style="margin:0;font-size:15px;line-height:1.7;color:#475569;">Recibimos una solicitud para recuperar el acceso a tu cuenta. Haz clic en el botón para crear una contraseña nueva.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 28px 8px 28px;">
+                <a href="${resetUrl}" style="display:block;text-align:center;background:#10b981;color:#ffffff;text-decoration:none;border-radius:14px;padding:15px 20px;font-size:15px;font-weight:800;box-shadow:0 12px 26px rgba(16,185,129,.24);">Crear nueva contraseña</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 28px 24px 28px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #d1fae5;background:#f0fdf4;border-radius:14px;">
+                  <tr>
+                    <td style="padding:16px;">
+                      <p style="margin:0 0 8px 0;font-size:13px;font-weight:700;color:#065f46;">Consejo de seguridad</p>
+                      <p style="margin:0;font-size:13px;line-height:1.6;color:#047857;">Si no pediste este cambio, ignora este correo. Nadie podrá modificar tu contraseña sin abrir este enlace.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 28px 30px 28px;">
+                <p style="margin:0 0 8px 0;font-size:12px;line-height:1.6;color:#64748b;">Si el botón no abre, copia este enlace en tu navegador:</p>
+                <p style="margin:0;font-size:12px;line-height:1.6;word-break:break-all;color:#0f766e;">${resetUrl}</p>
+                <div style="margin-top:22px;border-top:1px solid #e2e8f0;padding-top:18px;">
+                  <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">Este mensaje fue enviado automáticamente por Trimit para proteger tu cuenta.</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`.trim();
+
+  return { subject, text, html };
+}
+
+function buildAppPasswordResetUrl(firebaseLink) {
+  const parsed = new URL(firebaseLink);
+  const appBaseUrl = TRIMIT_APP_URL.value().replace(/\/$/, "");
+  const resetUrl = new URL(`${appBaseUrl}/auth/action`);
+  for (const key of ["mode", "oobCode", "apiKey", "lang"]) {
+    const value = parsed.searchParams.get(key);
+    if (value) {
+      resetUrl.searchParams.set(key, value);
+    }
+  }
+  resetUrl.searchParams.set("mode", "resetPassword");
+  return resetUrl.toString();
 }
 
 async function incrementMetrics(dateKey, patch) {
@@ -307,6 +516,50 @@ exports.schedulePaymentReminderEmails = onSchedule(
       usersEvaluated: usersSnapshot.size,
       runDateKey,
     });
+  },
+);
+
+exports.sendTrimitPasswordResetEmail = onCall(
+  {
+    region: REGION,
+    memory: "256MiB",
+    secrets: [TRIMIT_SMTP_PASS],
+  },
+  async (request) => {
+    const email = String(request.data?.email || "").trim().toLowerCase();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new HttpsError("invalid-argument", "Ingresa un correo válido.");
+    }
+
+    try {
+      const firebaseLink = await admin.auth().generatePasswordResetLink(email, {
+        url: `${TRIMIT_APP_URL.value().replace(/\/$/, "")}/auth/action`,
+        handleCodeInApp: true,
+      });
+      const resetUrl = buildAppPasswordResetUrl(firebaseLink);
+      const template = buildPasswordResetTemplate({ resetUrl });
+
+      const delivery = await sendTransactionalEmail({
+        to: email,
+        template,
+        meta: {
+          type: "password_reset",
+          source: "trimit_custom_auth_email",
+        },
+      });
+
+      logger.info("Password reset email processed", {
+        emailHash: crypto.createHash("sha256").update(email).digest("hex"),
+        provider: delivery.provider,
+      });
+      return { ok: true, provider: delivery.provider };
+    } catch (error) {
+      if (error?.code === "auth/user-not-found") {
+        return { ok: true };
+      }
+      logger.error("Could not queue password reset email", { code: error?.code, message: error?.message });
+      throw new HttpsError("internal", "No se pudo enviar el correo de recuperación.");
+    }
   },
 );
 

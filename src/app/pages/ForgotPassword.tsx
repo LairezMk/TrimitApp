@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
       await sendResetPasswordCode(trimmedEmail);
       setMessageType("success");
       setMessage(
-        "Te enviamos un enlace real para restablecer tu contraseña. Revisa tu bandeja de entrada y spam.",
+        "Te enviamos un enlace seguro en español para restablecer tu contraseña. Revisa tu bandeja principal; si no aparece, mira promociones o spam.",
       );
     } catch (error) {
       setMessageType("error");

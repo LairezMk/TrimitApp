@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,3 +23,4 @@ googleProvider.addScope("https://www.googleapis.com/auth/gmail.readonly");
 export const db = firestoreDatabaseId
   ? getFirestore(app, firestoreDatabaseId)
   : getFirestore(app);
+export const functions = getFunctions(app, "southamerica-east1");

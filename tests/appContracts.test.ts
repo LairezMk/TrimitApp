@@ -6,6 +6,7 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
 };
 const routes = readFileSync("src/app/routes.ts", "utf8");
 const authContext = readFileSync("src/app/contexts/AuthContext.tsx", "utf8");
+const functionsIndex = readFileSync("functions/index.js", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
 
 assert.equal(packageJson.scripts?.test, "npm run test:unit");
@@ -14,8 +15,11 @@ assert.ok(packageJson.scripts?.["test:all"]?.includes("npm run build"));
 assert.ok(routes.includes('path: "/auth/action"'), "custom reset action route is registered");
 assert.ok(routes.includes("AppErrorBoundary"), "critical routes have an app error boundary");
 
-assert.ok(authContext.includes("/auth/action"), "password reset email points to app action route");
-assert.ok(authContext.includes("handleCodeInApp: true"), "password reset uses in-app action handling");
+assert.ok(authContext.includes("sendTrimitPasswordResetEmail"), "frontend uses custom reset email function");
+assert.ok(!authContext.includes("sendPasswordResetEmail"), "frontend avoids default Firebase reset email");
+assert.ok(functionsIndex.includes("/auth/action"), "password reset email points to app action route");
+assert.ok(functionsIndex.includes("handleCodeInApp: true"), "password reset uses in-app action handling");
+assert.ok(functionsIndex.includes("Restablece tu acceso a Trimit"), "password reset subject is Spanish");
 
 for (const requiredKey of [
   "VITE_FIREBASE_API_KEY",
