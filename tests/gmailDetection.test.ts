@@ -63,6 +63,20 @@ const detected = detectSubscriptionsFromMessages(
       body:
         "Compra confirmada. Pedido enviado con tracking. Total pagado $ 89.900. Producto en camino.",
     }),
+    message({
+      id: "x-suspended",
+      from: "X <notify@x.com>",
+      subject: "Your X account has been suspended",
+      body:
+        "Your account has been suspended for violating our rules. Case 865. You can appeal this decision from your account settings.",
+    }),
+    message({
+      id: "security-alert",
+      from: "Security <notify@example.com>",
+      subject: "Alerta de seguridad de tu cuenta",
+      body:
+        "Detectamos un intento de inicio de sesión. Código 67990. Verifica tu cuenta si no reconoces esta actividad.",
+    }),
   ],
   "gmail-detected",
 );
@@ -73,6 +87,11 @@ assert.ok(names.includes("ChatGPT"), "detects ChatGPT receipt");
 assert.ok(names.includes("Acme Cloud"), "detects unknown recurring provider");
 assert.ok(!names.some((name) => /temu/i.test(name)), "rejects Temu promo");
 assert.ok(!names.some((name) => /mercado/i.test(name)), "rejects MercadoLibre one-time order");
+assert.ok(!names.includes("X"), "rejects account suspension notices without billing evidence");
+assert.ok(
+  !names.some((name) => /security|example/i.test(name)),
+  "rejects security notices with numeric codes",
+);
 
 const movistar = detected.find((item) => item.name === "Movistar");
 assert.equal(movistar?.amount, 67990);

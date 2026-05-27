@@ -1,6 +1,17 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Mail, MailPlus, Save } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Mail,
+  MailPlus,
+  Save,
+} from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { createUserSubscriptionIfNotExists } from "../services/subscriptions";
 import {
@@ -10,7 +21,7 @@ import {
   readDetectedSubscriptionsDrafts,
   type DetectedSubscriptionDraft,
 } from "../services/gmailDetection";
-import { dateFromInputValue } from "../utils/date";
+import { dateFromInputValue, dateToInputValue } from "../utils/date";
 
 export default function GmailSubscriptionConfirmation() {
   const navigate = useNavigate();
@@ -291,13 +302,11 @@ export default function GmailSubscriptionConfirmation() {
                 <label className="block text-xs text-gray-500 mb-1">
                   Próxima renovación
                 </label>
-                <input
-                  type="date"
+                <SubscriptionDatePicker
                   value={item.nextPaymentDate}
-                  onChange={(e) =>
-                    handleFieldChange(item.id, "nextPaymentDate", e.target.value)
+                  onChange={(value) =>
+                    handleFieldChange(item.id, "nextPaymentDate", value)
                   }
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                 />
               </div>
             </div>
@@ -345,6 +354,210 @@ export default function GmailSubscriptionConfirmation() {
           Seleccionar todo
         </button>
       </div>
+    </div>
+  );
+}
+
+const MONTH_NAMES = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+
+const WEEK_DAYS = ["DO", "LU", "MA", "MI", "JU", "VI", "SA"];
+
+function sameDate(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function getInitialMonth(value: string) {
+  if (!value) {
+    return new Date();
+  }
+  const parsed = dateFromInputValue(value);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+function formatDisplayDate(value: string) {
+  if (!value) {
+    return "Seleccionar fecha";
+  }
+  const parsed = dateFromInputValue(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+    .format(parsed)
+    .replace(".", "");
+}
+
+function buildCalendarDays(month: Date) {
+  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+  const start = new Date(firstDay);
+  start.setDate(firstDay.getDate() - firstDay.getDay());
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const day = new Date(start);
+    day.setDate(start.getDate() + index);
+    return day;
+  });
+}
+
+function SubscriptionDatePicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [visibleMonth, setVisibleMonth] = useState(() => getInitialMonth(value));
+  const selectedDate = value ? dateFromInputValue(value) : null;
+  const today = new Date();
+  const days = buildCalendarDays(visibleMonth);
+
+  const moveMonth = (amount: number) => {
+    setVisibleMonth(
+      (current) => new Date(current.getFullYear(), current.getMonth() + amount, 1),
+    );
+  };
+
+  const selectDate = (date: Date) => {
+    onChange(dateToInputValue(date));
+    setVisibleMonth(date);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => {
+          setVisibleMonth(getInitialMonth(value));
+          setOpen((current) => !current);
+        }}
+        className="group flex w-full items-center justify-between gap-3 rounded-xl border border-emerald-400/20 bg-emerald-950/20 px-3 py-2.5 text-left text-sm text-white shadow-inner shadow-emerald-950/20 transition hover:border-emerald-300/50 hover:bg-emerald-900/30 focus:outline-none focus:ring-2 focus:ring-emerald-400/60"
+      >
+        <span className={value ? "font-medium" : "text-emerald-100/60"}>
+          {formatDisplayDate(value)}
+        </span>
+        <span className="grid h-8 w-8 place-items-center rounded-lg border border-emerald-300/15 bg-emerald-300/5 text-emerald-200 transition group-hover:bg-emerald-300/10">
+          <Calendar className="h-4 w-4" />
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-emerald-300/20 bg-[#06231d] shadow-2xl shadow-black/45 ring-1 ring-white/5">
+          <div className="border-b border-emerald-300/10 bg-gradient-to-r from-emerald-500/14 to-cyan-400/10 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-200/70">
+                  Próxima renovación
+                </p>
+                <p className="mt-1 text-base font-semibold capitalize text-white">
+                  {MONTH_NAMES[visibleMonth.getMonth()]} de {visibleMonth.getFullYear()}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => moveMonth(-1)}
+                  className="grid h-9 w-9 place-items-center rounded-lg border border-emerald-300/15 text-emerald-100 transition hover:bg-emerald-300/10"
+                  aria-label="Mes anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveMonth(1)}
+                  className="grid h-9 w-9 place-items-center rounded-lg border border-emerald-300/15 text-emerald-100 transition hover:bg-emerald-300/10"
+                  aria-label="Mes siguiente"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4">
+            <div className="mb-2 grid grid-cols-7 gap-1">
+              {WEEK_DAYS.map((day) => (
+                <div
+                  key={day}
+                  className="py-1 text-center text-[11px] font-semibold text-emerald-100/55"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+              {days.map((day) => {
+                const isCurrentMonth = day.getMonth() === visibleMonth.getMonth();
+                const isSelected = selectedDate ? sameDate(day, selectedDate) : false;
+                const isToday = sameDate(day, today);
+
+                return (
+                  <button
+                    key={day.toISOString()}
+                    type="button"
+                    onClick={() => selectDate(day)}
+                    className={`relative grid h-9 place-items-center rounded-lg text-sm transition ${
+                      isSelected
+                        ? "bg-emerald-400 text-emerald-950 shadow-lg shadow-emerald-500/25"
+                        : isCurrentMonth
+                          ? "text-white hover:bg-emerald-300/12"
+                          : "text-emerald-100/35 hover:bg-emerald-300/8"
+                    }`}
+                  >
+                    <span>{day.getDate()}</span>
+                    {isToday && !isSelected && (
+                      <span className="absolute bottom-1 h-1 w-1 rounded-full bg-cyan-300" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 flex items-center justify-between border-t border-emerald-300/10 pt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onChange("");
+                  setOpen(false);
+                }}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-emerald-100/70 transition hover:bg-white/5 hover:text-white"
+              >
+                Borrar
+              </button>
+              <button
+                type="button"
+                onClick={() => selectDate(today)}
+                className="rounded-lg bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/20"
+              >
+                Hoy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -435,6 +435,8 @@ interface EmailMessage {
   snippet: string;
   body: string;
   date?: Date | null;
+  headers?: Record<string, string>;
+  labelIds?: string[];
 }
 
 interface GmailMessageListResponse {
@@ -457,6 +459,7 @@ interface GmailMessageResponse {
   id: string;
   snippet?: string;
   internalDate?: string;
+  labelIds?: string[];
   payload?: GmailMessagePart;
 }
 
@@ -555,7 +558,8 @@ function inferCurrency(fragment: string) {
     normalized.includes("co$") ||
     normalized.includes("pesos") ||
     normalized.includes("colombia") ||
-    normalized.includes("pago pse")
+    normalized.includes("pago pse") ||
+    normalized.includes(".co>")
   ) {
     return "COP";
   }
@@ -690,12 +694,14 @@ function extractAmount(text: string) {
     }
   }
 
-  if (!candidates.length) {
+  const viableCandidates = candidates.filter((candidate) => candidate.score >= 55);
+
+  if (!viableCandidates.length) {
     return null;
   }
 
-  candidates.sort((a, b) => b.score - a.score || b.amount - a.amount);
-  const best = candidates[0];
+  viableCandidates.sort((a, b) => b.score - a.score || b.amount - a.amount);
+  const best = viableCandidates[0];
   return { amount: best.amount, currency: best.currency };
 }
 
@@ -865,6 +871,14 @@ function extractHeader(headers: GmailHeader[] | undefined, name: string) {
     ?.value;
 }
 
+function mapHeaders(headers: GmailHeader[] | undefined) {
+  const mapped: Record<string, string> = {};
+  for (const header of headers || []) {
+    mapped[header.name.toLowerCase()] = cleanEmailHeader(header.value);
+  }
+  return mapped;
+}
+
 function extractCadenceDays(text: string) {
   const normalized = text.toLowerCase();
 
@@ -928,6 +942,13 @@ function hasBillingLanguage(text: string) {
   );
 }
 
+function hasDirectBillingEvidence(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(factura|facturaci[oó]n|invoice|bill|billing|recibo|receipt|comprobante\s*de\s*pago|estado\s*de\s*cuenta|statement|vencimiento|due\s*date|total\s*a\s*pagar|amount\s*(?:due|paid|charged)|saldo\s*a\s*pagar|valor\s*a\s*pagar|pago\s*(?:realizado|confirmado|aprobado|recibido|pendiente|m[ií]nimo)|payment\s*(?:successful|confirmed|approved|received|due|failed)|cobro|cargo|charged|charge|debitado|d[eé]bito\s*autom[aá]tico|autopago|pago\s*autom[aá]tico|renovaci[oó]n\s*(?:confirmada|realizada|autom[aá]tica)|subscription\s*(?:renewed|renewal)|membership\s*(?:renewed|renewal)|next\s*billing\s*date|billing\s*period|pr[oó]ximo\s*pago)\b/i.test(
+    normalized,
+  );
+}
+
 function hasServiceLanguage(text: string) {
   const normalized = text.toLowerCase();
   return /\b(servicio|internet|fibra|banda\s*ancha|m[oó]vil|telefon[ií]a|pospago|postpago|cloud|storage|hosting|dominio|domain|software|workspace|premium|plus|pro|family|individual|empresa|business|team|seat|license|licencia)\b/i.test(
@@ -938,6 +959,38 @@ function hasServiceLanguage(text: string) {
 function hasNegativeBillingLanguage(text: string) {
   const normalized = text.toLowerCase();
   return /\b(cotizaci[oó]n|quote|presupuesto|estimate|proforma|simulaci[oó]n|preaprobado|pre-approved|solicitud|request|recordatorio\s*de\s*carrito|cart\s*reminder|no\s*reply\s*needed)\b/i.test(
+    normalized,
+  );
+}
+
+function isLikelyAccountStatusNotice(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(account\s*(?:has\s*been\s*)?(?:suspended|locked|disabled|restricted|limited|compromised)|your\s+\w+\s+account\s+has\s+been\s+suspended|cuenta\s*(?:ha\s*sido\s*)?(?:suspendida|bloqueada|deshabilitada|restringida|limitada|comprometida)|suspensi[oó]n\s+de\s+cuenta|account\s*security|security\s*alert|alerta\s+de\s+seguridad|password\s*reset|restablecer\s+contrase[nñ]a|verify\s+your\s+account|verifica\s+tu\s+cuenta|sign-?in\s+attempt|login\s+attempt|inicio\s+de\s+sesi[oó]n|violates?\s+(?:our\s+)?(?:terms|rules|policies)|infringe\s+(?:las\s+)?(?:normas|pol[ií]ticas)|appeal\s+(?:this\s+)?(?:decision|suspension)|apelar\s+(?:esta\s+)?(?:decisi[oó]n|suspensi[oó]n))\b/i.test(
+    normalized,
+  );
+}
+
+function hasGmailSubscriptionHeaders(message: EmailMessage) {
+  const headers = message.headers || {};
+  return Boolean(
+    headers["list-unsubscribe"] ||
+      headers["list-unsubscribe-post"] ||
+      headers["list-id"] ||
+      headers["mailing-list"] ||
+      headers["x-mailing-list"] ||
+      headers["x-campaign-id"],
+  );
+}
+
+function hasOneClickUnsubscribe(message: EmailMessage) {
+  return /list-unsubscribe\s*=\s*one-click/i.test(
+    message.headers?.["list-unsubscribe-post"] || "",
+  );
+}
+
+function isLikelyNotificationOnlySubscription(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(newsletter|bolet[ií]n|novedades|actualizaciones|updates|digest|resumen|alertas?|noticias|blog|comunidad|community|foro|forum|product\s*updates|weekly\s*digest|daily\s*digest|marketing|promociones|ofertas)\b/i.test(
     normalized,
   );
 }
@@ -1185,6 +1238,7 @@ async function fetchGmailMessages(accessToken: string) {
     "payment OR pago OR cobro OR cargo OR charged OR charge OR debitado OR débito OR vencimiento OR due date OR amount due OR total a pagar",
     "autopay OR automatic payment OR automatic renewal OR pago automático OR débito automático OR cargo recurrente OR billing agreement",
     "netflix OR spotify OR disney OR youtube premium OR max OR movistar OR claro OR tigo OR wom OR microsoft 365 OR apple OR google one OR adobe OR canva OR chatgpt",
+    "list-unsubscribe OR unsubscribe OR darse de baja OR baja OR newsletter OR boletín OR novedades",
   ];
 
   const messageIds = new Map<string, { id: string }>();
@@ -1215,7 +1269,7 @@ async function fetchGmailMessages(accessToken: string) {
     return [];
   }
 
-  const picked = Array.from(messageIds.values()).slice(0, 140);
+  const picked = Array.from(messageIds.values()).slice(0, 180);
 
   const messages = await Promise.all(
     picked.map(async (message) => {
@@ -1241,6 +1295,7 @@ async function fetchGmailMessages(accessToken: string) {
 
 function mapGmailMessage(message: GmailMessageResponse): EmailMessage {
   const headers = message.payload?.headers || [];
+  const mappedHeaders = mapHeaders(headers);
   const from = cleanEmailHeader(extractHeader(headers, "From") || "Correo detectado");
   const subject = cleanEmailText(extractHeader(headers, "Subject") || "Sin asunto");
   const body = cleanEmailText(collectBodyText(message.payload).join(" "));
@@ -1253,6 +1308,8 @@ function mapGmailMessage(message: GmailMessageResponse): EmailMessage {
     snippet: cleanEmailText(message.snippet || ""),
     body,
     date,
+    headers: mappedHeaders,
+    labelIds: message.labelIds || [],
   };
 }
 
@@ -1289,6 +1346,11 @@ function detectSubscriptionsFromMessages(
     paymentContext: boolean;
     promotional: boolean;
     oneTimeCommerce: boolean;
+    gmailSubscriptionHeader: boolean;
+    oneClickUnsubscribe: boolean;
+    notificationOnly: boolean;
+    directBillingEvidence: boolean;
+    accountStatusNotice: boolean;
     signalScore: number;
   }> = [];
 
@@ -1317,13 +1379,24 @@ function detectSubscriptionsFromMessages(
     const blockedCommerce = isBlockedCommerceSender(from);
     const oneTimeCommerce = isLikelyOneTimeCommerce(haystack);
     const paymentContext = hasPaymentContext(haystack);
+    const directBillingEvidence = hasDirectBillingEvidence(haystack);
     const negativeBilling = hasNegativeBillingLanguage(haystack);
+    const accountStatusNotice = isLikelyAccountStatusNotice(haystack);
+    const gmailSubscriptionHeader = hasGmailSubscriptionHeaders(message);
+    const oneClickUnsubscribe = hasOneClickUnsubscribe(message);
+    const notificationOnly = isLikelyNotificationOnlySubscription(haystack);
+    const paidEvidence = Boolean(
+      amountData &&
+        (directBillingEvidence || paymentContext || receipt || processorReceipt),
+    );
     const trustedContext = Boolean(provider || processorMerchant || processorReceipt);
     const signalScore =
       (provider ? 32 : 0) +
       (processorReceipt ? 18 : 0) +
       (providerName ? 14 : 0) +
       (amountData ? 22 : 0) +
+      (gmailSubscriptionHeader && paidEvidence ? 10 : 0) +
+      (oneClickUnsubscribe && paidEvidence ? 4 : 0) +
       (receipt ? 16 : 0) +
       (billingLanguage ? 14 : 0) +
       (paymentContext ? 10 : 0) +
@@ -1332,9 +1405,24 @@ function detectSubscriptionsFromMessages(
       (promotional ? -24 : 0) +
       (blockedCommerce ? -28 : 0) +
       (oneTimeCommerce ? -18 : 0) +
-      (negativeBilling ? -16 : 0);
+      (notificationOnly && !paidEvidence ? -34 : 0) +
+      (negativeBilling ? -16 : 0) +
+      (accountStatusNotice && !directBillingEvidence ? -42 : 0);
 
     if (!amountData || isLikelyInvoiceScam(haystack)) {
+      continue;
+    }
+
+    if (
+      accountStatusNotice &&
+      !directBillingEvidence &&
+      !receipt &&
+      !processorReceipt
+    ) {
+      continue;
+    }
+
+    if (gmailSubscriptionHeader && notificationOnly && !paidEvidence) {
       continue;
     }
 
@@ -1342,7 +1430,8 @@ function detectSubscriptionsFromMessages(
       (promotional || blockedCommerce || oneTimeCommerce || negativeBilling) &&
       !recurring &&
       !trustedContext &&
-      !billingLanguage
+      !billingLanguage &&
+      !(gmailSubscriptionHeader && paidEvidence)
     ) {
       continue;
     }
@@ -1351,7 +1440,7 @@ function detectSubscriptionsFromMessages(
       continue;
     }
 
-    if (!trustedContext && !billingLanguage && !recurring && !receipt) {
+    if (!trustedContext && !billingLanguage && !recurring && !receipt && !gmailSubscriptionHeader) {
       continue;
     }
 
@@ -1382,6 +1471,11 @@ function detectSubscriptionsFromMessages(
       paymentContext,
       promotional,
       oneTimeCommerce,
+      gmailSubscriptionHeader,
+      oneClickUnsubscribe,
+      notificationOnly,
+      directBillingEvidence,
+      accountStatusNotice,
       signalScore,
     });
   }
@@ -1404,12 +1498,24 @@ function detectSubscriptionsFromMessages(
       paymentContext,
       promotional,
       oneTimeCommerce,
+      gmailSubscriptionHeader,
+      oneClickUnsubscribe,
+      notificationOnly,
+      directBillingEvidence,
+      accountStatusNotice,
       signalScore,
     } = candidate;
     const normalizedProvider = normalizeDraftKey(providerName || parseSenderName(from));
     const occurrences = providerOccurrences.get(normalizedProvider) || 0;
 
-    if (!provider && !recurring && !processorReceipt && !billingLanguage && occurrences < 2) {
+    if (
+      !provider &&
+      !recurring &&
+      !processorReceipt &&
+      !billingLanguage &&
+      !gmailSubscriptionHeader &&
+      occurrences < 2
+    ) {
       continue;
     }
 
@@ -1436,10 +1542,14 @@ function detectSubscriptionsFromMessages(
       (parsedDate ? 8 : 0) +
       (occurrences >= 2 ? 8 : 0) +
       (namedByStore ? 8 : 0) +
+      (gmailSubscriptionHeader ? 6 : 0) +
+      (oneClickUnsubscribe ? 3 : 0) +
       (serviceLanguage ? 4 : 0) +
       (receipt && paymentContext ? 6 : 0) -
+      (notificationOnly && !billingLanguage ? 12 : 0) -
       (promotional && !billingLanguage ? 10 : 0) -
-      (oneTimeCommerce && !recurring ? 8 : 0);
+      (oneTimeCommerce && !recurring ? 8 : 0) -
+      (accountStatusNotice && !directBillingEvidence ? 20 : 0);
 
     const draft: DetectedSubscriptionDraft = {
       id: toBase64(`${inferredName}-${subject}`).slice(0, 48),
@@ -1525,6 +1635,8 @@ async function fetchOutlookMessages(accessToken: string) {
       snippet: cleanEmailText(message.bodyPreview || ""),
       body: cleanEmailText(message.body?.content || ""),
       date,
+      headers: {},
+      labelIds: [],
     };
   });
 }
