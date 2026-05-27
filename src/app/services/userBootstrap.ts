@@ -7,6 +7,21 @@ interface BootstrapUserWorkspaceParams {
   displayName: string;
 }
 
+const DEFAULT_CATEGORIES = [
+  { id: "general", name: "General", color: "#10B981", icon: "tag" },
+  { id: "entertainment", name: "Entretenimiento", color: "#EF4444", icon: "play" },
+  { id: "music", name: "Música", color: "#10B981", icon: "music" },
+  { id: "productivity", name: "Productividad", color: "#2563EB", icon: "briefcase" },
+  { id: "phone", name: "Telefonía", color: "#06B6D4", icon: "phone" },
+  { id: "internet", name: "Internet", color: "#3B82F6", icon: "wifi" },
+  { id: "education", name: "Educación", color: "#A855F7", icon: "graduation-cap" },
+  { id: "health", name: "Salud", color: "#EC4899", icon: "heart" },
+  { id: "finance", name: "Finanzas", color: "#22C55E", icon: "wallet" },
+  { id: "shopping", name: "Compras", color: "#F97316", icon: "shopping-bag" },
+  { id: "transport", name: "Transporte", color: "#6366F1", icon: "car" },
+  { id: "security", name: "Seguridad", color: "#374151", icon: "shield" },
+];
+
 export async function bootstrapUserWorkspace({ uid, email, displayName }: BootstrapUserWorkspaceParams) {
   const batch = writeBatch(db);
   const now = serverTimestamp();
@@ -53,17 +68,21 @@ export async function bootstrapUserWorkspace({ uid, email, displayName }: Bootst
     { merge: true },
   );
 
-  batch.set(
-    doc(db, "users", uid, "categories", "default"),
-    {
-      name: "General",
-      color: "#10B981",
-      icon: "tag",
-      isDefault: true,
-      createdAt: now,
-    },
-    { merge: true },
-  );
+  DEFAULT_CATEGORIES.forEach((category) => {
+    batch.set(
+      doc(db, "users", uid, "categories", category.id),
+      {
+        name: category.name,
+        color: category.color,
+        icon: category.icon,
+        budget: 0,
+        isDefault: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+  });
 
   batch.set(
     doc(db, "users", uid, "budgets", "_meta"),

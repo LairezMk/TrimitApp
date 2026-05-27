@@ -37,6 +37,24 @@ const QUICK_TEMPLATES: Record<string, QuickTemplate> = {
   Canva: { category: "Productividad", baseUsd: 14.99, icon: "C", color: "#06b6d4" },
 };
 
+const DEFAULT_CATEGORIES = [
+  "Entretenimiento",
+  "Música",
+  "Productividad",
+  "Telefonía",
+  "Internet",
+  "Educación",
+  "Salud",
+  "Finanzas",
+  "Compras",
+  "Transporte",
+  "Seguridad",
+  "Noticias",
+  "Servicios públicos",
+  "Hogar",
+  "General",
+];
+
 export default function AddSubscription() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -77,6 +95,15 @@ export default function AddSubscription() {
     () => applyColorIntensity(normalizeHexColor(formData.color), colorShade),
     [formData.color, colorShade],
   );
+  const categoryOptions = useMemo(() => {
+    const names = [...DEFAULT_CATEGORIES, ...categories.map((category) => category.name)];
+    if (formData.category) {
+      names.push(formData.category);
+    }
+    return Array.from(new Set(names.filter(Boolean))).sort((a, b) =>
+      a.localeCompare(b, "es"),
+    );
+  }, [categories, formData.category]);
 
   const parsedAmount = parseAmountInput(formData.amount, formData.currency);
 
@@ -107,7 +134,7 @@ export default function AddSubscription() {
         category: formData.category,
         amount: parsedAmount,
         currency: normalizeCurrencyCode(formData.currency),
-        status: formData.status as "active" | "suspended" | "forgotten",
+        status: "active",
         isRecurring: formData.isRecurring,
         nextPaymentDate: dateFromInputValue(formData.nextPaymentDate),
         icon: formData.icon.trim() ? formData.icon.trim().charAt(0).toUpperCase() : formData.name.trim().charAt(0).toUpperCase(),
@@ -182,13 +209,9 @@ export default function AddSubscription() {
                 className={fieldClassName}
               >
                 <option value="">Seleccionar categoría</option>
-                {formData.category &&
-                  !categories.some((category) => category.name === formData.category) && (
-                    <option value={formData.category}>{formData.category}</option>
-                  )}
-                {categories.map((category) => (
-                  <option key={category.id} value={category.name}>
-                    {category.name}
+                {categoryOptions.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
                   </option>
                 ))}
               </select>
@@ -262,22 +285,6 @@ export default function AddSubscription() {
                   <option value="EUR">EUR - Euro</option>
                 </select>
               </div>
-            </div>
-
-            {/* Estado */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                Estado
-              </label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className={fieldClassName}
-              >
-                <option value="active">Activa</option>
-                <option value="suspended">Suspendida</option>
-                <option value="forgotten">Olvidada</option>
-              </select>
             </div>
 
             {/* Ciclo de Facturación */}

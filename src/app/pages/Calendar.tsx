@@ -26,6 +26,7 @@ import {
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import type { Subscription } from "../types/subscription";
 import { dateFromInputValue, dateToInputValue } from "../utils/date";
+import { subscriptionColorStyle, subscriptionTextColorStyle } from "../utils/subscriptionColor";
 
 type DisplayPayment = {
   id: string;
@@ -310,11 +311,11 @@ export default function Calendar() {
 
       <div className="grid lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
         <div
-          className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+          className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-xl p-3 sm:p-5 lg:p-6 shadow-sm border border-gray-100 dark:border-emerald-500/20"
           data-tour="calendar-main"
         >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl">
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <h2 className="text-2xl sm:text-3xl font-semibold dark:text-white">
               {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
             </h2>
             <div className="flex gap-2">
@@ -334,16 +335,16 @@ export default function Calendar() {
             />
           ) : (
             <>
-              <div className="grid grid-cols-7 gap-1.5 md:gap-2">
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 md:gap-2">
                 {daysOfWeek.map((day) => (
-                  <div key={day} className="text-center text-sm text-gray-500 py-2">
+                  <div key={day} className="text-center text-xs sm:text-sm text-gray-500 dark:text-emerald-100/75 py-2">
                     {day}
                   </div>
                 ))}
 
                 {days.map((day, index) => {
                   if (day === null) {
-                    return <div key={`empty-${index}`} className="aspect-square" />;
+                    return <div key={`empty-${index}`} className="min-h-10 sm:aspect-square" />;
                   }
 
                   const date = new Date(
@@ -365,35 +366,35 @@ export default function Calendar() {
                     <button
                       key={day}
                       onClick={() => setSelectedDate(date)}
-                      className={`aspect-square p-2 rounded-lg transition-all ${
+                      className={`min-h-11 sm:aspect-square rounded-xl px-1 py-1.5 sm:p-2 transition-all ${
                         isSelected
-                          ? "bg-emerald-500 text-white shadow-lg"
-                          : hasActivity
-                            ? "bg-emerald-50 hover:bg-emerald-100 border border-emerald-200"
-                            : "hover:bg-gray-50"
+                          ? "bg-emerald-500 text-white shadow-lg ring-2 ring-white/70 dark:ring-emerald-100/70"
+                        : hasActivity
+                            ? "bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15 dark:border-emerald-400/20"
+                            : "hover:bg-gray-50 dark:hover:bg-white/5"
                       }`}
                     >
-                      <div className="h-full flex flex-col items-center justify-center">
-                        <span className={`text-sm mb-1 ${isSelected ? "text-white" : "text-gray-900"}`}>
+                      <div className="h-full flex flex-col items-center justify-center gap-0.5">
+                        <span className={`text-sm sm:text-base font-semibold leading-none ${isSelected ? "text-white" : "text-gray-900 dark:text-gray-100"}`}>
                           {day}
                         </span>
                         {hasActivity && (
                           <>
-                            <div className="flex gap-1 mb-1">
+                            <div className="flex gap-1">
                               {upcomingInDay.length > 0 && (
                                 <span
-                                  className={`w-2 h-2 rounded-full ${isSelected ? "bg-white" : "bg-emerald-500"}`}
+                                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? "bg-white" : "bg-emerald-500"}`}
                                   title="Próximos"
                                 />
                               )}
                               {paidInDay.length > 0 && (
                                 <span
-                                  className={`w-2 h-2 rounded-full ${isSelected ? "bg-emerald-100" : "bg-slate-500"}`}
+                                  className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? "bg-emerald-100" : "bg-slate-500"}`}
                                   title="Pagados"
                                 />
                               )}
                             </div>
-                            <span className={`text-[10px] ${isSelected ? "text-emerald-100" : "text-emerald-700"}`}>
+                            <span className={`max-w-full truncate text-[9px] sm:text-[10px] leading-tight ${isSelected ? "text-emerald-50" : "text-emerald-700 dark:text-emerald-200"}`}>
                               {formatMoney(total)}
                             </span>
                           </>
@@ -426,7 +427,7 @@ export default function Calendar() {
 
         <div className="space-y-6">
           <div
-            className="bg-white rounded-xl p-6 shadow-sm border border-gray-100"
+            className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-emerald-500/20"
             data-tour="calendar-day-detail"
           >
             <h3 className="font-medium mb-4">
@@ -447,18 +448,24 @@ export default function Calendar() {
                 <>
                   {selectedUpcoming.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-xs uppercase tracking-wide text-emerald-600 mb-2">Próximos</p>
+                      <p className="text-xs uppercase tracking-wide text-emerald-600 dark:text-emerald-300 mb-2">Próximos</p>
                       <div className="space-y-2">
                         {selectedUpcoming.map((payment) => (
-                          <div key={payment.id} className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
-                            <div className={`w-9 h-9 ${payment.subscription.color} rounded-lg flex items-center justify-center text-white text-sm`}>
+                          <div key={payment.id} className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-100 dark:border-emerald-400/20">
+                            <div
+                              className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0"
+                              style={{
+                                ...subscriptionColorStyle(payment.subscription.color),
+                                ...subscriptionTextColorStyle(payment.subscription.color),
+                              }}
+                            >
                               {payment.subscription.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm truncate">{payment.subscription.name}</p>
-                              <p className="text-xs text-gray-500 truncate">{payment.subscription.category}</p>
+                              <p className="text-sm truncate text-gray-900 dark:text-white">{payment.subscription.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-emerald-100/70 truncate">{payment.subscription.category}</p>
                             </div>
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
                               {formatMoney(payment.amount, payment.subscription.currency)}
                             </p>
                           </div>
@@ -469,18 +476,24 @@ export default function Calendar() {
 
                   {selectedPaid.length > 0 && (
                     <div className="mb-4">
-                      <p className="text-xs uppercase tracking-wide text-slate-600 mb-2">Pagados</p>
+                      <p className="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-300 mb-2">Pagados</p>
                       <div className="space-y-2">
                         {selectedPaid.map((payment) => (
-                          <div key={payment.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                            <div className={`w-9 h-9 ${payment.subscription.color} rounded-lg flex items-center justify-center text-white text-sm`}>
+                          <div key={payment.id} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10">
+                            <div
+                              className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0"
+                              style={{
+                                ...subscriptionColorStyle(payment.subscription.color),
+                                ...subscriptionTextColorStyle(payment.subscription.color),
+                              }}
+                            >
                               {payment.subscription.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm truncate">{payment.subscription.name}</p>
-                              <p className="text-xs text-gray-500 truncate">{payment.subscription.category}</p>
+                              <p className="text-sm truncate text-gray-900 dark:text-white">{payment.subscription.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{payment.subscription.category}</p>
                             </div>
-                            <p className="text-sm font-medium">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
                               {formatMoney(payment.amount, payment.subscription.currency)}
                             </p>
                           </div>
@@ -489,8 +502,8 @@ export default function Calendar() {
                     </div>
                   )}
 
-                  <div className="pt-4 border-t border-gray-200 flex items-center justify-between">
-                    <span className="text-gray-600">Total del día</span>
+                  <div className="pt-4 border-t border-gray-200 dark:border-emerald-400/20 flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-300">Total del día</span>
                     <span className="text-xl font-medium text-emerald-600">{formatMoney(selectedDayTotal)}</span>
                   </div>
                 </>
@@ -635,12 +648,12 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100" data-tour="payments-timeline">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl">Cronología de pagos</h2>
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-emerald-500/20" data-tour="payments-timeline">
+        <div className="p-6 border-b border-gray-100 dark:border-emerald-500/20">
+          <h2 className="text-xl dark:text-white">Cronología de pagos</h2>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-emerald-500/15">
           {loading && (
             <div className="p-6">
               <LoadingState title="Cargando pagos..." />
@@ -654,17 +667,19 @@ export default function Calendar() {
               return (
                 <div
                   key={payment.id}
-                  className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors ${
-                    isUpcoming ? "bg-blue-50/30" : ""
+                  className={`p-4 sm:p-6 transition-colors ${
+                    isUpcoming
+                      ? "bg-emerald-50/60 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/15"
+                      : "hover:bg-gray-50 dark:hover:bg-white/5"
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex flex-col items-center shrink-0">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center ${
                           isUpcoming
-                            ? "bg-emerald-100 text-emerald-600"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-200"
+                            : "bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-300"
                         }`}
                       >
                         {isUpcoming ? <Clock className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
@@ -674,24 +689,28 @@ export default function Calendar() {
                       )}
                     </div>
 
-                    <div className="flex-1 flex items-center justify-between">
-                      <div className="flex items-center gap-4 min-w-0">
+                    <div className="min-w-0 flex-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center">
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                         <div
-                          className={`w-12 h-12 ${payment.subscription.color} rounded-xl flex items-center justify-center text-white text-lg shrink-0`}
+                          className="w-12 h-12 sm:w-13 sm:h-13 rounded-xl flex items-center justify-center text-lg font-semibold shrink-0"
+                          style={{
+                            ...subscriptionColorStyle(payment.subscription.color),
+                            ...subscriptionTextColorStyle(payment.subscription.color),
+                          }}
                         >
                           {payment.subscription.icon}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-medium truncate">{payment.subscription.name}</h3>
-                          <p className="text-sm text-gray-500 truncate">{payment.subscription.category}</p>
+                          <h3 className="font-medium truncate text-gray-900 dark:text-white">{payment.subscription.name}</h3>
+                          <p className="text-sm text-gray-500 dark:text-emerald-100/70 truncate">{payment.subscription.category}</p>
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0 pl-3">
-                        <p className="font-medium text-lg">
+                      <div className="sm:text-right shrink-0 sm:pl-3">
+                        <p className="font-semibold text-lg text-gray-900 dark:text-white">
                           {formatMoney(payment.amount, payment.subscription.currency)}
                         </p>
-                        <div className="flex items-center justify-end gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-emerald-100/70 sm:justify-end">
                           <CalendarIcon className="w-4 h-4" />
                           <span>{format(payment.date, "d 'de' MMMM, yyyy", { locale: es })}</span>
                         </div>
@@ -715,15 +734,16 @@ export default function Calendar() {
                           </p>
                         )}
                       </div>
-                    </div>
-
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isUpcoming ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"
+                      <span
+                        className={`w-fit rounded-full px-3 py-1 text-xs font-semibold sm:justify-self-end ${
+                        isUpcoming
+                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200"
+                          : "bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-200"
                       }`}
-                    >
-                      {isUpcoming ? "Programado" : "Pagado"}
-                    </span>
+                      >
+                        {isUpcoming ? "Programado" : "Pagado"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );

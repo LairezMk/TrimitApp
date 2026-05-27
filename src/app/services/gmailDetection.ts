@@ -686,6 +686,25 @@ function extractAmount(text: string) {
         if (/^\d{7,}$/.test(rawAmount.replace(/[.,]/g, ""))) {
           score -= 20;
         }
+        if (/%|percent|por\s*ciento|descuento|discount|off\b/i.test(context)) {
+          score -= 45;
+        }
+        if (
+          /\b(regalo|gift|gratis|free|cup[oó]n|coupon|promo|oferta|offer|tiempo\s*limitado|limited\s*time|expir|art[ií]culos?|items?|mercanc[ií]as?|recompensa|reward|\$0|0\s*(?:cop|usd|eur))\b/i.test(
+            context,
+          )
+        ) {
+          score -= 50;
+        }
+        if (currency === "$" && amount < 1000 && !/(usd|eur|cop|[$€]|us\$|col\$|pesos?)/i.test(context)) {
+          score -= 35;
+        }
+        if (
+          /\b(microsoft\s*365|office\s*365|c[oó]digo|case|ticket|caso|referencia|id)\b/i.test(context) &&
+          !/(amount|total|pago|paid|due|cobro|cargo|invoice|factura|receipt|recibo)/i.test(context)
+        ) {
+          score -= 35;
+        }
 
         candidates.push({ amount, currency, score });
       }
@@ -990,7 +1009,7 @@ function hasOneClickUnsubscribe(message: EmailMessage) {
 
 function isLikelyNotificationOnlySubscription(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(newsletter|bolet[ií]n|novedades|actualizaciones|updates|digest|resumen|alertas?|noticias|blog|comunidad|community|foro|forum|product\s*updates|weekly\s*digest|daily\s*digest|marketing|promociones|ofertas)\b/i.test(
+  return /\b(newsletter|bolet[ií]n|novedades|actualizaciones|updates|digest|resumen|alertas?|noticias|blog|comunidad|community|foro|forum|product\s*updates|weekly\s*digest|daily\s*digest|marketing|promociones|ofertas|informaci[oó]n\s+sobre|inscripciones?|convocatoria|financiaci[oó]n|beca|evento|webinar)\b/i.test(
     normalized,
   );
 }
@@ -1004,21 +1023,47 @@ function isLikelyReceipt(text: string) {
 
 function isLikelyPromotional(text: string) {
   const normalized = text.toLowerCase();
-  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|gratis|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|referid[oa]|te\s*aceptaron|bienvenido\s+a|welcome\s*gift|free|gift|eligible|3\s*meses\s*por\s*\$?0|meses\s*gratis|black\s*friday|hot\s*sale|cyber\s*monday|sale|deal|deals|clearance)\b/i.test(
+  return /\b(oferta|promoci[oó]n|descuento|cup[oó]n|cupon|regalo|reg[aá]lale|regala|gratis|gratuito|gratuita|obsequio|gana|ganaste|sorteo|puntos|cashback|bono|recompensa|beneficio|invita|invitamos|referid[oa]|amig[oa]s?|te\s*aceptaron|bienvenido\s+a|welcome\s*gift|free|gift|eligible|savings|save\s*\d+%|\d+%\s*off|\d+%\s*de\s*descuento|tiempo\s*limitado|limited\s*time|pronto\s*expirar[aá]|a\s*punto\s*de\s*expirar|expiring\s*soon|last\s*chance|[aá]brelo\s*ahora|open\s*now|confirm(?:a|ar)\s+tu\s+regalo|claim\s+your\s+gift|redeem\s+now|art[ií]culos?\s+de\s+\$?0|items?\s+(?:for|de)\s+\$?0|3\s*meses\s*por\s*\$?0|meses\s*gratis|black\s*friday|hot\s*sale|cyber\s*monday|sale|deal|deals|clearance)\b/i.test(
+    normalized,
+  );
+}
+
+function isLikelyFreeAccessOrEducationNotice(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(gratis|gratuito|gratuita|sin\s*costo|free\s*access|free\s*(?:microsoft|office|premium|trial)|acceso\s+a|acceso\s+gratuito|informaci[oó]n\s+sobre\s+el\s+acceso|universidad|educaci[oó]n|estudiante|docente|campus|inscripci[oó]n|inscripciones|maestr[ií]a|financiaci[oó]n|icetex|beca)\b/i.test(
+    normalized,
+  );
+}
+
+function hasMarketingOfferWithoutCharge(text: string) {
+  const normalized = text.toLowerCase();
+  return /\b(biggest\s*savings|savings\s*ever|\d+%\s*off|\d+%\s*de\s*descuento|descuento|promo|promoci[oó]n|oferta|reg[aá]lale|regala|gift|free\s*gifts?|free\s*items?|claim\s+your\s+gift|confirm(?:a|ar)\s+tu\s+regalo|refer|invita|invitamos|amig[oa]s?|trial|prueba\s*gratis|meses\s*gratis|tiempo\s*limitado|limited\s*time|pronto\s*expirar[aá]|a\s*punto\s*de\s*expirar|expiring\s*soon|last\s*chance|[aá]brelo\s*ahora|open\s*now|recibe\s+\d+\s+art[ií]culos?|art[ií]culos?\s+de\s+\$?0|items?\s+(?:for|de)\s+\$?0|cut\s+(?:price\s+)?to\s+\$?0|coupon\s*bundle|exclusive\s*code)\b/i.test(
     normalized,
   );
 }
 
 function isLikelyPromotionalSender(from: string) {
   const normalized = from.toLowerCase();
-  return /\b(temu|marketing|newsletter|news|promo|promos|offers|deal|deals|ofertas|noreply\.news|no-reply\.news)\b/.test(
+  return /\b(marketing|newsletter|news|promo|promos|offers|deal|deals|ofertas|noreply\.news|no-reply\.news)\b|temu(?:official|email)?|temu\.com/.test(
     normalized,
   );
 }
 
 function isBlockedCommerceSender(from: string) {
   const normalized = from.toLowerCase();
-  return /\b(temu|shein|aliexpress|mercadolibre|mercado\s*libre)\b/.test(
+  return /\b(shein|aliexpress|mercadolibre|mercado\s*libre|wish|joom)\b|temu(?:official|email)?|temu\.com/.test(
+    normalized,
+  );
+}
+
+function isTemuSender(from: string) {
+  const normalized = from.toLowerCase();
+  return /(^|[\s<@.])temu(?:[\s@.>]|official|email|\.com)/.test(normalized);
+}
+
+function isTemuMarketingNotice(text: string) {
+  const normalized = text.toLowerCase();
+  return /temu/.test(normalized) && /\b(tiempo\s*limitado|limited\s*time|oferta|offer|promo|descuento|cup[oó]n|coupon|regalo|gift|gratis|free|recibe|receive|art[ií]culos?|items?|mercanc[ií]as?|pronto\s*expirar[aá]|a\s*punto\s*de\s*expirar|expiring\s*soon|[aá]brelo\s*ahora|open\s*now|confirm(?:a|ar)\s+tu\s+regalo|\$0|0\s*(?:cop|usd|eur)|app\s*store|requisitos\s+del\s+usuario|actualizar\s+o\s+eliminar|proporcionar\s+las\s+mercanc)\b/i.test(
     normalized,
   );
 }
@@ -1137,6 +1182,24 @@ function fallbackCategory(text: string) {
   return "Otros";
 }
 
+function isSuspiciousExtractedProviderName(name: string) {
+  const normalized = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+  const words = normalized.split(/\s+/).filter(Boolean);
+
+  return (
+    normalized.length < 3 ||
+    /^[,.;:)\]]/.test(normalized) ||
+    /\b(de\s+otra\s+forma|de\s+atenci|app\s+store\s+requisitos|requisitos\s+del\s+usuario|registro\d*|proporcionar\s+las\s+mercanc|puedes\s+revisar|actualizar\s+o\s+eliminar|determinada\s+informa|s\s+recibir|recibir\s+\d+|terminos|condiciones|privacidad|privacy|policy|unsubscribe|darse\s+de\s+baja|copyright|all\s+rights\s+reserved|haz\s+clic|abrelo|abri|abrir|tiempo\s+limitado|regalo|gift|cupon|coupon|oferta|promo)\b/.test(
+      normalized,
+    ) ||
+    (words.length >= 5 && !findProvider(name))
+  );
+}
+
 function extractProviderName(text: string) {
   const providerMatch = text.match(
     /(proveedor\s+del\s+servicio|proveedor|merchant|comercio|servicio|empresa|business|seller|paid\s*to|payment\s*to|receipt\s*from|invoice\s*from|factura\s*de|recibo\s*de)\s*[:\-]?\s*([A-Za-z0-9&+.,'´`’\-\s]{3,70})/i,
@@ -1151,7 +1214,7 @@ function extractProviderName(text: string) {
     return null;
   }
 
-  return candidate
+  const cleaned = candidate
     .replace(/\s+/g, " ")
     .replace(/<.*$/g, "")
     .replace(/\b(billing|facturaci[oó]n|support|soporte|noreply|no-reply)\b.*$/i, "")
@@ -1159,6 +1222,8 @@ function extractProviderName(text: string) {
     .replace(/[|•#;].*$/g, "")
     .trim()
     .slice(0, 60);
+
+  return isSuspiciousExtractedProviderName(cleaned) ? null : cleaned;
 }
 
 function isGenericProviderName(name: string) {
@@ -1168,13 +1233,15 @@ function isGenericProviderName(name: string) {
 }
 
 function cleanMerchantCandidate(candidate: string) {
-  return candidate
+  const cleaned = candidate
     .replace(/\s+/g, " ")
     .replace(/\b(inc|llc|ltd|limited|corp|corporation|s\.a\.s|sas|s\.a|ltda)\b\.?/gi, "")
     .replace(/\b(receipt|invoice|factura|recibo|payment|pago|paid|subscription|suscripci[oó]n)\b.*$/i, "")
     .replace(/[|•#].*$/g, "")
     .trim()
     .slice(0, 60);
+
+  return isSuspiciousExtractedProviderName(cleaned) ? "" : cleaned;
 }
 
 function extractStoreSubscriptionName(text: string) {
@@ -1351,6 +1418,8 @@ function detectSubscriptionsFromMessages(
     notificationOnly: boolean;
     directBillingEvidence: boolean;
     accountStatusNotice: boolean;
+    marketingOnly: boolean;
+    freeAccessNotice: boolean;
     signalScore: number;
   }> = [];
 
@@ -1358,6 +1427,9 @@ function detectSubscriptionsFromMessages(
     const from = message.from || "Correo detectado";
     const subject = message.subject || "Sin asunto";
     const haystack = `${subject} ${from} ${message.snippet || ""} ${message.body || ""}`;
+    if (isTemuSender(from) || isTemuMarketingNotice(haystack)) {
+      continue;
+    }
 
     const storeSubscriptionName = extractStoreSubscriptionName(haystack);
     const processorReceipt = isPaymentProcessorSender(from);
@@ -1382,6 +1454,8 @@ function detectSubscriptionsFromMessages(
     const directBillingEvidence = hasDirectBillingEvidence(haystack);
     const negativeBilling = hasNegativeBillingLanguage(haystack);
     const accountStatusNotice = isLikelyAccountStatusNotice(haystack);
+    const freeAccessNotice = isLikelyFreeAccessOrEducationNotice(haystack);
+    const marketingOnly = hasMarketingOfferWithoutCharge(haystack);
     const gmailSubscriptionHeader = hasGmailSubscriptionHeaders(message);
     const oneClickUnsubscribe = hasOneClickUnsubscribe(message);
     const notificationOnly = isLikelyNotificationOnlySubscription(haystack);
@@ -1407,7 +1481,8 @@ function detectSubscriptionsFromMessages(
       (oneTimeCommerce ? -18 : 0) +
       (notificationOnly && !paidEvidence ? -34 : 0) +
       (negativeBilling ? -16 : 0) +
-      (accountStatusNotice && !directBillingEvidence ? -42 : 0);
+      (accountStatusNotice && !directBillingEvidence ? -42 : 0) +
+      ((marketingOnly || freeAccessNotice) && !directBillingEvidence ? -48 : 0);
 
     if (!amountData || isLikelyInvoiceScam(haystack)) {
       continue;
@@ -1415,6 +1490,15 @@ function detectSubscriptionsFromMessages(
 
     if (
       accountStatusNotice &&
+      !directBillingEvidence &&
+      !receipt &&
+      !processorReceipt
+    ) {
+      continue;
+    }
+
+    if (
+      (marketingOnly || freeAccessNotice || notificationOnly) &&
       !directBillingEvidence &&
       !receipt &&
       !processorReceipt
@@ -1476,6 +1560,8 @@ function detectSubscriptionsFromMessages(
       notificationOnly,
       directBillingEvidence,
       accountStatusNotice,
+      marketingOnly,
+      freeAccessNotice,
       signalScore,
     });
   }
@@ -1503,6 +1589,8 @@ function detectSubscriptionsFromMessages(
       notificationOnly,
       directBillingEvidence,
       accountStatusNotice,
+      marketingOnly,
+      freeAccessNotice,
       signalScore,
     } = candidate;
     const normalizedProvider = normalizeDraftKey(providerName || parseSenderName(from));
@@ -1549,7 +1637,8 @@ function detectSubscriptionsFromMessages(
       (notificationOnly && !billingLanguage ? 12 : 0) -
       (promotional && !billingLanguage ? 10 : 0) -
       (oneTimeCommerce && !recurring ? 8 : 0) -
-      (accountStatusNotice && !directBillingEvidence ? 20 : 0);
+      (accountStatusNotice && !directBillingEvidence ? 20 : 0) -
+      ((marketingOnly || freeAccessNotice) && !directBillingEvidence ? 24 : 0);
 
     const draft: DetectedSubscriptionDraft = {
       id: toBase64(`${inferredName}-${subject}`).slice(0, 48),
@@ -1646,11 +1735,23 @@ export async function detectSubscriptionsFromOutlook(accessToken: string) {
   return detectSubscriptionsFromMessages(messages, "email-detected");
 }
 
+function isBlockedDetectedDraft(draft: DetectedSubscriptionDraft) {
+  const haystack = `${draft.name} ${draft.from} ${draft.subject}`;
+  return (
+    isTemuSender(draft.from) ||
+    isTemuMarketingNotice(haystack) ||
+    isSuspiciousExtractedProviderName(draft.name)
+  );
+}
+
 export function saveDetectedSubscriptionsDrafts(
   drafts: DetectedSubscriptionDraft[],
 ) {
   const deduped = new Map<string, DetectedSubscriptionDraft>();
   for (const draft of drafts) {
+    if (isBlockedDetectedDraft(draft)) {
+      continue;
+    }
     const key = normalizeDraftKey(draft.name);
     const existing = deduped.get(key);
     if (!existing || draft.confidence > existing.confidence) {
@@ -1669,7 +1770,7 @@ export function readDetectedSubscriptionsDrafts() {
 
   try {
     const parsed = JSON.parse(raw) as DetectedSubscriptionDraft[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.filter((draft) => !isBlockedDetectedDraft(draft)) : [];
   } catch {
     return [];
   }

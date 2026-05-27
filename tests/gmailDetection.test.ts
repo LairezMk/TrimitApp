@@ -77,6 +77,34 @@ const detected = detectSubscriptionsFromMessages(
       body:
         "Detectamos un intento de inicio de sesión. Código 67990. Verifica tu cuenta si no reconoces esta actividad.",
     }),
+    message({
+      id: "office-free-access",
+      from: "utpinforma@utp.edu.co",
+      subject: "Información sobre el acceso a Microsoft Office 365 gratuito",
+      body:
+        "La universidad informa cómo acceder a Microsoft Office 365 gratuito para estudiantes y docentes. No corresponde a factura ni cobro.",
+    }),
+    message({
+      id: "clickup-discount",
+      from: "ClickUp Team <team@mail.clickup.com>",
+      subject: "Biggest. Savings. Ever. 35% off ClickUp's Unlimited Plan",
+      body:
+        "Oferta por tiempo limitado: obtén 35% off en ClickUp Unlimited Plan. Promoción informativa, sin factura ni pago realizado.",
+    }),
+    message({
+      id: "spotify-gift",
+      from: "Spotify <no-reply@spotify.com>",
+      subject: "Regálale a un amigo 3 meses de Premium. Invitamos nosotros.",
+      body:
+        "Comparte Premium con tus amigos. Promoción de regalo por tiempo limitado, sin cobro ni renovación.",
+    }),
+    message({
+      id: "master-program",
+      from: "maestriaenhistoria@utp.edu.co",
+      subject: "¡Inscripciones Maestría en Historia! 2026-2 | Financiación ICETEX y FAC",
+      body:
+        "Inscripciones abiertas para el programa académico. Valor de matrícula 437700. Consulta financiación y requisitos.",
+    }),
   ],
   "gmail-detected",
 );
@@ -92,6 +120,56 @@ assert.ok(
   !names.some((name) => /security|example/i.test(name)),
   "rejects security notices with numeric codes",
 );
+assert.ok(!names.includes("Microsoft 365"), "rejects free Office 365 access notices");
+assert.ok(!names.some((name) => /clickup|mail/i.test(name)), "rejects discount-only SaaS marketing");
+assert.ok(!names.includes("Spotify"), "rejects Spotify gift/referral promotions");
+assert.ok(!names.some((name) => /utp|historia/i.test(name)), "rejects school enrollment notices");
+assert.ok(
+  !names.some((name) => /de otra forma|atenci|app store|mercanc|recibir/i.test(name)),
+  "rejects legal/footer fragments as provider names",
+);
+
+const temuDetected = detectSubscriptionsFromMessages(
+  [
+    message({
+      id: "temu-limited",
+      from: "Temu <temu@shop.temuofficial.com>",
+      subject: "TIEMPO LIMITADO",
+      body:
+        "Oferta por tiempo limitado. Este mensaje o de otra forma incluye cupones y regalos. Valor $ 30.755. Compra hoy antes de que expire.",
+    }),
+    message({
+      id: "temu-expiring",
+      from: "Temu <temu@shop.temuofficial.com>",
+      subject: "Tu oferta está a punto de expirar",
+      body:
+        "Aprovecha antes de que termine. App Store requisitos del usuario y registro3 si no es necesario. Precio destacado $ 14.018.",
+    }),
+    message({
+      id: "temu-gift",
+      from: "Temu <email@market.temuemail.com>",
+      subject: "Por favor, confirma tu ¡REGALO!",
+      body:
+        "Confirma tu regalo. Tienes 96 minutos. Proporcionar las mercancías y aceptar las condiciones de la promoción.",
+    }),
+    message({
+      id: "temu-open-now",
+      from: "Temu <email@market.temuemail.com>",
+      subject: "Ábrelo AHORA",
+      body:
+        "Puedes revisar y actualizar o eliminar determinada información de la promoción. Artículos seleccionados desde $ 13.",
+    }),
+    message({
+      id: "temu-zero-items",
+      from: "Temu <email@market.temuemail.com>",
+      subject: "Por favor, recibe: 8 artículo(s) de $0",
+      body:
+        "Recibir artículos de $0 es parte de una actividad promocional. No hay factura, cobro recurrente ni renovación.",
+    }),
+  ],
+  "gmail-detected",
+);
+assert.equal(temuDetected.length, 0, "rejects high-volume Temu marketing campaigns");
 
 const movistar = detected.find((item) => item.name === "Movistar");
 assert.equal(movistar?.amount, 67990);
