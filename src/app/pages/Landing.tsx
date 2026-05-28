@@ -156,12 +156,6 @@ export default function Landing() {
               >
                 Iniciar sesión
               </button>
-              <Button
-                onClick={handleCTA}
-                className="motion-nav-button bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-4 sm:px-6 md:px-8 py-2 md:py-3 text-sm md:text-lg shadow-lg shadow-emerald-500/30"
-              >
-                Comenzar gratis
-              </Button>
             </div>
           </div>
         </div>
@@ -199,20 +193,8 @@ export default function Landing() {
               </p>
 
               <div
-                className="flex flex-col sm:flex-row gap-4 motion-stagger-item"
-                style={{ animationDelay: "330ms" }}
-              >
-                <Button
-                  onClick={handleCTA}
-                  className="motion-nav-button bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-8 py-6 text-lg font-semibold shadow-xl shadow-emerald-500/30"
-                >
-                  Comenzar gratis
-                </Button>
-              </div>
-
-              <div
                 className="flex items-center gap-8 pt-4 motion-stagger-item"
-                style={{ animationDelay: "430ms" }}
+                style={{ animationDelay: "330ms" }}
               >
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
@@ -594,14 +576,6 @@ export default function Landing() {
             <p className="text-xl text-emerald-100 mb-8 max-w-2xl mx-auto">
               Únete a miles de usuarios que ya están ahorrando dinero con Trimit
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={handleCTA}
-                className="bg-white hover:bg-gray-100 text-emerald-600 rounded-lg px-8 py-6 text-lg font-semibold shadow-xl"
-              >
-                Comenzar gratis
-              </Button>
-            </div>
             <p className="text-emerald-100 text-sm mt-6">
               Sin tarjeta de crédito • Cancela cuando quieras
             </p>

@@ -9,7 +9,6 @@ import {
   BarChart3,
   TrendingUp,
   FileText,
-  Tag,
   Users,
   Archive,
   Clock,
@@ -73,7 +72,6 @@ export default function Layout() {
     {
       title: "GESTIÓN",
       items: [
-        { icon: Tag, label: "Categorías", path: "/categories" },
         { icon: Users, label: "Compartidas", path: "/sharing" },
         { icon: Archive, label: "Archivadas", path: "/archived" },
         { icon: Clock, label: "Recordatorios", path: "/reminders" },

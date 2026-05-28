@@ -548,7 +548,7 @@ function NotificationRow({
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{notification.message}</p>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            {format(notification.createdAt, "d 'de' MMMM 'a las' HH:mm", { locale: es })}
+            {format(notification.createdAt, "d 'de' MMMM 'de' yyyy", { locale: es })}
           </p>
         </div>
         <div className="flex items-start gap-2">

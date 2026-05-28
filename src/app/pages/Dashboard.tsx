@@ -25,6 +25,33 @@ import {
   saveDetectedSubscriptionsDrafts,
 } from "../services/gmailDetection";
 
+const dayInMs = 24 * 60 * 60 * 1000;
+
+function startOfLocalDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function formatUpcomingPaymentLabel(date: Date) {
+  const today = startOfLocalDay(new Date());
+  const paymentDay = startOfLocalDay(date);
+  const daysUntilPayment = Math.ceil((paymentDay.getTime() - today.getTime()) / dayInMs);
+  const formattedDate = paymentDay.toLocaleDateString("es-CO", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  if (daysUntilPayment === 0) {
+    return `Próximo pago hoy, ${formattedDate}`;
+  }
+
+  if (daysUntilPayment === 1) {
+    return `Próximo pago mañana, ${formattedDate}`;
+  }
+
+  return `Próximo pago el ${formattedDate}`;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, requestGmailAccessToken, requestMicrosoftMailAccessToken } = useAuth();
@@ -71,6 +98,15 @@ export default function Dashboard() {
             a.nextPaymentDate.getTime() - b.nextPaymentDate.getTime(),
         )
         .slice(0, 4),
+    [subscriptions],
+  );
+
+  const nextUpcomingPayment = useMemo(
+    () =>
+      subscriptions
+        .filter((subscription) => subscription.status === "active")
+        .filter((subscription) => startOfLocalDay(subscription.nextPaymentDate) >= startOfLocalDay(new Date()))
+        .sort((a, b) => a.nextPaymentDate.getTime() - b.nextPaymentDate.getTime())[0],
     [subscriptions],
   );
 
@@ -300,9 +336,11 @@ export default function Dashboard() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                   Calendario de Pagos
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Próximo pago en 3 días
-                </p>
+                {nextUpcomingPayment && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {formatUpcomingPaymentLabel(nextUpcomingPayment.nextPaymentDate)}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

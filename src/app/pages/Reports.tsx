@@ -39,6 +39,117 @@ function createCsvContent(payments: UserPayment[]) {
   return [headers, ...rows].map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
 }
 
+function downloadBlob(content: BlobPart, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function sanitizePdfText(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7E]/g, " ")
+    .replace(/\\/g, "\\\\")
+    .replace(/\(/g, "\\(")
+    .replace(/\)/g, "\\)");
+}
+
+function wrapPdfLine(text: string, maxLength = 88) {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = "";
+
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > maxLength && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  }
+
+  if (current) {
+    lines.push(current);
+  }
+
+  return lines.length ? lines : [""];
+}
+
+function createPdfDocument(lines: Array<{ text: string; size?: number; gap?: number }>) {
+  const pageWidth = 612;
+  const pageHeight = 792;
+  const margin = 48;
+  const bottomMargin = 48;
+  const pages: string[] = [];
+  let y = pageHeight - margin;
+  let streamLines: string[] = [];
+
+  const flushPage = () => {
+    pages.push(`BT\n${streamLines.join("\n")}\nET`);
+    streamLines = [];
+    y = pageHeight - margin;
+  };
+
+  for (const line of lines) {
+    const size = line.size ?? 10;
+    const leading = Math.ceil(size * 1.45) + (line.gap ?? 0);
+
+    if (y - leading < bottomMargin && streamLines.length) {
+      flushPage();
+    }
+
+    streamLines.push(`/F1 ${size} Tf 1 0 0 1 ${margin} ${y} Tm (${sanitizePdfText(line.text)}) Tj`);
+    y -= leading;
+  }
+
+  if (streamLines.length) {
+    flushPage();
+  }
+
+  const objects: string[] = [];
+  objects[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+  objects[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+
+  const pageIds: number[] = [];
+  let nextId = 4;
+
+  pages.forEach((stream) => {
+    const pageId = nextId++;
+    const contentId = nextId++;
+    pageIds.push(pageId);
+    objects[pageId] =
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] ` +
+      `/Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`;
+    objects[contentId] = `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`;
+  });
+
+  objects[2] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;
+
+  const maxObjectId = nextId - 1;
+  const offsets = Array(maxObjectId + 1).fill(0);
+  let pdf = "%PDF-1.4\n";
+
+  for (let id = 1; id <= maxObjectId; id += 1) {
+    offsets[id] = pdf.length;
+    pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
+  }
+
+  const xrefOffset = pdf.length;
+  pdf += `xref\n0 ${maxObjectId + 1}\n0000000000 65535 f \n`;
+  for (let id = 1; id <= maxObjectId; id += 1) {
+    pdf += `${String(offsets[id]).padStart(10, "0")} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${maxObjectId + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+
+  return pdf;
+}
+
 export default function Reports() {
   const { user } = useAuth();
   const { formatMoney, convertMoney } = useCurrencyDisplay();
@@ -134,13 +245,71 @@ export default function Reports() {
 
   const handleExportCsv = () => {
     const csv = createCsvContent(payments);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "reporte-pagos.csv";
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(csv, "reporte-pagos.csv", "text/csv;charset=utf-8;");
+  };
+
+  const handleExportPdf = () => {
+    const generatedAt = new Date();
+    const lines: Array<{ text: string; size?: number; gap?: number }> = [
+      { text: "Trimit - Reporte financiero", size: 18, gap: 8 },
+      {
+        text: `Generado el ${generatedAt.toLocaleDateString("es-CO", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })}`,
+        size: 10,
+        gap: 12,
+      },
+      { text: "Resumen", size: 14, gap: 4 },
+      { text: `Reporte mensual: ${formatMoney(totalCurrentMonth)}` },
+      { text: `Reporte trimestral: ${formatMoney(quarterTotal)}` },
+      { text: `Proyeccion mensual: ${formatMoney(projectedMonthly)}` },
+      { text: `Variacion frente al mes anterior: ${monthVariation >= 0 ? "+" : ""}${monthVariation.toFixed(1)}%`, gap: 12 },
+      { text: "Desglose por categoria", size: 14, gap: 4 },
+    ];
+
+    if (categoryBreakdown.length) {
+      categoryBreakdown.forEach((category) => {
+        lines.push({
+          text: `${category.name}: ${formatMoney(category.amount)} (${category.percentage.toFixed(1)}%)`,
+        });
+      });
+    } else {
+      lines.push({ text: "Aun no hay pagos suficientes para generar desglose." });
+    }
+
+    lines.push({ text: "Suscripciones activas", size: 14, gap: 4 });
+    const activeSubscriptions = subscriptions.filter((sub) => sub.status === "active").slice(0, 14);
+    if (activeSubscriptions.length) {
+      activeSubscriptions.forEach((subscription) => {
+        lines.push({
+          text: `${subscription.name} - ${subscription.category} - ${formatMoney(convertMoney(subscription.amount, subscription.currency))}`,
+        });
+      });
+    } else {
+      lines.push({ text: "No hay suscripciones activas registradas." });
+    }
+
+    lines.push({ text: "Pagos recientes", size: 14, gap: 4 });
+    const recentPayments = [...payments]
+      .sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime())
+      .slice(0, 18);
+
+    if (recentPayments.length) {
+      recentPayments.forEach((payment) => {
+        const paymentLine = `${payment.paymentDate.toLocaleDateString("es-CO")} - ${payment.subscriptionName} - ${payment.category} - ${formatMoney(
+          convertMoney(payment.amount, payment.currency),
+        )} - ${payment.status}`;
+        wrapPdfLine(paymentLine).forEach((text) => lines.push({ text }));
+      });
+    } else {
+      lines.push({ text: "No hay pagos registrados todavia." });
+    }
+
+    const pdf = createPdfDocument(lines);
+    const filename = `reporte-trimit-${generatedAt.toISOString().slice(0, 10)}.pdf`;
+    downloadBlob(pdf, filename, "application/pdf");
   };
 
   return (
@@ -150,13 +319,22 @@ export default function Reports() {
           <h1 className="text-3xl mb-2 dark:text-white">Reportes</h1>
           <p className="text-gray-500">Análisis detallado basado en tus datos reales</p>
         </div>
-        <button
-          onClick={handleExportCsv}
-          className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          Exportar CSV
-        </button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button
+            onClick={handleExportPdf}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-white shadow-lg transition-colors hover:bg-cyan-700"
+          >
+            <FileText className="w-4 h-4" />
+            Descargar PDF
+          </button>
+          <button
+            onClick={handleExportCsv}
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-white shadow-lg transition-colors hover:bg-emerald-600"
+          >
+            <Download className="w-4 h-4" />
+            Exportar CSV
+          </button>
+        </div>
       </div>
 
       {error && (

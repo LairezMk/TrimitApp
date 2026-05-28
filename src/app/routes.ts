@@ -15,7 +15,6 @@ import SubscriptionDetail from "./pages/SubscriptionDetail";
 import Calendar from "./pages/Calendar";
 import Analytics from "./pages/Analytics";
 import Budget from "./pages/Budget";
-import Categories from "./pages/Categories";
 import PaymentMethods from "./pages/PaymentMethods";
 import Reports from "./pages/Reports";
 import Trends from "./pages/Trends";
@@ -134,7 +133,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "/categories",
-            Component: Categories,
+            loader: () => redirect("/dashboard"),
           },
           {
             path: "/payment-methods",
