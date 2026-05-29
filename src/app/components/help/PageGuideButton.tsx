@@ -1,5 +1,6 @@
 import { HelpCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router";
+import { getGuideForPath } from "../../help/helpContent";
 
 export function PageGuideButton() {
   const navigate = useNavigate();
@@ -12,7 +13,10 @@ export function PageGuideButton() {
     return null;
   }
 
-  const hasHelpGuide = location.pathname !== "/" && location.pathname !== "/auth";
+  const hasHelpGuide =
+    location.pathname !== "/" &&
+    location.pathname !== "/auth" &&
+    Boolean(getGuideForPath(location.pathname));
 
   if (!hasHelpGuide) {
     return null;

@@ -104,7 +104,6 @@ export default function Profile() {
       displayName: form.displayName.trim(),
       phone: form.phone.trim(),
       location: form.location.trim(),
-      photoURL: form.photoURL.trim(),
     };
 
     if (!trimmedForm.displayName) {
@@ -116,8 +115,7 @@ export default function Profile() {
     if (
       trimmedForm.displayName !== form.displayName ||
       trimmedForm.phone !== form.phone ||
-      trimmedForm.location !== form.location ||
-      trimmedForm.photoURL !== form.photoURL
+      trimmedForm.location !== form.location
     ) {
       setForm((prev) => ({ ...prev, ...trimmedForm }));
       setMessage("No se permiten espacios al inicio o al final.");
@@ -128,7 +126,6 @@ export default function Profile() {
     try {
       await updateProfile(user, {
         displayName: trimmedForm.displayName,
-        photoURL: trimmedForm.photoURL || null,
       });
 
       await setDoc(
@@ -137,7 +134,6 @@ export default function Profile() {
           displayName: trimmedForm.displayName,
           phone: trimmedForm.phone,
           location: trimmedForm.location,
-          photoURL: trimmedForm.photoURL,
           updatedAt: serverTimestamp(),
         },
         { merge: true },
@@ -202,7 +198,10 @@ export default function Profile() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
         <div className="xl:col-span-2 space-y-4 md:space-y-6">
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div
+            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
+            data-tour="profile-info"
+          >
             <div className="flex items-center gap-4 mb-6">
               <div className="relative">
                 {form.photoURL ? (
@@ -243,20 +242,6 @@ export default function Profile() {
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, displayName: e.target.value }))
                   }
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="text-sm text-gray-600 dark:text-gray-300 mb-1.5 block">
-                  URL de foto de perfil
-                </label>
-                <input
-                  value={form.photoURL}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, photoURL: e.target.value }))
-                  }
-                  placeholder="https://..."
                   className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
                 />
               </div>
@@ -311,7 +296,10 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div
+            className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6"
+            data-tour="profile-security"
+          >
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 inline-flex items-center gap-2">
               <KeyRound className="w-4 h-4" />
               Seguridad
@@ -374,7 +362,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4" data-tour="profile-summary">
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
               Resumen de cuenta

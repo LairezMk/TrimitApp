@@ -132,8 +132,21 @@ export const HELP_GUIDES: HelpGuide[] = [
     title: "Estadísticas",
     summary: "Métricas avanzadas para entender tendencias de gasto.",
     steps: [
-      { title: "Métricas generales", description: "Resumen de consumo por periodo." },
-      { title: "Distribución por categoría", description: "Identifica dónde gastas más." },
+      {
+        title: "Métricas generales",
+        description: "Resumen de consumo por periodo.",
+        selector: "[data-tour='analytics-metrics']",
+      },
+      {
+        title: "Gráficos principales",
+        description: "Identifica tendencia mensual y distribución por categoría.",
+        selector: "[data-tour='analytics-charts']",
+      },
+      {
+        title: "Comparación mensual",
+        description: "Contrasta el mes actual con meses anteriores.",
+        selector: "[data-tour='analytics-comparison']",
+      },
     ],
   },
   {
@@ -141,8 +154,21 @@ export const HELP_GUIDES: HelpGuide[] = [
     title: "Tendencias",
     summary: "Detecta patrones y cambios de gasto en el tiempo.",
     steps: [
-      { title: "Tendencia mensual", description: "Evolución de gasto mes a mes." },
-      { title: "Alertas de crecimiento", description: "Identifica incrementos relevantes." },
+      {
+        title: "Indicadores de tendencia",
+        description: "Resumen de gasto, promedio y meses extremos.",
+        selector: "[data-tour='trends-stats']",
+      },
+      {
+        title: "Evolución",
+        description: "Evolución de gasto mes a mes.",
+        selector: "[data-tour='trends-chart']",
+      },
+      {
+        title: "Insights",
+        description: "Identifica incrementos y señales relevantes.",
+        selector: "[data-tour='trends-insights']",
+      },
     ],
   },
   {
@@ -150,8 +176,21 @@ export const HELP_GUIDES: HelpGuide[] = [
     title: "Reportes",
     summary: "Genera y exporta reportes consolidados.",
     steps: [
-      { title: "Reportes disponibles", description: "Selecciona el tipo de reporte." },
-      { title: "Exportación", description: "Descarga la información para análisis externo." },
+      {
+        title: "Exportación",
+        description: "Descarga la información en PDF o CSV.",
+        selector: "[data-tour='reports-actions']",
+      },
+      {
+        title: "Reportes disponibles",
+        description: "Consulta resumen mensual, trimestral y proyección.",
+        selector: "[data-tour='reports-summary']",
+      },
+      {
+        title: "Gráficos y categorías",
+        description: "Revisa comparación mensual y desglose por categoría.",
+        selector: "[data-tour='reports-chart']",
+      },
     ],
   },
   {
@@ -164,21 +203,25 @@ export const HELP_GUIDES: HelpGuide[] = [
     ],
   },
   {
-    route: "/reminders",
-    title: "Recordatorios",
-    summary: "Configura alertas para evitar cobros inesperados.",
-    steps: [
-      { title: "Listado", description: "Consulta recordatorios activos y su estado." },
-      { title: "Preferencias", description: "Ajusta cuándo y cómo recibir avisos." },
-    ],
-  },
-  {
     route: "/recommendations",
     title: "Recomendaciones",
     summary: "Sugerencias para optimizar gastos según tus suscripciones.",
     steps: [
-      { title: "Sugerencias activas", description: "Recomendaciones de ahorro y optimización." },
-      { title: "Comparación", description: "Analiza alternativas para pagar menos." },
+      {
+        title: "Ahorro potencial",
+        description: "Resumen del ahorro estimado con base en tus suscripciones.",
+        selector: "[data-tour='recommendations-summary']",
+      },
+      {
+        title: "Sugerencias activas",
+        description: "Recomendaciones de ahorro y optimización.",
+        selector: "[data-tour='recommendations-list']",
+      },
+      {
+        title: "Precios de referencia",
+        description: "Analiza alternativas colombianas para comparar mejor.",
+        selector: "[data-tour='recommendations-market']",
+      },
     ],
   },
   {
@@ -186,8 +229,21 @@ export const HELP_GUIDES: HelpGuide[] = [
     title: "Perfil",
     summary: "Administra tus datos personales y seguridad.",
     steps: [
-      { title: "Información de cuenta", description: "Actualiza nombre, foto y datos personales." },
-      { title: "Seguridad", description: "Cambia tu contraseña desde el perfil." },
+      {
+        title: "Información de cuenta",
+        description: "Actualiza nombre y datos personales.",
+        selector: "[data-tour='profile-info']",
+      },
+      {
+        title: "Seguridad",
+        description: "Cambia tu contraseña desde el perfil.",
+        selector: "[data-tour='profile-security']",
+      },
+      {
+        title: "Resumen",
+        description: "Consulta tu actividad y acceso a logros.",
+        selector: "[data-tour='profile-summary']",
+      },
     ],
   },
   {
@@ -204,17 +260,70 @@ export const HELP_GUIDES: HelpGuide[] = [
     title: "Configuración",
     summary: "Personaliza comportamiento y preferencias de la aplicación.",
     steps: [
-      { title: "Preferencias", description: "Ajusta parámetros generales de la app." },
-      { title: "Integraciones", description: "Configura opciones de sincronización y alertas." },
+      {
+        title: "Notificaciones",
+        description: "Configura avisos, correos y recordatorios.",
+        selector: "[data-tour='settings-notifications']",
+      },
+      {
+        title: "Apariencia",
+        description: "Ajusta tema visual y privacidad de montos.",
+        selector: "[data-tour='settings-appearance']",
+      },
+      {
+        title: "Preferencias",
+        description: "Ajusta idioma, moneda, zona horaria y reglas por defecto.",
+        selector: "[data-tour='settings-preferences']",
+      },
+      {
+        title: "Guardar cambios",
+        description: "Sincroniza tus preferencias con tu cuenta.",
+        selector: "[data-tour='settings-save']",
+      },
     ],
   },
   {
     route: "/notifications",
-    title: "Notificaciones",
-    summary: "Controla avisos y actividad importante de tu cuenta.",
+    title: "Notificaciones y recordatorios",
+    summary: "Controla avisos, próximos pagos y recordatorios por correo.",
     steps: [
-      { title: "Centro de notificaciones", description: "Revisa los eventos recientes." },
-      { title: "Gestión", description: "Marca, limpia o prioriza notificaciones." },
+      {
+        title: "Próximos pagos",
+        description: "Configura cuándo recibir recordatorios internos o por correo.",
+        selector: "[data-tour='notifications-reminders']",
+      },
+      {
+        title: "Centro de notificaciones",
+        description: "Revisa, marca o limpia los eventos recientes.",
+        selector: "[data-tour='notifications-list']",
+      },
+      {
+        title: "Estado de correos",
+        description: "Comprueba si los recordatorios por correo están en cola, enviados o fallidos.",
+        selector: "[data-tour='notifications-email-status']",
+      },
+    ],
+  },
+  {
+    route: "/sharing",
+    title: "Compartidas",
+    summary: "Crea grupos para dividir pagos recurrentes con otras personas.",
+    steps: [
+      {
+        title: "Resumen compartido",
+        description: "Consulta ahorro, grupos activos, miembros y tu pago mensual estimado.",
+        selector: "[data-tour='sharing-stats']",
+      },
+      {
+        title: "Crear compartida",
+        description: "Elige una suscripción, agrega integrantes y crea el grupo.",
+        selector: "[data-tour='sharing-create']",
+      },
+      {
+        title: "Grupos compartidos",
+        description: "Administra integrantes, copia enlaces, envía recordatorios o elimina grupos.",
+        selector: "[data-tour='sharing-groups']",
+      },
     ],
   },
 ];
@@ -270,5 +379,25 @@ export function getGuideForPath(pathname: string): HelpGuide | null {
   const partial = HELP_GUIDES.find(
     (guide) => pathname.startsWith(`${guide.route}/`) && guide.route !== "/",
   );
-  return partial || null;
+  if (partial) {
+    return partial;
+  }
+
+  if (pathname === "/" || pathname === "/auth" || pathname === "/help") {
+    return null;
+  }
+
+  return {
+    route: pathname,
+    title: "Guía de esta vista",
+    summary: "Orientación general para esta sección de Trimit.",
+    steps: [
+      {
+        title: "Vista actual",
+        description:
+          "Revisa la información principal, acciones disponibles y formularios de esta pantalla.",
+        selector: "[data-tour-page]",
+      },
+    ],
+  };
 }

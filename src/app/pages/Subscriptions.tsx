@@ -75,6 +75,9 @@ export default function Subscriptions() {
     return matchesSearch && matchesFilter;
   });
 
+  const primaryActionButtonClass =
+    "h-14 w-full min-w-0 px-5 text-sm font-semibold shadow-lg sm:min-w-[190px] xl:min-w-[210px] xl:text-base";
+
   const handleDetectByEmail = async () => {
     if (!user) {
       setError("Debes iniciar sesión para detectar suscripciones por correo.");
@@ -194,8 +197,8 @@ export default function Subscriptions() {
         className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-100 mb-5 md:mb-6"
         data-tour="subscriptions-filters"
       >
-        <div className="flex flex-col xl:flex-row gap-4 items-stretch xl:items-center justify-between">
-          <div className="flex-1 relative w-full">
+        <div className="flex flex-col 2xl:flex-row gap-4 items-stretch 2xl:items-center justify-between">
+          <div className="flex-1 relative w-full 2xl:min-w-[360px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
@@ -205,25 +208,58 @@ export default function Subscriptions() {
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-            <Button
-              onClick={handleDetectByEmail}
-              disabled={detectingByStatement || detectingByEmail}
-              className="order-first sm:order-none bg-gradient-to-r from-cyan-600 to-emerald-500 hover:from-cyan-700 hover:to-emerald-600 text-white w-full sm:w-auto min-h-12 lg:min-h-14 px-5 lg:px-6 text-sm lg:text-base font-semibold shadow-lg shadow-cyan-500/20"
-            >
-              {detectingByEmail ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Detectando...
-                </>
-              ) : (
-                <>
-                  <MailSearch className="w-5 h-5 mr-2" />
-                  Detectar por correo
-                </>
-              )}
-            </Button>
-            <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full sm:w-auto overflow-x-auto">
+          <div className="flex flex-col gap-3 w-full 2xl:w-auto xl:flex-row xl:items-center">
+            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 xl:w-auto">
+              <Button
+                onClick={handleDetectByEmail}
+                disabled={detectingByStatement || detectingByEmail}
+                className={`${primaryActionButtonClass} bg-gradient-to-r from-cyan-600 to-emerald-500 text-white shadow-cyan-500/20 hover:from-cyan-700 hover:to-emerald-600`}
+              >
+                {detectingByEmail ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Detectando...
+                  </>
+                ) : (
+                  <>
+                    <MailSearch className="w-5 h-5 mr-2" />
+                    Detectar por correo
+                  </>
+                )}
+              </Button>
+              <input
+                ref={statementInputRef}
+                type="file"
+                accept=".pdf,.xls,.xlsx,.csv"
+                className="hidden"
+                onChange={handleStatementFileChange}
+              />
+              <Button
+                onClick={() => statementInputRef.current?.click()}
+                disabled={detectingByStatement || detectingByEmail}
+                className={`${primaryActionButtonClass} bg-blue-600 text-white hover:bg-blue-700`}
+              >
+                {detectingByStatement ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Analizando...
+                  </>
+                ) : (
+                  <>
+                    <FileUp className="w-5 h-5 mr-2" />
+                    Subir extracto
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => navigate("/subscriptions/add")}
+                className={`${primaryActionButtonClass} bg-emerald-500 text-white hover:bg-emerald-600`}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Nueva
+              </Button>
+            </div>
+            <div className="flex gap-2 bg-gray-100 rounded-lg p-1 w-full xl:w-auto overflow-x-auto">
               <button
                 onClick={() => setFilterStatus("all")}
                 className={`motion-filter-chip px-4 py-2 rounded-md text-sm transition-colors ${
@@ -255,37 +291,6 @@ export default function Subscriptions() {
                 Olvidadas
               </button>
             </div>
-            <input
-              ref={statementInputRef}
-              type="file"
-              accept=".pdf,.xls,.xlsx,.csv"
-              className="hidden"
-              onChange={handleStatementFileChange}
-            />
-            <Button
-              onClick={() => statementInputRef.current?.click()}
-              disabled={detectingByStatement || detectingByEmail}
-              className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto min-h-11"
-            >
-              {detectingByStatement ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analizando...
-                </>
-              ) : (
-                <>
-                  <FileUp className="w-4 h-4 mr-2" />
-                  Subir extracto (PDF/Excel)
-                </>
-              )}
-            </Button>
-            <Button
-              onClick={() => navigate("/subscriptions/add")}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto min-h-11"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva
-            </Button>
           </div>
         </div>
       </div>

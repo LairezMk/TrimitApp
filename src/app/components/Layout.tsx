@@ -11,7 +11,6 @@ import {
   FileText,
   Users,
   Archive,
-  Clock,
   Lightbulb,
   Calculator,
   Bell,
@@ -29,6 +28,7 @@ import { PageGuideButton } from "./help/PageGuideButton";
 import { PageTourOverlay } from "./help/PageTourOverlay";
 import { useState } from "react";
 import { AchievementsWatcher } from "./gamification/AchievementsWatcher";
+import { WelcomeOnboarding } from "./onboarding/WelcomeOnboarding";
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -74,7 +74,6 @@ export default function Layout() {
       items: [
         { icon: Users, label: "Compartidas", path: "/sharing" },
         { icon: Archive, label: "Archivadas", path: "/archived" },
-        { icon: Clock, label: "Recordatorios", path: "/reminders" },
       ],
     },
     {
@@ -322,12 +321,16 @@ export default function Layout() {
       </aside>
 
       {/* Main Content */}
-      <main className="app-content pt-16 md:pt-0 md:ml-64 flex-1 min-h-screen">
+      <main
+        className="app-content pt-16 md:pt-0 md:ml-64 flex-1 min-h-screen"
+        data-tour-page
+      >
         <PageTransition>
           <Outlet />
         </PageTransition>
         <PageGuideButton />
         <PageTourOverlay />
+        <WelcomeOnboarding />
         <AchievementsWatcher />
       </main>
     </div>

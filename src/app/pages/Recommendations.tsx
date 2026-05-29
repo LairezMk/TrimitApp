@@ -268,7 +268,10 @@ export default function Recommendations() {
         </div>
       )}
 
-      <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 md:p-8 text-white shadow-lg mb-8">
+      <div
+        className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-5 md:p-8 text-white shadow-lg mb-8"
+        data-tour="recommendations-summary"
+      >
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -294,7 +297,7 @@ export default function Recommendations() {
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8" data-tour="recommendations-list">
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Recomendaciones Personalizadas</h2>
 
         <div className="space-y-4">
@@ -433,7 +436,7 @@ export default function Recommendations() {
         </div>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8" data-tour="recommendations-market">
         <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h2 className="text-xl font-semibold dark:text-white">Base de precios Colombia</h2>

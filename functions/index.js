@@ -88,14 +88,28 @@ function buildReminderTemplate({
   paymentDateLabel,
   daysBefore,
   unsubscribeUrl,
+  actionUrl,
+  isManual = false,
 }) {
-  const subject = `Recordatorio Trimit: ${subscriptionName} vence en ${daysBefore} día(s)`;
+  const appUrl = actionUrl || TRIMIT_APP_URL.value().replace(/\/$/, "");
+  const safeDaysBefore = Math.max(0, Number(daysBefore || 0));
+  const timingLabel =
+    safeDaysBefore === 0
+      ? "hoy"
+      : `en ${safeDaysBefore} día${safeDaysBefore === 1 ? "" : "s"}`;
+  const subject = isManual
+    ? `Prueba de recordatorio Trimit: ${subscriptionName}`
+    : `Recordatorio Trimit: ${subscriptionName} vence ${timingLabel}`;
   const text = [
     `Hola ${userName},`,
     "",
-    `Tu suscripción "${subscriptionName}" se cobrará en ${daysBefore} día(s).`,
+    isManual
+      ? "Este es un correo de prueba enviado desde Trimit para comprobar tus recordatorios."
+      : `Tu suscripción "${subscriptionName}" se cobrará ${timingLabel}.`,
     `Valor: ${amountLabel}`,
     `Fecha estimada de cobro: ${paymentDateLabel}`,
+    "",
+    `Puedes revisar este recordatorio en Trimit: ${appUrl}`,
     "",
     `Si no deseas más recordatorios por correo, desactívalos aquí: ${unsubscribeUrl}`,
   ].join("\n");
@@ -103,37 +117,87 @@ function buildReminderTemplate({
   const html = `
 <!doctype html>
 <html lang="es">
-  <body style="margin:0;background:#f4fbf8;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:24px 12px;">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>${subject}</title>
+  </head>
+  <body style="margin:0;background:#ecfdf7;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      ${isManual ? "Correo de prueba de tus recordatorios Trimit." : `Tu próximo pago de ${subscriptionName} está programado para ${paymentDateLabel}.`}
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#ecfdf7;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #d1fae5;border-radius:16px;overflow:hidden;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:660px;background:#ffffff;border:1px solid #bdebd8;border-radius:22px;overflow:hidden;box-shadow:0 22px 55px rgba(6,78,59,.12);">
             <tr>
-              <td style="padding:24px;background:linear-gradient(120deg,#10b981,#06b6d4);color:#ffffff;">
-                <h1 style="margin:0;font-size:22px;font-weight:700;">Trimit</h1>
-                <p style="margin:8px 0 0 0;font-size:14px;opacity:0.92;">Recordatorio de pago programado</p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:24px;">
-                <p style="margin:0 0 12px 0;font-size:16px;">Hola <strong>${userName}</strong>,</p>
-                <p style="margin:0 0 18px 0;font-size:14px;line-height:1.6;color:#475569;">
-                  Este es un recordatorio de Trimit para que tengas control total sobre tus renovaciones.
-                </p>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #cdeee1;border-radius:12px;background:#ecfdf5;">
+              <td style="padding:28px;background:#052e2b;color:#ffffff;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                   <tr>
-                    <td style="padding:16px;">
-                      <p style="margin:0 0 8px 0;font-size:12px;color:#065f46;text-transform:uppercase;letter-spacing:.08em;">Suscripción</p>
-                      <p style="margin:0 0 16px 0;font-size:18px;font-weight:700;color:#064e3b;">${subscriptionName}</p>
-                      <p style="margin:0 0 6px 0;font-size:13px;color:#065f46;">Valor: <strong style="color:#064e3b;">${amountLabel}</strong></p>
-                      <p style="margin:0;font-size:13px;color:#065f46;">Fecha estimada de cobro: <strong style="color:#064e3b;">${paymentDateLabel}</strong></p>
+                    <td>
+                      <div style="font-size:24px;font-weight:900;letter-spacing:.2px;">Trimit</div>
+                      <div style="margin-top:7px;font-size:13px;color:#99f6e4;">Control claro de tus pagos recurrentes</div>
+                    </td>
+                    <td align="right">
+                      <span style="display:inline-block;border:1px solid rgba(153,246,228,.45);border-radius:999px;padding:8px 12px;font-size:12px;color:#ccfbf1;">
+                        ${isManual ? "Correo de prueba" : "Recordatorio"}
+                      </span>
                     </td>
                   </tr>
                 </table>
-                <p style="margin:18px 0 0 0;font-size:13px;color:#64748b;">
-                  Enviado automáticamente por Trimit cuando faltan ${daysBefore} día(s) para tu próximo cobro.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:30px 28px 12px 28px;">
+                <h1 style="margin:0 0 12px 0;font-size:27px;line-height:1.25;color:#0f172a;">
+                  ${isManual ? "Tu correo de recordatorio funciona" : `Pago próximo ${timingLabel}`}
+                </h1>
+                <p style="margin:0;font-size:15px;line-height:1.7;color:#475569;">
+                  Hola <strong>${userName}</strong>, ${
+                    isManual
+                      ? "enviamos esta prueba para validar que los recordatorios por correo están activos."
+                      : "te avisamos con tiempo para que puedas revisar tu próximo cobro sin sorpresas."
+                  }
                 </p>
-                <p style="margin:12px 0 0 0;font-size:12px;color:#64748b;">
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 28px 10px 28px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #bbf7d0;border-radius:18px;background:#f0fdf4;">
+                  <tr>
+                    <td style="padding:20px;">
+                      <p style="margin:0 0 8px 0;font-size:12px;font-weight:800;color:#047857;text-transform:uppercase;letter-spacing:.08em;">Suscripción</p>
+                      <p style="margin:0 0 18px 0;font-size:22px;font-weight:900;color:#064e3b;">${subscriptionName}</p>
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                        <tr>
+                          <td style="padding:12px;border-radius:14px;background:#ffffff;border:1px solid #d1fae5;">
+                            <p style="margin:0 0 5px 0;font-size:12px;color:#64748b;">Valor estimado</p>
+                            <p style="margin:0;font-size:20px;font-weight:900;color:#0f766e;">${amountLabel}</p>
+                          </td>
+                          <td width="12"></td>
+                          <td style="padding:12px;border-radius:14px;background:#ffffff;border:1px solid #d1fae5;">
+                            <p style="margin:0 0 5px 0;font-size:12px;color:#64748b;">Fecha de cobro</p>
+                            <p style="margin:0;font-size:16px;font-weight:800;color:#0f172a;">${paymentDateLabel}</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:12px 28px 4px 28px;">
+                <a href="${appUrl}" style="display:block;text-align:center;background:#10b981;color:#ffffff;text-decoration:none;border-radius:14px;padding:15px 20px;font-size:15px;font-weight:900;box-shadow:0 12px 26px rgba(16,185,129,.24);">Abrir Trimit</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:14px 28px 30px 28px;">
+                <p style="margin:0;font-size:13px;line-height:1.7;color:#64748b;">
+                  ${isManual ? "Este envío no cambia la fecha ni el estado del recordatorio." : `Enviado por Trimit cuando faltan ${safeDaysBefore} día(s) para tu próximo cobro.`}
+                </p>
+                <p style="margin:12px 0 0 0;font-size:12px;line-height:1.6;color:#64748b;">
                   ¿No deseas más estos correos?
                   <a href="${unsubscribeUrl}" style="color:#0f766e;text-decoration:underline;">Darme de baja</a>.
                 </p>
@@ -149,13 +213,18 @@ function buildReminderTemplate({
   return { subject, text, html };
 }
 
-function buildTransactionalMessageOptions() {
+function buildTransactionalMessageOptions({ messageType = "transactional", unsubscribeUrl } = {}) {
   const options = {
     headers: {
       "X-Auto-Response-Suppress": "All",
-      "X-Trimit-Message-Type": "password-reset",
+      "Auto-Submitted": "auto-generated",
+      "X-Trimit-Message-Type": messageType,
     },
   };
+  if (unsubscribeUrl) {
+    options.headers["List-Unsubscribe"] = `<${unsubscribeUrl}>`;
+    options.headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+  }
   const from = TRIMIT_EMAIL_FROM.value().trim();
   const replyTo = TRIMIT_EMAIL_REPLY_TO.value().trim();
   if (from) {
@@ -192,7 +261,10 @@ function getSmtpConfig() {
 }
 
 async function sendTransactionalEmail({ to, template, meta }) {
-  const messageOptions = buildTransactionalMessageOptions();
+  const messageOptions = buildTransactionalMessageOptions({
+    messageType: meta.type || "transactional",
+    unsubscribeUrl: meta.unsubscribeUrl,
+  });
   const from = messageOptions.from || TRIMIT_SMTP_USER.value().trim();
   const smtpConfig = getSmtpConfig();
 
@@ -363,6 +435,42 @@ async function ensureUnsubscribeToken(userRef, preferences) {
   return token;
 }
 
+function getReminderSendPlan({ reminder, now, paymentDate, timeZone, fallbackReminderDays }) {
+  const mode = String(reminder.emailMode || "none");
+  const daysUntil = daysUntilInTimeZone(now, paymentDate, timeZone);
+
+  if (mode === "once") {
+    const emailDate = toDateFromUnknown(reminder.emailOnceDate);
+    if (!emailDate || dateKeyInTimeZone(now, timeZone) !== dateKeyInTimeZone(emailDate, timeZone)) {
+      return null;
+    }
+    return { mode, reminderDays: Math.max(0, daysUntil) };
+  }
+
+  if (mode === "interval") {
+    const intervalDays = Math.max(1, Math.round(Number(reminder.emailIntervalDays || 1)));
+    if (daysUntil < 0 || daysUntil % intervalDays !== 0) {
+      return null;
+    }
+    return { mode, reminderDays: daysUntil };
+  }
+
+  if (mode === "days_before") {
+    const reminderDays = clampReminderDays(Number(reminder.daysBeforeReminder ?? fallbackReminderDays));
+    if (daysUntil !== reminderDays) {
+      return null;
+    }
+    return { mode, reminderDays };
+  }
+
+  return null;
+}
+
+function buildEmailReminderEventId({ subscriptionId, reminderId, paymentDate, reminderDays, mode }) {
+  const label = paymentDate.toISOString().slice(0, 10);
+  return `${subscriptionId}-${reminderId || "global"}-${label}-${mode}-${reminderDays}d`;
+}
+
 exports.schedulePaymentReminderEmails = onSchedule(
   {
     schedule: "every 6 hours",
@@ -402,24 +510,99 @@ exports.schedulePaymentReminderEmails = onSchedule(
         .collection("subscriptions")
         .where("status", "==", "active")
         .get();
+      const remindersSnapshot = await userDoc.ref
+        .collection("reminders")
+        .where("enabled", "==", true)
+        .get();
       const userDateKey = dateKeyInTimeZone(now, timeZone);
       const userRateRef = userDoc.ref.collection("emailReminderRateLimit").doc(userDateKey);
+      const subscriptionsById = new Map();
 
       for (const subscriptionDoc of subscriptionsSnapshot.docs) {
-        if (subscriptionDoc.id === "_meta") {
-          continue;
+        if (subscriptionDoc.id !== "_meta") {
+          subscriptionsById.set(subscriptionDoc.id, subscriptionDoc.data() || {});
         }
-        const subscription = subscriptionDoc.data() || {};
-        const paymentDate = toDateFromUnknown(subscription.nextPaymentDate);
-        if (!paymentDate) {
-          continue;
-        }
-        const daysUntil = daysUntilInTimeZone(now, paymentDate, timeZone);
-        if (daysUntil !== reminderDays) {
-          continue;
-        }
+      }
 
-        const eventId = buildReminderEventId(subscriptionDoc.id, paymentDate, reminderDays);
+      const emailReminderDocs = remindersSnapshot.docs.filter((reminderDoc) => {
+        const reminder = reminderDoc.data() || {};
+        const mode = String(reminder.emailMode || "none");
+        return reminderDoc.id !== "_meta" && mode !== "none";
+      });
+      const candidates = [];
+
+      if (emailReminderDocs.length > 0) {
+        for (const reminderDoc of emailReminderDocs) {
+          const reminder = reminderDoc.data() || {};
+          const subscriptionId = String(reminder.subscriptionId || "");
+          const subscription = subscriptionsById.get(subscriptionId);
+          if (!subscription) {
+            continue;
+          }
+          const paymentDate =
+            toDateFromUnknown(reminder.date) || toDateFromUnknown(subscription.nextPaymentDate);
+          if (!paymentDate) {
+            continue;
+          }
+
+          const plan = getReminderSendPlan({
+            reminder,
+            now,
+            paymentDate,
+            timeZone,
+            fallbackReminderDays: reminderDays,
+          });
+          if (!plan) {
+            continue;
+          }
+
+          candidates.push({
+            subscriptionId,
+            subscription,
+            paymentDate,
+            reminderId: reminderDoc.id,
+            mode: plan.mode,
+            reminderDays: plan.reminderDays,
+          });
+        }
+      } else {
+        for (const subscriptionDoc of subscriptionsSnapshot.docs) {
+          if (subscriptionDoc.id === "_meta") {
+            continue;
+          }
+          const subscription = subscriptionDoc.data() || {};
+          const paymentDate = toDateFromUnknown(subscription.nextPaymentDate);
+          if (!paymentDate) {
+            continue;
+          }
+          const daysUntil = daysUntilInTimeZone(now, paymentDate, timeZone);
+          if (daysUntil !== reminderDays) {
+            continue;
+          }
+
+          candidates.push({
+            subscriptionId: subscriptionDoc.id,
+            subscription,
+            paymentDate,
+            reminderId: "global",
+            mode: "global",
+            reminderDays,
+          });
+        }
+      }
+
+      for (const candidate of candidates) {
+        const { subscription, subscriptionId, paymentDate, reminderId, mode, reminderDays: candidateReminderDays } = candidate;
+        const eventId =
+          mode === "global"
+            ? buildReminderEventId(subscriptionId, paymentDate, candidateReminderDays)
+            : buildEmailReminderEventId({
+                subscriptionId,
+                reminderId,
+                paymentDate,
+                reminderDays: candidateReminderDays,
+                mode,
+              });
         const eventRef = userDoc.ref.collection("emailReminderEvents").doc(eventId);
         const unsubscribeUrl = `${TRIMIT_UNSUBSCRIBE_BASE_URL.value()}?uid=${encodeURIComponent(userDoc.id)}&token=${encodeURIComponent(unsubscribeToken)}`;
         const template = buildReminderTemplate({
@@ -427,7 +610,12 @@ exports.schedulePaymentReminderEmails = onSchedule(
           subscriptionName: String(subscription.name || "Suscripción"),
           amountLabel: formatAmount(subscription.amount, subscription.currency),
           paymentDateLabel: formatDate(paymentDate, timeZone),
-          daysBefore: reminderDays,
+          daysBefore: candidateReminderDays,
+          unsubscribeUrl,
+          actionUrl: `${TRIMIT_APP_URL.value().replace(/\/$/, "")}/notifications`,
+        });
+        const messageOptions = buildTransactionalMessageOptions({
+          messageType: "subscription_payment_reminder",
           unsubscribeUrl,
         });
 
@@ -445,6 +633,7 @@ exports.schedulePaymentReminderEmails = onSchedule(
           tx.set(mailRef, {
             to: [email],
             message: {
+              ...messageOptions,
               subject: template.subject,
               text: template.text,
               html: template.html,
@@ -454,9 +643,11 @@ exports.schedulePaymentReminderEmails = onSchedule(
               uid: userDoc.id,
               eventId,
               attempt: 1,
-              subscriptionId: subscriptionDoc.id,
+              subscriptionId,
+              reminderId,
+              reminderMode: mode,
               subscriptionName: String(subscription.name || "Suscripción"),
-              daysBefore: reminderDays,
+              daysBefore: candidateReminderDays,
               currency: String(subscription.currency || "COP"),
               amount: Number(subscription.amount || 0),
             },
@@ -470,9 +661,11 @@ exports.schedulePaymentReminderEmails = onSchedule(
             attempts: 1,
             createdAt: FieldValue.serverTimestamp(),
             lastAttemptAt: FieldValue.serverTimestamp(),
-            reminderDays,
+            reminderDays: candidateReminderDays,
+            reminderId,
+            reminderMode: mode,
             timezone: timeZone,
-            subscriptionId: subscriptionDoc.id,
+            subscriptionId,
             subscriptionName: String(subscription.name || "Suscripción"),
             amount: Number(subscription.amount || 0),
             currency: String(subscription.currency || "COP"),
@@ -516,6 +709,153 @@ exports.schedulePaymentReminderEmails = onSchedule(
       usersEvaluated: usersSnapshot.size,
       runDateKey,
     });
+  },
+);
+
+exports.sendReminderEmailNow = onCall(
+  {
+    region: REGION,
+    memory: "256MiB",
+    secrets: [TRIMIT_SMTP_PASS],
+  },
+  async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Inicia sesión para enviar el recordatorio.");
+    }
+
+    const reminderId = String(request.data?.reminderId || "").trim();
+    if (!reminderId) {
+      throw new HttpsError("invalid-argument", "Selecciona un recordatorio válido.");
+    }
+
+    const userRef = db.collection("users").doc(uid);
+    const [userSnapshot, reminderSnapshot] = await Promise.all([
+      userRef.get(),
+      userRef.collection("reminders").doc(reminderId).get(),
+    ]);
+    if (!userSnapshot.exists) {
+      throw new HttpsError("not-found", "No encontramos tu perfil de Trimit.");
+    }
+    if (!reminderSnapshot.exists) {
+      throw new HttpsError("not-found", "No encontramos este recordatorio.");
+    }
+
+    const userData = userSnapshot.data() || {};
+    const preferences = userData.preferences || {};
+    if (preferences.paymentReminderEmailUnsubscribed) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Reactiva los recordatorios por correo antes de enviar una prueba.",
+      );
+    }
+
+    const email = String(userData.email || request.auth?.token?.email || "").trim().toLowerCase();
+    if (!email) {
+      throw new HttpsError("failed-precondition", "Tu perfil no tiene un correo válido.");
+    }
+
+    const reminder = reminderSnapshot.data() || {};
+    if (String(reminder.emailMode || "none") === "none") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Activa el recordatorio por correo antes de enviar una prueba.",
+      );
+    }
+
+    const subscriptionId = String(reminder.subscriptionId || "").trim();
+    if (!subscriptionId) {
+      throw new HttpsError("failed-precondition", "El recordatorio no tiene una suscripción asociada.");
+    }
+
+    const subscriptionSnapshot = await userRef.collection("subscriptions").doc(subscriptionId).get();
+    if (!subscriptionSnapshot.exists) {
+      throw new HttpsError("not-found", "No encontramos la suscripción de este recordatorio.");
+    }
+
+    const subscription = subscriptionSnapshot.data() || {};
+    const timeZone = typeof userData.timezone === "string" ? userData.timezone : "America/Bogota";
+    const displayName = String(userData.displayName || request.auth?.token?.name || "Usuario").trim() || "Usuario";
+    const paymentDate =
+      toDateFromUnknown(reminder.date) ||
+      toDateFromUnknown(subscription.nextPaymentDate) ||
+      new Date();
+    const daysBefore = Math.max(0, daysUntilInTimeZone(new Date(), paymentDate, timeZone));
+    const unsubscribeToken = await ensureUnsubscribeToken(userRef, preferences);
+    const unsubscribeUrl = `${TRIMIT_UNSUBSCRIBE_BASE_URL.value()}?uid=${encodeURIComponent(uid)}&token=${encodeURIComponent(unsubscribeToken)}`;
+    const subscriptionName = String(subscription.name || reminder.subscriptionName || "Suscripción");
+    const template = buildReminderTemplate({
+      userName: displayName,
+      subscriptionName,
+      amountLabel: formatAmount(subscription.amount, subscription.currency),
+      paymentDateLabel: formatDate(paymentDate, timeZone),
+      daysBefore,
+      unsubscribeUrl,
+      actionUrl: `${TRIMIT_APP_URL.value().replace(/\/$/, "")}/notifications`,
+      isManual: true,
+    });
+    const eventId = `manual-${reminderId}-${Date.now()}`;
+
+    try {
+      const delivery = await sendTransactionalEmail({
+        to: email,
+        template,
+        meta: {
+          type: "subscription_payment_reminder",
+          source: "manual_reminder_email_test",
+          uid,
+          eventId,
+          attempt: 1,
+          subscriptionId,
+          reminderId,
+          reminderMode: "manual",
+          subscriptionName,
+          daysBefore,
+          currency: String(subscription.currency || "COP"),
+          amount: Number(subscription.amount || 0),
+          unsubscribeUrl,
+        },
+      });
+
+      await userRef.collection("emailReminderEvents").doc(eventId).set({
+        uid,
+        state: delivery.provider === "nodemailer" ? "sent" : "queued",
+        eventId,
+        attempts: 1,
+        createdAt: FieldValue.serverTimestamp(),
+        lastAttemptAt: FieldValue.serverTimestamp(),
+        sentAt: delivery.provider === "nodemailer" ? FieldValue.serverTimestamp() : null,
+        provider: delivery.provider,
+        providerMessageId: delivery.messageId || "",
+        reminderDays: daysBefore,
+        reminderId,
+        reminderMode: "manual",
+        timezone: timeZone,
+        subscriptionId,
+        subscriptionName,
+        amount: Number(subscription.amount || 0),
+        currency: String(subscription.currency || "COP"),
+        scheduledFor: paymentDate,
+        to: email,
+      });
+
+      logger.info("Manual reminder email processed", {
+        uid,
+        reminderId,
+        subscriptionId,
+        provider: delivery.provider,
+      });
+      return { ok: true, provider: delivery.provider };
+    } catch (error) {
+      logger.error("Could not send manual reminder email", {
+        uid,
+        reminderId,
+        subscriptionId,
+        code: error?.code,
+        message: error?.message,
+      });
+      throw new HttpsError("internal", "No se pudo enviar el correo de recordatorio.");
+    }
   },
 );
 

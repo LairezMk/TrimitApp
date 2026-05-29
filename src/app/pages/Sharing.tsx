@@ -244,7 +244,10 @@ export default function Sharing() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6"
+        data-tour="sharing-stats"
+      >
         <div className="bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg">
           <Wallet className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Ahorro mensual total</p>
@@ -266,7 +269,10 @@ export default function Sharing() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6"
+        data-tour="sharing-create"
+      >
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-semibold dark:text-white">Crear compartida</h2>
           <button
@@ -333,13 +339,14 @@ export default function Sharing() {
 
       {loading && <LoadingState title="Cargando compartidas..." />}
 
-      {!loading && groupCards.length === 0 && (
-        <EmptyState
-          icon={Users}
-          title="Aún no tienes grupos compartidos"
-          description="Crea un grupo para dividir costos con familia o amigos."
-        />
-      )}
+      <div data-tour="sharing-groups">
+        {!loading && groupCards.length === 0 && (
+          <EmptyState
+            icon={Users}
+            title="Aún no tienes grupos compartidos"
+            description="Crea un grupo para dividir costos con familia o amigos."
+          />
+        )}
 
       <div className="space-y-4">
         {groupCards.map(({ group, subscription, memberCount, yourShare, savings }) => (
@@ -358,6 +365,7 @@ export default function Sharing() {
             onRemoveMember={(member) => handleRemoveMember(group, member)}
           />
         ))}
+      </div>
       </div>
     </div>
   );

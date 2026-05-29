@@ -176,7 +176,10 @@ export default function Trends() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-8"
+        data-tour="trends-stats"
+      >
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <Activity className="w-8 h-8 mb-2" />
           <p className="text-emerald-100 text-sm">Gasto este mes</p>
@@ -217,7 +220,10 @@ export default function Trends() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8"
+        data-tour="trends-chart"
+      >
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Evolución de Gastos</h2>
         <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={trendData}>
@@ -237,7 +243,7 @@ export default function Trends() {
         </ResponsiveContainer>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8" data-tour="trends-insights">
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Insights del Mes</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
           {insights.map((insight, index) => (
@@ -272,7 +278,10 @@ export default function Trends() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+        data-tour="trends-subscriptions"
+      >
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Número de Suscripciones</h2>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={trendData}>

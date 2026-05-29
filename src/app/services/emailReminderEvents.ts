@@ -6,6 +6,8 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
+  setDoc,
   where,
   writeBatch,
 } from "firebase/firestore";
@@ -95,6 +97,33 @@ export function subscribeToUserEmailReminderEvents(
 export async function deleteUserEmailReminderEvent(uid: string, eventId: string) {
   const ref = doc(db, "users", uid, "emailReminderEvents", eventId);
   await deleteDoc(ref);
+}
+
+export async function createUserEmailReminderEvent(
+  uid: string,
+  input: {
+    eventId: string;
+    subscriptionId: string;
+    subscriptionName: string;
+    amount: number;
+    currency: string;
+    to: string;
+    reminderDays: number;
+    scheduledFor: Date;
+    provider: string;
+  },
+) {
+  const ref = doc(db, "users", uid, "emailReminderEvents", input.eventId);
+  await setDoc(ref, {
+    uid,
+    ...input,
+    state: "sent",
+    attempts: 1,
+    reminderMode: "manual",
+    createdAt: serverTimestamp(),
+    lastAttemptAt: serverTimestamp(),
+    sentAt: serverTimestamp(),
+  });
 }
 
 export async function clearUserEmailReminderEventsByState(

@@ -165,7 +165,10 @@ export default function Settings() {
       </div>
 
       <div className="max-w-5xl space-y-4 md:space-y-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
+        <div
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors"
+          data-tour="settings-notifications"
+        >
           <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-start sm:items-center gap-3">
               <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center shrink-0">
@@ -226,7 +229,10 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
+        <div
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors"
+          data-tour="settings-appearance"
+        >
           <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-start sm:items-center gap-3">
               <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center shrink-0">
@@ -312,7 +318,10 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors">
+        <div
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors"
+          data-tour="settings-preferences"
+        >
           <div className="p-4 md:p-6 border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-start sm:items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center shrink-0">
@@ -403,7 +412,10 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-4 md:p-6 border border-emerald-100 dark:border-emerald-800 flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
+        <div
+          className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl p-4 md:p-6 border border-emerald-100 dark:border-emerald-800 flex flex-col md:flex-row md:items-center gap-4 md:justify-between"
+          data-tour="settings-save"
+        >
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Trimit v1.0.0 • Tus preferencias se sincronizan con tu cuenta.
           </p>

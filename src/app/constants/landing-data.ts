@@ -19,7 +19,6 @@ export const pages = [
   { name: "Reportes", path: "/reports" },
   { name: "Tendencias", path: "/trends" },
   { name: "Recomendaciones", path: "/recommendations" },
-  { name: "Recordatorios", path: "/reminders" },
   { name: "Notificaciones", path: "/notifications" },
   { name: "Calculadora", path: "/calculator" },
   { name: "Archivados", path: "/archived" },

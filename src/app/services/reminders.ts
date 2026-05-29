@@ -13,6 +13,7 @@ import { db } from "../lib/firebase";
 import { dateFromInputValue } from "../utils/date";
 
 export type ReminderType = "payment" | "renewal" | "trial_end";
+export type ReminderEmailMode = "none" | "once" | "days_before" | "interval";
 
 export interface UserReminder {
   id: string;
@@ -22,6 +23,9 @@ export interface UserReminder {
   date: Date;
   daysBeforeReminder: number;
   enabled: boolean;
+  emailMode: ReminderEmailMode;
+  emailOnceDate?: Date;
+  emailIntervalDays?: number;
   icon: string;
   color: string;
 }
@@ -33,6 +37,9 @@ interface CreateReminderInput {
   date: Date;
   daysBeforeReminder: number;
   enabled?: boolean;
+  emailMode?: ReminderEmailMode;
+  emailOnceDate?: Date | null;
+  emailIntervalDays?: number;
   icon?: string;
   color?: string;
 }
@@ -70,6 +77,9 @@ function mapDocToReminder(id: string, data: Record<string, unknown>): UserRemind
     date: toDateValue(data.date),
     daysBeforeReminder: Number(data.daysBeforeReminder || 3),
     enabled: Boolean(data.enabled ?? true),
+    emailMode: (data.emailMode as ReminderEmailMode) || "none",
+    emailOnceDate: data.emailOnceDate ? toDateValue(data.emailOnceDate) : undefined,
+    emailIntervalDays: Number(data.emailIntervalDays || 0),
     icon: (data.icon as string) || "S",
     color: (data.color as string) || "bg-emerald-500",
   };
@@ -101,6 +111,9 @@ export async function createUserReminder(uid: string, input: CreateReminderInput
   await addDoc(ref, {
     ...input,
     enabled: input.enabled ?? true,
+    emailMode: input.emailMode || "none",
+    emailOnceDate: input.emailOnceDate || null,
+    emailIntervalDays: Number(input.emailIntervalDays || 0),
     icon: input.icon || input.subscriptionName.charAt(0).toUpperCase() || "S",
     color: input.color || "bg-emerald-500",
     createdAt: serverTimestamp(),

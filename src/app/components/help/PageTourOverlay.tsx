@@ -24,6 +24,7 @@ export function PageTourOverlay() {
   const guide = getGuideForPath(location.pathname);
   const steps = guide?.steps || [];
   const currentStep = steps[stepIndex];
+  const targetSelector = currentStep?.selector || "[data-tour-page]";
 
   useEffect(() => {
     setStepIndex(0);
@@ -44,7 +45,7 @@ export function PageTourOverlay() {
   }, [shouldOpen]);
 
   useEffect(() => {
-    if (!shouldOpen || !currentStep?.selector) {
+    if (!shouldOpen || !currentStep) {
       setRect(null);
       setTargetMissing(false);
       return;
@@ -52,7 +53,11 @@ export function PageTourOverlay() {
 
     const updateRect = (attempt = 0) => {
       const maxAttempts = 6;
-      const element = document.querySelector(currentStep.selector || "");
+      const primaryElement = document.querySelector(targetSelector);
+      const element =
+        primaryElement ||
+        document.querySelector("[data-tour-page]") ||
+        document.querySelector("main");
       if (!element) {
         if (attempt < maxAttempts) {
           window.setTimeout(() => updateRect(attempt + 1), 140);
@@ -62,8 +67,12 @@ export function PageTourOverlay() {
         setTargetMissing(true);
         return;
       }
-      setTargetMissing(false);
+      setTargetMissing(!primaryElement);
       const bounding = element.getBoundingClientRect();
+      if ((bounding.width <= 0 || bounding.height <= 0) && attempt < maxAttempts) {
+        window.setTimeout(() => updateRect(attempt + 1), 140);
+        return;
+      }
       const isOffscreen =
         bounding.top < 8 || bounding.bottom > window.innerHeight - 8;
 
@@ -89,7 +98,7 @@ export function PageTourOverlay() {
       window.removeEventListener("resize", handleUpdate);
       window.removeEventListener("scroll", handleUpdate, true);
     };
-  }, [shouldOpen, currentStep]);
+  }, [shouldOpen, currentStep, targetSelector]);
 
   if (!shouldOpen || isHelpPage || !guide || steps.length === 0) {
     return null;
@@ -119,7 +128,7 @@ export function PageTourOverlay() {
         className="fixed inset-0 bg-black/65"
       />
 
-      {rect && !isSmallViewport && (
+      {rect && (
         <div
           className="pointer-events-none fixed rounded-xl border-2 border-emerald-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)] transition-all duration-300"
           style={{
@@ -127,6 +136,7 @@ export function PageTourOverlay() {
             left: rect.left,
             width: rect.width,
             height: rect.height,
+            borderRadius: isSmallViewport ? 12 : 16,
           }}
         />
       )}
@@ -152,7 +162,7 @@ export function PageTourOverlay() {
             <p className="text-xs leading-relaxed text-slate-300 mt-1">{currentStep?.description}</p>
             {targetMissing && (
               <p className="text-[11px] text-amber-200 mt-2">
-                Este elemento no está visible en pantalla. Ajusta el scroll o continúa.
+                Esta vista usa una guía general porque el bloque específico no está disponible.
               </p>
             )}
           </div>

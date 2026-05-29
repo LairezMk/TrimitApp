@@ -190,7 +190,10 @@ export default function Analytics() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6 md:mb-8"
+        data-tour="analytics-metrics"
+      >
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between mb-2">
             <DollarSign className="w-8 h-8" />
@@ -233,7 +236,10 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 lg:gap-6 mb-6">
+      <div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 lg:gap-6 mb-6"
+        data-tour="analytics-charts"
+      >
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
           <h2 className="text-xl font-semibold mb-4">Tendencia mensual (pagos reales)</h2>
           <ResponsiveContainer width="100%" height={260}>
@@ -272,7 +278,10 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div
+        className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
+        data-tour="analytics-comparison"
+      >
         <h2 className="text-xl font-semibold mb-4">Comparación de gastos mensuales</h2>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={monthlyData}>

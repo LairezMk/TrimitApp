@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Mail,
-  Phone,
   PlayCircle,
 } from "lucide-react";
 import { HELP_FAQS, HELP_GUIDES, getGuideForPath } from "../help/helpContent";
@@ -195,14 +194,13 @@ export default function Help() {
           Nuestro equipo está listo para ayudarte
         </p>
         <div className="flex justify-center gap-4">
-          <button className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors font-medium flex items-center gap-2">
+          <a
+            href="mailto:trimitcol@gmail.com?subject=Soporte%20Trimit"
+            className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg shadow-lg transition-colors font-medium flex items-center gap-2"
+          >
             <Mail className="w-5 h-5" />
             Enviar Email
-          </button>
-          <button className="px-6 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors font-medium flex items-center gap-2">
-            <Phone className="w-5 h-5" />
-            Llamar Soporte
-          </button>
+          </a>
         </div>
       </div>
     </div>

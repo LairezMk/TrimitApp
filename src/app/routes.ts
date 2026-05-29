@@ -19,7 +19,6 @@ import PaymentMethods from "./pages/PaymentMethods";
 import Reports from "./pages/Reports";
 import Trends from "./pages/Trends";
 import Recommendations from "./pages/Recommendations";
-import Reminders from "./pages/Reminders";
 import Notifications from "./pages/Notifications";
 import Calculator from "./pages/Calculator";
 import Archived from "./pages/Archived";
@@ -157,7 +156,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "/reminders",
-            Component: Reminders,
+            loader: () => redirect("/notifications"),
           },
           {
             path: "/notifications",

@@ -2,11 +2,8 @@ import { FormEvent, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, User } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  detectSubscriptionsFromGmail,
-  saveDetectedSubscriptionsDrafts,
-} from "../services/gmailDetection";
 import { getAuthErrorMessage } from "../utils/authErrors";
+import { saveRecentGmailAccessToken } from "../services/gmailAccessTokenSession";
 
 type Mode = "login" | "register";
 
@@ -142,21 +139,9 @@ export default function AuthPage() {
     setMessageType("error");
 
     try {
-      const { isNewUser, accessToken } = await loginWithGoogle();
-
-      if (!isNewUser) {
-        navigate("/dashboard");
-        return;
-      }
-
-      if (!accessToken) {
-        navigate("/dashboard");
-        return;
-      }
-
-      const detected = await detectSubscriptionsFromGmail(accessToken);
-      saveDetectedSubscriptionsDrafts(detected);
-      navigate("/subscriptions/gmail-confirmation");
+      const { accessToken } = await loginWithGoogle();
+      saveRecentGmailAccessToken(accessToken);
+      navigate("/dashboard");
     } catch (error) {
       setMessageType("error");
       setMessage(getAuthErrorMessage(error, "login"));

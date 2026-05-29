@@ -45,6 +45,10 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
+function paymentInstanceKey(subscriptionId: string, date: Date) {
+  return `${subscriptionId}-${dateToInputValue(date)}`;
+}
+
 export default function Calendar() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -61,6 +65,7 @@ export default function Calendar() {
   const [newAmount, setNewAmount] = useState("");
   const [newDate, setNewDate] = useState(dateToInputValue(new Date()));
   const [addingPayment, setAddingPayment] = useState(false);
+  const [markingPaymentId, setMarkingPaymentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -165,16 +170,28 @@ export default function Calendar() {
   );
 
   const upcomingProjected = useMemo<DisplayPayment[]>(
-    () =>
-      activeSubscriptions.map((subscription) => ({
-        id: `projected-${subscription.id}`,
-        subscription,
-        date: subscription.nextPaymentDate,
-        amount: subscription.amount,
-        status: "upcoming",
-        source: "projected",
-      })),
-    [activeSubscriptions],
+    () => {
+      const paidKeys = new Set(
+        payments
+          .filter((payment) => payment.status === "paid")
+          .map((payment) => paymentInstanceKey(payment.subscriptionId, payment.paymentDate)),
+      );
+
+      return activeSubscriptions
+        .filter(
+          (subscription) =>
+            !paidKeys.has(paymentInstanceKey(subscription.id, subscription.nextPaymentDate)),
+        )
+        .map((subscription) => ({
+          id: `projected-${subscription.id}`,
+          subscription,
+          date: subscription.nextPaymentDate,
+          amount: subscription.amount,
+          status: "upcoming",
+          source: "projected",
+        }));
+    },
+    [activeSubscriptions, payments],
   );
 
   const allPayments = useMemo(
@@ -287,6 +304,33 @@ export default function Calendar() {
       setError(text);
     } finally {
       setAddingPayment(false);
+    }
+  };
+
+  const handleMarkProjectedAsPaid = async (payment: DisplayPayment) => {
+    if (!user || payment.status !== "upcoming") {
+      return;
+    }
+
+    setMarkingPaymentId(payment.id);
+    setError(null);
+    try {
+      await createUserPayment(user.uid, {
+        subscriptionId: payment.subscription.id,
+        subscriptionName: payment.subscription.name,
+        category: payment.subscription.category,
+        amount: payment.amount,
+        currency: payment.subscription.currency,
+        paymentDate: payment.date,
+        source: "manual",
+        status: "paid",
+        notes: "Registrado desde pago proyectado vencido.",
+      });
+    } catch (err) {
+      const text = err instanceof Error ? err.message : "No se pudo marcar el pago como pagado.";
+      setError(text);
+    } finally {
+      setMarkingPaymentId(null);
     }
   };
 
@@ -664,6 +708,7 @@ export default function Calendar() {
             filteredPayments.map((payment, index) => {
               const isUpcoming = payment.status === "upcoming";
               const daysUntil = isUpcoming ? getDaysUntilPayment(payment.date) : null;
+              const isOverdue = isUpcoming && daysUntil !== null && daysUntil < 0;
               return (
                 <div
                   key={payment.id}
@@ -734,15 +779,27 @@ export default function Calendar() {
                           </p>
                         )}
                       </div>
-                      <span
-                        className={`w-fit rounded-full px-3 py-1 text-xs font-semibold sm:justify-self-end ${
-                        isUpcoming
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200"
-                          : "bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-200"
-                      }`}
-                      >
-                        {isUpcoming ? "Programado" : "Pagado"}
-                      </span>
+                      <div className="flex flex-col items-start gap-2 sm:items-end">
+                        <span
+                          className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                            isUpcoming
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200"
+                              : "bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-200"
+                          }`}
+                        >
+                          {isUpcoming ? "Programado" : "Pagado"}
+                        </span>
+                        {isOverdue && (
+                          <button
+                            type="button"
+                            onClick={() => handleMarkProjectedAsPaid(payment)}
+                            disabled={markingPaymentId === payment.id}
+                            className="inline-flex items-center justify-center rounded-lg border border-emerald-300 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-50 disabled:opacity-60 dark:border-emerald-400/40 dark:text-emerald-100 dark:hover:bg-emerald-400/10"
+                          >
+                            {markingPaymentId === payment.id ? "Guardando..." : "Marcar como pagado"}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

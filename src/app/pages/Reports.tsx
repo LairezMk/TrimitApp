@@ -314,7 +314,10 @@ export default function Reports() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div
+        className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+        data-tour="reports-actions"
+      >
         <div>
           <h1 className="text-3xl mb-2 dark:text-white">Reportes</h1>
           <p className="text-gray-500">Análisis detallado basado en tus datos reales</p>
@@ -356,7 +359,10 @@ export default function Reports() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8"
+        data-tour="reports-summary"
+      >
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -418,7 +424,10 @@ export default function Reports() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-4 md:p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6"
+        data-tour="reports-chart"
+      >
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Comparación Mes a Mes</h2>
         <ResponsiveContainer width="100%" height={260}>
           <BarChart data={monthlyComparison}>
@@ -433,7 +442,10 @@ export default function Reports() {
         </ResponsiveContainer>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+      <div
+        className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6"
+        data-tour="reports-categories"
+      >
         <h2 className="text-xl font-semibold mb-6 dark:text-white">Desglose por Categoría</h2>
 
         <div className="space-y-4">
