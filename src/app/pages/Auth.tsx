@@ -3,7 +3,6 @@ import { Link, Navigate, useNavigate } from "react-router";
 import { CheckCircle2, Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, User } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { getAuthErrorMessage } from "../utils/authErrors";
-import { saveRecentGmailAccessToken } from "../services/gmailAccessTokenSession";
 
 type Mode = "login" | "register";
 
@@ -139,8 +138,7 @@ export default function AuthPage() {
     setMessageType("error");
 
     try {
-      const { accessToken } = await loginWithGoogle();
-      saveRecentGmailAccessToken(accessToken);
+      await loginWithGoogle();
       navigate("/dashboard");
     } catch (error) {
       setMessageType("error");

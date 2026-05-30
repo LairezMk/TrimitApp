@@ -57,12 +57,14 @@ assert.ok(
   "Google login does not scan before the welcome message",
 );
 assert.ok(
-  authPage.includes("saveRecentGmailAccessToken"),
-  "Google login hands off the fresh Gmail token to onboarding",
+  !authPage.includes("saveRecentGmailAccessToken"),
+  "auth page delegates Gmail token handoff to the auth context",
 );
 assert.ok(
-  authContext.includes("saveRecentGmailAccessToken"),
-  "Google auth stores the Gmail token immediately to avoid onboarding races",
+  authContext.includes("saveRecentGmailAccessToken") &&
+    authContext.includes("markWelcomeOnboardingPending") &&
+    authContext.includes("trimitWelcomePending"),
+  "Google auth stores the Gmail token and only flags welcome for new accounts",
 );
 assert.ok(
   welcomeOnboarding.includes("consumeRecentGmailAccessToken"),
@@ -80,8 +82,11 @@ assert.ok(
   "welcome onboarding hides the loading overlay before showing detected subscriptions",
 );
 assert.ok(
-  welcomeOnboarding.includes("trimitWelcomeShownAt"),
-  "welcome onboarding stores a one-time profile flag",
+  welcomeOnboarding.includes("trimitWelcomeShownAt") &&
+    welcomeOnboarding.includes("hasPendingWelcome") &&
+    welcomeOnboarding.includes("hasWelcomeOnboardingPending") &&
+    welcomeOnboarding.includes("clearWelcomeOnboardingPending"),
+  "welcome onboarding appears only for accounts with an explicit pending welcome flag",
 );
 assert.ok(
   welcomeOnboarding.includes('navigate("/subscriptions/gmail-confirmation")'),

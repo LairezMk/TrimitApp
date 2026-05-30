@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
@@ -7,12 +7,9 @@ import {
   Bell,
   Calendar,
   CheckCircle,
-  Clock3,
   Edit2,
   Info,
   Mail,
-  MailCheck,
-  MailWarning,
   Save,
   RefreshCw,
   Trash2,
@@ -364,11 +361,6 @@ export default function Notifications() {
     }
   };
 
-  const reminderQueued = emailReminderEvents.filter((item) => item.state === "queued").length;
-  const reminderSent = emailReminderEvents.filter((item) => item.state === "sent").length;
-  const reminderRetried = emailReminderEvents.filter((item) => item.state === "retried").length;
-  const reminderFailed = emailReminderEvents.filter((item) => item.state === "failed").length;
-
   const handleClearCompletedEmailEvents = async () => {
     if (!user) {
       return;
@@ -660,23 +652,6 @@ export default function Notifications() {
           {actionMessage}
         </div>
       )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-6">
-        <StatCard icon={Bell} label="Total" value={String(notifications.length)} />
-        <StatCard icon={AlertCircle} label="Sin leer" value={String(unreadCount)} />
-        <StatCard
-          icon={CheckCircle}
-          label="Leídas"
-          value={String(notifications.length - unreadCount)}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 lg:gap-6 mb-6">
-        <StatCard icon={Clock3} label="Correos en cola" value={String(reminderQueued)} />
-        <StatCard icon={MailCheck} label="Correos enviados" value={String(reminderSent)} />
-        <StatCard icon={RefreshCw} label="Correos reintentados" value={String(reminderRetried)} />
-        <StatCard icon={MailWarning} label="Correos fallidos" value={String(reminderFailed)} />
-      </div>
 
       <div
         className="mb-6 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800"
@@ -1074,28 +1049,6 @@ export default function Notifications() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-          <Icon className="w-5 h-5 text-emerald-600" />
-        </div>
-        <p className="text-gray-500 text-sm">{label}</p>
-      </div>
-      <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
     </div>
   );
 }

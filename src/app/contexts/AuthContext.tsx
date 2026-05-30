@@ -19,6 +19,7 @@ import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db, functions, googleProvider } from "../lib/firebase";
 import { bootstrapUserWorkspace } from "../services/userBootstrap";
 import { saveRecentGmailAccessToken } from "../services/gmailAccessTokenSession";
+import { markWelcomeOnboardingPending } from "../services/welcomeOnboardingSession";
 
 interface RegisterPayload {
   email: string;
@@ -67,6 +68,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: credential.user.email,
       displayName: safeDisplayName,
     });
+
+    markWelcomeOnboardingPending(credential.user.uid);
+    await setDoc(
+      doc(db, "users", credential.user.uid),
+      {
+        trimitWelcomePending: true,
+        trimitWelcomeVersion: 1,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
   };
 
   const login = async (email: string, password: string) => {
@@ -95,6 +107,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     saveRecentGmailAccessToken(accessToken);
     const isNewUser =
       credential.user.metadata.creationTime === credential.user.metadata.lastSignInTime;
+    if (isNewUser) {
+      markWelcomeOnboardingPending(credential.user.uid);
+    }
 
     await bootstrapUserWorkspace({
       uid: credential.user.uid,
@@ -106,6 +121,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       doc(db, "users", credential.user.uid),
       {
         lastLoginAt: serverTimestamp(),
+        ...(isNewUser
+          ? {
+              trimitWelcomePending: true,
+              trimitWelcomeVersion: 1,
+            }
+          : {}),
         updatedAt: serverTimestamp(),
       },
       { merge: true },

@@ -5,7 +5,7 @@ import { useCurrencyDisplay } from "../contexts/CurrencyDisplayContext";
 import { subscribeToUserSubscriptions } from "../services/subscriptions";
 import { getUserBudget, upsertUserBudget, type BudgetCategory } from "../services/budgets";
 import type { Subscription } from "../types/subscription";
-import { EmptyState, ErrorState, LoadingState } from "../components/PageStates";
+import { ErrorState, LoadingState } from "../components/PageStates";
 
 export default function Budget() {
   const { user } = useAuth();
@@ -272,12 +272,6 @@ export default function Budget() {
               </div>
             );
           })}
-          {categories.length === 0 && (
-            <EmptyState
-              title="No hay categorías de presupuesto"
-              description="Agrega una categoría y su límite para comenzar a controlar el gasto."
-            />
-          )}
         </div>
       </div>
 

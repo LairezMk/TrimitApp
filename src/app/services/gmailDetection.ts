@@ -989,6 +989,24 @@ function isLikelyAccountStatusNotice(text: string) {
   );
 }
 
+function isLikelyAccountSetupNotice(text: string) {
+  const normalized = text.toLowerCase();
+  const accountSetupLanguage =
+    /\b(termina\s+de\s+configurar|finaliza\s+la\s+configuraci[oó]n|completa\s+la\s+configuraci[oó]n|configura\s+tu\s+(?:nueva\s+)?cuenta|set\s+up\s+your\s+(?:new\s+)?account|finish\s+setting\s+up|complete\s+setup|welcome\s+to\s+your\s+new\s+account|cuenta\s+de\s+google|google\s+account)\b/i.test(
+      normalized,
+    );
+  const deviceLanguage =
+    /\b(celular|tel[eé]fono|dispositivo|m[oó]vil|android|iphone|pixel|samsung|xiaomi|redmi|poco|motorola|oppo|vivo|device|phone|new\s+device)\b/i.test(
+      normalized,
+    );
+  const securityOrProfileLanguage =
+    /\b(recuperaci[oó]n|sincronizaci[oó]n|contactos|fotos|play\s+store|gmail|verifica\s+tu\s+correo|confirmar\s+tu\s+correo|protege\s+tu\s+cuenta|seguridad\s+de\s+la\s+cuenta)\b/i.test(
+      normalized,
+    );
+
+  return accountSetupLanguage && (deviceLanguage || securityOrProfileLanguage);
+}
+
 function hasGmailSubscriptionHeaders(message: EmailMessage) {
   const headers = message.headers || {};
   return Boolean(
@@ -1447,6 +1465,9 @@ function detectSubscriptionsFromMessages(
       continue;
     }
     if (isTemuSender(from) || isTemuMarketingNotice(haystack)) {
+      continue;
+    }
+    if (isLikelyAccountSetupNotice(haystack)) {
       continue;
     }
 

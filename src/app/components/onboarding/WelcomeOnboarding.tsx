@@ -19,6 +19,10 @@ import {
   saveDetectedSubscriptionsDrafts,
 } from "../../services/gmailDetection";
 import { consumeRecentGmailAccessToken } from "../../services/gmailAccessTokenSession";
+import {
+  clearWelcomeOnboardingPending,
+  hasWelcomeOnboardingPending,
+} from "../../services/welcomeOnboardingSession";
 
 type WelcomePhase = "checking" | "welcome" | "scanning" | "scanError" | "hidden";
 
@@ -57,13 +61,20 @@ function hasSeenWelcome(data: Record<string, unknown> | undefined) {
   return Boolean(data?.trimitWelcomeShownAt || preferences.trimitWelcomeShownAt);
 }
 
+function hasPendingWelcome(data: Record<string, unknown> | undefined) {
+  const preferences = (data?.preferences || {}) as Record<string, unknown>;
+  return Boolean(data?.trimitWelcomePending || preferences.trimitWelcomePending);
+}
+
 async function markWelcomeAsSeen(uid: string) {
   await setDoc(
     doc(db, "users", uid),
     {
+      trimitWelcomePending: false,
       trimitWelcomeShownAt: serverTimestamp(),
       trimitWelcomeVersion: 1,
       preferences: {
+        trimitWelcomePending: false,
         trimitWelcomeShownAt: serverTimestamp(),
         trimitWelcomeVersion: 1,
       },
@@ -93,16 +104,16 @@ export function WelcomeOnboarding() {
 
       try {
         const snap = await getDoc(doc(db, "users", user.uid));
+        const data = snap.data() as Record<string, unknown> | undefined;
+        const shouldShowWelcome =
+          !hasSeenWelcome(data) &&
+          (hasPendingWelcome(data) || hasWelcomeOnboardingPending(user.uid));
         if (!cancelled) {
-          setPhase(
-            hasSeenWelcome(snap.data() as Record<string, unknown> | undefined)
-              ? "hidden"
-              : "welcome",
-          );
+          setPhase(shouldShowWelcome ? "welcome" : "hidden");
         }
       } catch {
         if (!cancelled) {
-          setPhase("welcome");
+          setPhase(hasWelcomeOnboardingPending(user.uid) ? "welcome" : "hidden");
         }
       }
     };
@@ -134,6 +145,8 @@ export function WelcomeOnboarding() {
       await markWelcomeAsSeen(user.uid);
     } catch {
       // Si no se puede guardar en este instante, no bloqueamos la entrada.
+    } finally {
+      clearWelcomeOnboardingPending(user.uid);
     }
 
     if (!accessTokenPromise) {
@@ -166,6 +179,8 @@ export function WelcomeOnboarding() {
         await markWelcomeAsSeen(user.uid);
       } catch {
         // No interrumpimos al usuario por un fallo temporal de guardado.
+      } finally {
+        clearWelcomeOnboardingPending(user.uid);
       }
     }
     setPhase("hidden");

@@ -78,6 +78,13 @@ const detected = detectSubscriptionsFromMessages(
         "Detectamos un intento de inicio de sesión. Código 67990. Verifica tu cuenta si no reconoces esta actividad.",
     }),
     message({
+      id: "google-account-setup",
+      from: "Google <no-reply@google.com>",
+      subject: "Termina de configurar tu nueva Cuenta de Google en tu POCO X7 Pro",
+      body:
+        "Completa la configuración de tu cuenta de Google en tu nuevo celular. Revisa Gmail, sincroniza contactos y protege tu cuenta. Código del dispositivo 202.",
+    }),
+    message({
       id: "office-free-access",
       from: "utpinforma@utp.edu.co",
       subject: "Información sobre el acceso a Microsoft Office 365 gratuito",
@@ -120,6 +127,7 @@ assert.ok(
   !names.some((name) => /security|example/i.test(name)),
   "rejects security notices with numeric codes",
 );
+assert.ok(!names.includes("Google"), "rejects Google account setup notices");
 assert.ok(!names.includes("Microsoft 365"), "rejects free Office 365 access notices");
 assert.ok(!names.some((name) => /clickup|mail/i.test(name)), "rejects discount-only SaaS marketing");
 assert.ok(!names.includes("Spotify"), "rejects Spotify gift/referral promotions");
