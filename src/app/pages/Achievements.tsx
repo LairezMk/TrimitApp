@@ -173,7 +173,7 @@ export default function Achievements() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      <div className="mb-8">
+      <div className="mb-8" data-tour="achievements-header">
         <h1 className="text-3xl mb-2 dark:text-white">Logros</h1>
         <p className="text-gray-500 dark:text-gray-400">
           Desbloquea insignias mientras mejoras el control de tus suscripciones.
@@ -190,7 +190,10 @@ export default function Achievements() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8">
+      <div
+        className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-8"
+        data-tour="achievements-progress"
+      >
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-gray-500">Desbloqueados</p>
@@ -220,7 +223,10 @@ export default function Achievements() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6"
+        data-tour="achievements-list"
+      >
         {cards.map(({ achievement, unlockedData, progress }) => {
           const Icon = iconByKey[achievement.icon] || Trophy;
           const unlockedStyle = unlockedData

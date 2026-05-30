@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 
 const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
   scripts?: Record<string, string>;
@@ -12,6 +13,7 @@ const profilePage = readFileSync("src/app/pages/Profile.tsx", "utf8");
 const helpPage = readFileSync("src/app/pages/Help.tsx", "utf8");
 const notificationsPage = readFileSync("src/app/pages/Notifications.tsx", "utf8");
 const sharingPage = readFileSync("src/app/pages/Sharing.tsx", "utf8");
+const achievementsPage = readFileSync("src/app/pages/Achievements.tsx", "utf8");
 const helpContent = readFileSync("src/app/help/helpContent.ts", "utf8");
 const guideButton = readFileSync("src/app/components/help/PageGuideButton.tsx", "utf8");
 const tourOverlay = readFileSync("src/app/components/help/PageTourOverlay.tsx", "utf8");
@@ -24,6 +26,18 @@ const functionsIndex = readFileSync("functions/index.js", "utf8");
 const functionsEnvExample = readFileSync("functions/.env.example", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
 const emailJsTemplate = readFileSync("docs/emailjs-reminder-template.html", "utf8");
+const onboardingSaveIndex = welcomeOnboarding.indexOf("saveDetectedSubscriptionsDrafts(detected)");
+const onboardingHideIndex = welcomeOnboarding.indexOf('setPhase("hidden")', onboardingSaveIndex);
+const onboardingNavigateIndex = welcomeOnboarding.indexOf(
+  'navigate("/subscriptions/gmail-confirmation")',
+  onboardingSaveIndex,
+);
+const tourTargetSources = [
+  layout,
+  ...readdirSync("src/app/pages")
+    .filter((file) => file.endsWith(".tsx"))
+    .map((file) => readFileSync(join("src/app/pages", file), "utf8")),
+].join("\n");
 
 assert.equal(packageJson.scripts?.test, "npm run test:unit");
 assert.ok(packageJson.scripts?.["test:all"]?.includes("npm run build"));
@@ -47,8 +61,23 @@ assert.ok(
   "Google login hands off the fresh Gmail token to onboarding",
 );
 assert.ok(
+  authContext.includes("saveRecentGmailAccessToken"),
+  "Google auth stores the Gmail token immediately to avoid onboarding races",
+);
+assert.ok(
   welcomeOnboarding.includes("consumeRecentGmailAccessToken"),
   "welcome onboarding reuses the fresh Google login token before opening auth",
+);
+assert.ok(
+  welcomeOnboarding.includes("FIRST_GMAIL_SCAN_TIMEOUT_MS") &&
+    welcomeOnboarding.includes("withTimeout("),
+  "welcome onboarding scan cannot stay loading forever",
+);
+assert.ok(
+  onboardingSaveIndex >= 0 &&
+    onboardingHideIndex > onboardingSaveIndex &&
+    onboardingNavigateIndex > onboardingHideIndex,
+  "welcome onboarding hides the loading overlay before showing detected subscriptions",
 );
 assert.ok(
   welcomeOnboarding.includes("trimitWelcomeShownAt"),
@@ -84,15 +113,32 @@ assert.ok(
   "tour overlay has fallback highlighting and works on small viewports",
 );
 assert.ok(
+  !tourOverlay.includes("Esta vista usa una guía general"),
+  "tour overlay avoids exposing fallback implementation copy to users",
+);
+for (const [, selector] of helpContent.matchAll(/selector: "\[data-tour='([^']+)'\]"/g)) {
+  assert.ok(
+    tourTargetSources.includes(`data-tour="${selector}"`) ||
+      tourTargetSources.includes(`data-tour='${selector}'`),
+    `tour target ${selector} exists in the app shell or pages`,
+  );
+}
+assert.ok(
   helpContent.includes('route: "/sharing"') &&
     sharingPage.includes('data-tour="sharing-create"') &&
     sharingPage.includes('data-tour="sharing-groups"'),
   "sharing page has a contextual tour with concrete highlight targets",
 );
 assert.ok(
-  helpContent.includes('selector: "[data-tour=\\\'notifications-reminders\\\']"') ||
-    helpContent.includes('selector: "[data-tour=\'notifications-reminders\']"'),
+  helpContent.includes('selector: "[data-tour=\'notifications-reminders\']"') &&
+    notificationsPage.includes('data-tour="notifications-list"'),
   "notifications guide uses concrete reminder targets",
+);
+assert.ok(
+  helpContent.includes('route: "/profile/achievements"') &&
+    achievementsPage.includes('data-tour="achievements-progress"') &&
+    achievementsPage.includes('data-tour="achievements-list"'),
+  "achievements page has a contextual tour with concrete highlight targets",
 );
 assert.ok(
   functionsIndex.includes("getReminderSendPlan") && functionsIndex.includes("emailMode"),

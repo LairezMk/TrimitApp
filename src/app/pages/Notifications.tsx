@@ -778,43 +778,42 @@ export default function Notifications() {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-2">
-        <Filter className="w-4 h-4 text-gray-500" />
-        <select
-          value={filterMode}
-          onChange={(event) => setFilterMode(event.target.value as FilterMode)}
-          className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm"
-        >
-          <option value="all">Todas</option>
-          <option value="unread">Sin leer</option>
-          <option value="warning">Advertencias</option>
-          <option value="success">Éxito</option>
-          <option value="info">Informativas</option>
-          <option value="payment">Pagos</option>
-        </select>
-      </div>
-
-      {filteredNotifications.length === 0 ? (
-        <EmptyState
-          title="No hay notificaciones para este filtro"
-          description="Puedes sincronizar para generar notificaciones con base en tus datos reales."
-        />
-      ) : (
-        <div
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700"
-          data-tour="notifications-list"
-        >
-          {filteredNotifications.map((notification) => (
-            <NotificationRow
-              key={notification.id}
-              notification={notification}
-              busy={busy}
-              onToggleRead={() => handleToggleRead(notification)}
-              onDelete={() => handleDeleteOne(notification.id)}
-            />
-          ))}
+      <div data-tour="notifications-list">
+        <div className="mb-4 flex items-center gap-2">
+          <Filter className="w-4 h-4 text-gray-500" />
+          <select
+            value={filterMode}
+            onChange={(event) => setFilterMode(event.target.value as FilterMode)}
+            className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm"
+          >
+            <option value="all">Todas</option>
+            <option value="unread">Sin leer</option>
+            <option value="warning">Advertencias</option>
+            <option value="success">Éxito</option>
+            <option value="info">Informativas</option>
+            <option value="payment">Pagos</option>
+          </select>
         </div>
-      )}
+
+        {filteredNotifications.length === 0 ? (
+          <EmptyState
+            title="No hay notificaciones para este filtro"
+            description="Puedes sincronizar para generar notificaciones con base en tus datos reales."
+          />
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
+            {filteredNotifications.map((notification) => (
+              <NotificationRow
+                key={notification.id}
+                notification={notification}
+                busy={busy}
+                onToggleRead={() => handleToggleRead(notification)}
+                onDelete={() => handleDeleteOne(notification.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="mt-8" data-tour="notifications-email-status">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

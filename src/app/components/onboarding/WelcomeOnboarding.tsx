@@ -22,6 +22,21 @@ import { consumeRecentGmailAccessToken } from "../../services/gmailAccessTokenSe
 
 type WelcomePhase = "checking" | "welcome" | "scanning" | "scanError" | "hidden";
 
+const FIRST_GMAIL_SCAN_TIMEOUT_MS = 75_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string) {
+  let timeoutId: number | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error(message)), ms);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+  });
+}
+
 function isGoogleMailProfile(user: User) {
   return user.providerData.some(
     (provider) => provider.providerId === "google.com",
@@ -127,8 +142,13 @@ export function WelcomeOnboarding() {
 
     try {
       const accessToken = await accessTokenPromise;
-      const detected = await detectSubscriptionsFromGmail(accessToken);
+      const detected = await withTimeout(
+        detectSubscriptionsFromGmail(accessToken),
+        FIRST_GMAIL_SCAN_TIMEOUT_MS,
+        "La búsqueda en Gmail tardó más de lo esperado. Inténtalo de nuevo desde Suscripciones.",
+      );
       saveDetectedSubscriptionsDrafts(detected);
+      setPhase("hidden");
       navigate("/subscriptions/gmail-confirmation");
     } catch (err) {
       setScanError(

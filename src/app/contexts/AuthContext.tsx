@@ -18,6 +18,7 @@ import { httpsCallable } from "firebase/functions";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db, functions, googleProvider } from "../lib/firebase";
 import { bootstrapUserWorkspace } from "../services/userBootstrap";
+import { saveRecentGmailAccessToken } from "../services/gmailAccessTokenSession";
 
 interface RegisterPayload {
   email: string;
@@ -90,6 +91,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async () => {
     const credential = await signInWithPopup(auth, googleProvider);
     const additional = GoogleAuthProvider.credentialFromResult(credential);
+    const accessToken = additional?.accessToken || null;
+    saveRecentGmailAccessToken(accessToken);
     const isNewUser =
       credential.user.metadata.creationTime === credential.user.metadata.lastSignInTime;
 
@@ -108,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       { merge: true },
     );
 
-    return { isNewUser, accessToken: additional?.accessToken || null };
+    return { isNewUser, accessToken };
   };
 
   const logout = async () => {

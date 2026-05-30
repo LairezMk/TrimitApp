@@ -15,7 +15,6 @@ export function PageTourOverlay() {
   const navigate = useNavigate();
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
-  const [targetMissing, setTargetMissing] = useState(false);
   const [isSmallViewport, setIsSmallViewport] = useState(false);
 
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -47,7 +46,6 @@ export function PageTourOverlay() {
   useEffect(() => {
     if (!shouldOpen || !currentStep) {
       setRect(null);
-      setTargetMissing(false);
       return;
     }
 
@@ -64,10 +62,8 @@ export function PageTourOverlay() {
           return;
         }
         setRect(null);
-        setTargetMissing(true);
         return;
       }
-      setTargetMissing(!primaryElement);
       const bounding = element.getBoundingClientRect();
       if ((bounding.width <= 0 || bounding.height <= 0) && attempt < maxAttempts) {
         window.setTimeout(() => updateRect(attempt + 1), 140);
@@ -160,11 +156,6 @@ export function PageTourOverlay() {
           <div className="rounded-lg border border-white/15 bg-white/5 p-3 mb-4">
             <p className="text-sm font-medium">{currentStep?.title}</p>
             <p className="text-xs leading-relaxed text-slate-300 mt-1">{currentStep?.description}</p>
-            {targetMissing && (
-              <p className="text-[11px] text-amber-200 mt-2">
-                Esta vista usa una guía general porque el bloque específico no está disponible.
-              </p>
-            )}
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300 mb-4">

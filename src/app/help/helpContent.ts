@@ -251,8 +251,16 @@ export const HELP_GUIDES: HelpGuide[] = [
     title: "Logros",
     summary: "Desbloquea insignias según tu actividad y progreso en Trimit.",
     steps: [
-      { title: "Panel de progreso", description: "Consulta porcentaje completado y últimos logros." },
-      { title: "Listado de logros", description: "Revisa requisitos, rareza y estado de cada logro." },
+      {
+        title: "Resumen de logros",
+        description: "Consulta cuántas insignias has desbloqueado y cuál fue tu último avance.",
+        selector: "[data-tour='achievements-progress']",
+      },
+      {
+        title: "Listado de logros",
+        description: "Revisa requisitos, rareza y progreso de cada logro disponible.",
+        selector: "[data-tour='achievements-list']",
+      },
     ],
   },
   {

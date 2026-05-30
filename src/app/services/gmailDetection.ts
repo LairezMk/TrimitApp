@@ -1068,6 +1068,22 @@ function isTemuMarketingNotice(text: string) {
   );
 }
 
+function isTrimitGeneratedReminder(from: string, subject: string, text: string) {
+  const normalizedFrom = from.toLowerCase();
+  const normalized = `${subject} ${from} ${text}`.toLowerCase();
+  const sentByTrimit =
+    /\btrimit\b/.test(normalizedFrom) ||
+    /trimitcol@gmail\.com/.test(normalizedFrom) ||
+    (/emailjs/.test(normalizedFrom) && /\btrimit\b/.test(normalized));
+  const reminderFingerprint =
+    /\btrimit\b/.test(normalized) &&
+    /\b(recordatorio\s+de\s+pago|pago\s+registrado\s+en\s+trimit|abrir\s+trimit|recordatorio\s+solicitado\s+en\s+trimit|puedes\s+revisar\s+o\s+actualizar\s+este\s+recordatorio|control\s+claro\s+de\s+tus\s+pagos\s+recurrentes)\b/i.test(
+      normalized,
+    );
+
+  return sentByTrimit || reminderFingerprint;
+}
+
 function isLikelyOneTimeCommerce(text: string) {
   const normalized = text.toLowerCase();
   return /\b(pedido|orden|compra|carrito|env[ií]o|entrega|tracking|gu[ií]a|producto|seller|vendedor|order\s*(confirmation|shipped)|your\s*order|purchase|shipping|delivered)\b/i.test(
@@ -1427,6 +1443,9 @@ function detectSubscriptionsFromMessages(
     const from = message.from || "Correo detectado";
     const subject = message.subject || "Sin asunto";
     const haystack = `${subject} ${from} ${message.snippet || ""} ${message.body || ""}`;
+    if (isTrimitGeneratedReminder(from, subject, haystack)) {
+      continue;
+    }
     if (isTemuSender(from) || isTemuMarketingNotice(haystack)) {
       continue;
     }
@@ -1738,6 +1757,7 @@ export async function detectSubscriptionsFromOutlook(accessToken: string) {
 function isBlockedDetectedDraft(draft: DetectedSubscriptionDraft) {
   const haystack = `${draft.name} ${draft.from} ${draft.subject}`;
   return (
+    isTrimitGeneratedReminder(draft.from, draft.subject, haystack) ||
     isTemuSender(draft.from) ||
     isTemuMarketingNotice(haystack) ||
     isSuspiciousExtractedProviderName(draft.name)
